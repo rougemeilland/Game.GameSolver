@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37710.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.GameSolver", "Game.GameSolver\Game.GameSolver.csproj", "{E8E34C74-E41F-4E8E-9F39-B9D4D906525C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.SudokuSolver.GUI", "Game.SudokuSolver.GUI\Game.SudokuSolver.GUI.csproj", "{183B633C-5FB0-42A2-8BB4-7CFC26E22E41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.WateSortSolver.GUI", "Game.WateSortSolver.GUI\Game.WateSortSolver.GUI.csproj", "{1946E67B-762E-45BE-85C0-1B9CA564939C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experiment.CUI", "Experiment.CUI\Experiment.CUI.csproj", "{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E8E34C74-E41F-4E8E-9F39-B9D4D906525C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8E34C74-E41F-4E8E-9F39-B9D4D906525C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8E34C74-E41F-4E8E-9F39-B9D4D906525C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8E34C74-E41F-4E8E-9F39-B9D4D906525C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{183B633C-5FB0-42A2-8BB4-7CFC26E22E41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{183B633C-5FB0-42A2-8BB4-7CFC26E22E41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{183B633C-5FB0-42A2-8BB4-7CFC26E22E41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{183B633C-5FB0-42A2-8BB4-7CFC26E22E41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1946E67B-762E-45BE-85C0-1B9CA564939C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1946E67B-762E-45BE-85C0-1B9CA564939C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1946E67B-762E-45BE-85C0-1B9CA564939C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1946E67B-762E-45BE-85C0-1B9CA564939C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0FA99CEC-6D76-4D35-8BA6-D01EBC25931A}
+	EndGlobalSection
+EndGlobal
