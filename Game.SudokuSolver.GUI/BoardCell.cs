@@ -4,23 +4,37 @@ namespace Game.SudokuSolver.GUI
 {
     internal readonly struct BoardCell
     {
-        public BoardCell(int column, int row, int digit)
+        public BoardCell(BoardCellIndex cellIndex, BoardCellDigit digit)
         {
 #if DEBUG
-            ArgumentOutOfRangeException.ThrowIfLessThan(column, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(column, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(row, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(row, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(digit, 1);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(digit, 9);
+            if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(cellIndex));
+            if (digit is < BoardCellDigit.MinValue or > BoardCellDigit.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(digit));
 #endif
-            Column = (byte)column;
-            Row = (byte)row;
-            Digit = (byte)digit;
+            var (column, row) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
+            Column = column;
+            Row = row;
+            Digit = digit;
         }
 
-        public byte Column { get; }
-        public byte Row { get; }
-        public byte Digit { get; }
+        public BoardCell(BoardCellColumn column, BoardCellRow row, BoardCellDigit digit)
+        {
+#if DEBUG
+            if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(column));
+            if (row is < BoardCellRow.MinValue or > BoardCellRow.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(row));
+            if (digit is < BoardCellDigit.MinValue or > BoardCellDigit.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(digit));
+#endif
+            Column = column;
+            Row = row;
+            Digit = digit;
+        }
+
+        public BoardCellColumn Column { get; }
+        public BoardCellRow Row { get; }
+        public BoardCellDigit Digit { get; }
     }
 }

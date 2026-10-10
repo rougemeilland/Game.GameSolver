@@ -31,10 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Operations\MediumClass\" />
     <Folder Include="Operations\HardClass\" />
     <Folder Include="Operations\ExtremeClass\" />
-    <Folder Include="Operations\InsaneClass\" />
   </ItemGroup>
 
 </Project>

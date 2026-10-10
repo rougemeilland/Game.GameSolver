@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.WateSortSolver.GUI", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experiment.CUI", "Experiment.CUI\Experiment.CUI.csproj", "{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerator", "SourceGenerator\SourceGenerator.csproj", "{4E73358A-3657-49E4-BE4B-80780CBE1B3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C1E6ECC-49C4-4259-B5A6-81BD67BC73AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E73358A-3657-49E4-BE4B-80780CBE1B3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E73358A-3657-49E4-BE4B-80780CBE1B3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E73358A-3657-49E4-BE4B-80780CBE1B3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E73358A-3657-49E4-BE4B-80780CBE1B3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

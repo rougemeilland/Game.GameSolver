@@ -9,10 +9,22 @@ namespace Game.SudokuSolver.GUI
     internal abstract class SudokuBoardOperation
         : GameBoardOperation<SudokuBoardOperation>
     {
-        protected SudokuBoardOperation(DifficultyLevel difficulty)
+        protected SudokuBoardOperation(string title, DifficultyLevel difficulty, BoardCell? determinedCell, ReadOnlyMemory<BoardCell> hilightedCellNotes, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
         {
+            Title = title;
             Difficulty = difficulty;
+            DeterminedCell = determinedCell;
+            HilightedCellNotes = hilightedCellNotes;
+            RemovedCellNotes = removedCellNotes;
+            RelatedCellPositions = relatedCellPositions;
+            Description = description;
         }
+
+        /// <summary>
+        /// 定石の名前を取得します。
+        /// </summary>
+        /// 定石の名前を示す <see cref="string"/> オブジェクトです。
+        public string Title { get; }
 
         /// <summary>
         /// 定石の難易度を取得します。
@@ -29,11 +41,8 @@ namespace Game.SudokuSolver.GUI
         /// 確定されたセルが存在する場合はそのセルを示す <see cref="BoardCell"/> 値です。そうではない場合は <see langword="null"/> です。
         /// </value>
         /// <remarks>
-        /// <para>
-        /// このプロパティは継承可能です。
-        /// </para>
         /// </remarks>
-        public virtual BoardCell? DeterminedCell => null;
+        public BoardCell? DeterminedCell { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ肯定的なセルのメモのコレクションを取得します。
@@ -45,11 +54,8 @@ namespace Game.SudokuSolver.GUI
         /// <para>
         /// このプロパティは、例えば、セルのメモの絞り込みの根拠となったセルのメモのコレクションを意味します。
         /// </para>
-        /// <para>
-        /// このプロパティは継承可能です。
-        /// </para>
         /// </remarks>
-        public virtual ReadOnlyMemory<BoardCell> HilightedCellNotes => ReadOnlyMemory<BoardCell>.Empty;
+        public ReadOnlyMemory<BoardCell> HilightedCellNotes { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ否定的なセルのメモのコレクションを取得します。
@@ -61,11 +67,8 @@ namespace Game.SudokuSolver.GUI
         /// <para>
         /// このプロパティは、例えば、オペレーションの結果により削除されるセルのメモのコレクションを意味します。
         /// </para>
-        /// <para>
-        /// このプロパティは継承可能です。
-        /// </para>
         /// </remarks>
-        public virtual ReadOnlyMemory<BoardCell> RemovedCellNotes => ReadOnlyMemory<BoardCell>.Empty;
+        public ReadOnlyMemory<BoardCell> RemovedCellNotes { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ関連セルのコレクションを取得します。
@@ -77,11 +80,8 @@ namespace Game.SudokuSolver.GUI
         /// <para>
         /// このプロパティは、例えば、オペレーションによるセルメモの絞り込みの説明に役立つ範囲 (行、列、ブロック、任意のセルからの歌詞範囲、など) を意味します。
         /// </para>
-        /// <para>
-        /// このプロパティは継承可能です。
-        /// </para>
         /// </remarks>
-        public virtual ReadOnlyMemory<BoardCellPosition> RelatedCells => ReadOnlyMemory<BoardCellPosition>.Empty;
+        public ReadOnlyMemory<BoardCellPosition> RelatedCellPositions;
 
         /// <summary>
         /// オペレーションの動作内容を示す文字列を取得します。
@@ -97,11 +97,8 @@ namespace Game.SudokuSolver.GUI
         /// <item>このオペレーションが盤面に及ぼす影響</item>
         /// </list>
         /// </para>
-        /// <para>
-        /// このプロパティは継承必須です。
-        /// </para>
         /// </remarks>
-        public abstract string Description { get; }
+        public string Description { get; }
 
         /// <summary>
         /// 定石を盤面に適用します。

@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 
-namespace Game.SudokuSolver.GUI.Operations.BeginnerClass
+namespace Game.SudokuSolver.GUI.Operations.EasyClass
 {
     /// <summary>
     /// 隠れシングルパターンのオペレーションのクラスです。
@@ -9,116 +9,94 @@ namespace Game.SudokuSolver.GUI.Operations.BeginnerClass
     internal class HiddenSingleOperation
         : SudokuBoardOperation
     {
-        private HiddenSingleOperation(HouseType house, UInt128 cellHouseBits, int determinedCellColumn, int determinedCellRow, int determinedCellDigit, UInt128 removedCellNoteBits)
-            : base(DifficultyLevel.Easy)
+        private HiddenSingleOperation(BoardCell? determinedCell, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
+            : base("隠れシングル", DifficultyLevel.Easy, determinedCell, ReadOnlyMemory<BoardCell>.Empty, removedCellNotes, relatedCellPositions, description)
         {
-#if DEBUG
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellColumn, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellColumn, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellRow, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellRow, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellDigit, 1);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(determinedCellDigit, 9);
-            System.Diagnostics.Debug.Assert((removedCellNoteBits & ~BoardWorkspace.AllCellsBits) == 0);
-#endif
-            DeterminedCell = new BoardCell(determinedCellColumn, determinedCellRow, determinedCellDigit);
-
-            var removedCellNotes = new List<BoardCell>();
-            for (var cellIndex = 0; cellIndex < 81; ++cellIndex)
-            {
-                var cellBitMask = UInt128.One << cellIndex;
-                if ((removedCellNoteBits & cellBitMask) != 0)
-                    removedCellNotes.Add(new BoardCell(cellIndex % 9, cellIndex / 9, determinedCellDigit));
-            }
-
-            RemovedCellNotes = removedCellNotes.ToArray();
-
-            var relatedCells = new List<BoardCellPosition>();
-            for (var cellIndex = 0; cellIndex < 81; ++cellIndex)
-            {
-                if ((cellHouseBits & UInt128.One << cellIndex) != 0)
-                    relatedCells.Add(new BoardCellPosition(cellIndex % 9, cellIndex / 9));
-            }
-
-            RelatedCells = relatedCells.ToArray();
-
-            Description =
-                house switch
-                {
-                    HouseType.Row => $"列 {determinedCellRow + 1} のセルのうち、数字 {determinedCellDigit} であり得るセルが行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のみであるため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    HouseType.Column => $"行 {determinedCellColumn + 1} のセルのうち、数字 {determinedCellDigit} であり得るセルが行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のみであるため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    HouseType.Block => $"行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルが属しているブロックのうち、数字 {determinedCellDigit} であり得るセルが{determinedCellColumn + 1} 列 {determinedCellRow + 1} のみであるため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    _ => throw new ArgumentOutOfRangeException(nameof(house)),
-                };
         }
-
-        /// <inheritdoc/>
-        public override BoardCell? DeterminedCell { get; }
-
-        /// <inheritdoc/>
-        public override ReadOnlyMemory<BoardCell> RemovedCellNotes { get; }
-
-        /// <inheritdoc/>
-        public override ReadOnlyMemory<BoardCellPosition> RelatedCells { get; }
-
-        /// <inheritdoc/>
-        public override string Description { get; }
 
         public static HiddenSingleOperation? MatchPattern(BoardWorkspace ws)
         {
-            // TODO: 隠れシングルパターンの捜索コードを書く。あるハウスにおいてある数字をとりうるセルがひとつだけなら、そのセルはその数字で確定。
-#error
-
-            for (var block = 0; block < 9; ++block)
+            for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; ++cellDigit)
             {
-                var houseMask = BoardCellHouse.GetBlockCellsBitMask(block);
-                var operation = MatchPatternByHouse(ws, HouseType.Block, houseMask);
-                if (operation is not null)
-                    return operation;
-            }
+                var noteBits = ws.GetNoteBits(cellDigit);
 
-            for (var column = 0; column < 9; ++column)
-            {
-                var houseMask = BoardCellHouse.GetColumnCellsBitMask(column);
-                var operation = MatchPatternByHouse(ws, HouseType.Column, houseMask);
-                if (operation is not null)
-                    return operation;
-            }
+                for (var block = BoardCellBlock.MinValue; block <= BoardCellBlock.MaxValue; ++block)
+                {
+                    var operation =
+                        MatchPatternByHouse(
+                            ws,
+                            HouseType.Block,
+                            BoardCellGeometry.GetBlockCellsBitMask(block),
+                            cellDigit,
+                            noteBits);
+                    if (operation is not null)
+                        return operation;
+                }
 
-            for (var row = 0; row < 9; ++row)
-            {
-                var houseMask = BoardCellHouse.GetRowCellsBitMask(row);
-                var operation = MatchPatternByHouse(ws, HouseType.Row, houseMask);
-                if (operation is not null)
-                    return operation;
+                for (var column = BoardCellColumn.MinValue; column <= BoardCellColumn.MaxValue; ++column)
+                {
+                    var operation =
+                        MatchPatternByHouse(
+                            ws,
+                            HouseType.Column,
+                            BoardCellGeometry.GetColumnCellsBitMask(column),
+                            cellDigit + 1,
+                            noteBits);
+                    if (operation is not null)
+                        return operation;
+                }
+
+                for (var row = BoardCellRow.MinValue; row <= BoardCellRow.MaxValue; ++row)
+                {
+                    var operation =
+                        MatchPatternByHouse(
+                            ws,
+                            HouseType.Row,
+                            BoardCellGeometry.GetRowCellsBitMask(row),
+                            cellDigit + 1,
+                            noteBits);
+                    if (operation is not null)
+                        return operation;
+                }
             }
 
             return null;
 
-            static HiddenSingleOperation? MatchPatternByHouse(BoardWorkspace ws, HouseType house, UInt128 houseMask)
+            static HiddenSingleOperation? MatchPatternByHouse(BoardWorkspace ws, HouseType house, UInt128 houseBitMask, BoardCellDigit cellDigit, UInt128 noteBits)
             {
-                var determinedCellBitsByBlock = ws.DeterminedCellBits & houseMask;
-                if (UInt128.PopCount(determinedCellBitsByBlock) != 8)
+                var foundBits = noteBits & houseBitMask;
+                if (UInt128.PopCount(foundBits) != 1)
                     return null;
-                var foundBitMask = ~determinedCellBitsByBlock & houseMask;
-#if DEBUG
-                System.Diagnostics.Debug.Assert(UInt128.IsPow2(foundBitMask) == true && foundBitMask < UInt128.One << 81);
-#endif
-                var pos = (uint)UInt128.TrailingZeroCount(foundBitMask);
-                var row = (int)(pos / 9);
-                var column = (int)(pos % 9);
-                var visibleBitMask =
-                    ~ws.DeterminedCellBits
-                    & ~foundBitMask
-                    & BoardCellHouse.GetVisibleCellsBitMask(row, column);
-                for (var digitMinusOne = 0; digitMinusOne < 9; ++digitMinusOne)
-                {
-                    var b = ws.GetBitsByDigit(digitMinusOne + 1);
-                    if ((b & foundBitMask) != 0)
-                        return new HiddenSingleOperation(house, houseMask, column, row, 1, b & visibleBitMask);
-                }
+                var determinedCellIndex = foundBits.GetOneCellIndex();
 
-                throw new ApplicationException("Reached code that should be unreachable.");
+                // 未確定であり、指定された数字をメモに含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                var removedCellsNoteBits =
+                    ~ws.DeterminedCellBits
+                    & noteBits
+                    & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(determinedCellIndex)
+                    & ~foundBits;
+
+                var removedCellNotes = removedCellsNoteBits.EnumerateForCells(cellDigit).ToArray();
+                var relatedCellPositions = houseBitMask.EnumerateForCellPositions().ToArray();
+                var (determinedCellColumn, determinedCellRow, determinedCellBlock) = BoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
+                var determinedCellPosiionText = new BoardCellPosition(determinedCellIndex).ToFriendlyString();
+                var determinedCellChar = cellDigit.ToCellDigitChar();
+
+                var description =
+                    house switch
+                    {
+                        HouseType.Row => $"{determinedCellRow.ToFriendlyString()}のセルのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                        HouseType.Column => $"{determinedCellColumn.ToFriendlyString()} のセルのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                        HouseType.Block => $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                        _ => throw new ArgumentOutOfRangeException(nameof(house)),
+                    };
+
+                return
+                    new HiddenSingleOperation(
+                        new BoardCell(determinedCellIndex, cellDigit),
+                        removedCellNotes,
+                        relatedCellPositions,
+                        description);
             }
         }
 

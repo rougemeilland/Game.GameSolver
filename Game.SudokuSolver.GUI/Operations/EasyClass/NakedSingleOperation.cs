@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.SudokuSolver.GUI.Operations.EasyClass
 {
@@ -9,60 +9,36 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
     internal class NakedSingleOperation
         : SudokuBoardOperation
     {
-        private NakedSingleOperation(int determinedCellColumn, int determinedCellRow, int determinedCellDigit, UInt128 removedCellNoteBits)
-            : base(DifficultyLevel.Easy)
+        private NakedSingleOperation(BoardCell? determinedCell, ReadOnlyMemory<BoardCell> removedCellNotes, string description)
+            : base("一択セル", DifficultyLevel.Easy, determinedCell, ReadOnlyMemory<BoardCell>.Empty, removedCellNotes, ReadOnlyMemory<BoardCellPosition>.Empty, description)
         {
-#if DEBUG
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellColumn, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellColumn, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellRow, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellRow, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellDigit, 1);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(determinedCellDigit, 9);
-            System.Diagnostics.Debug.Assert((removedCellNoteBits & ~BoardWorkspace.AllCellsBits) == 0);
-#endif
-            DeterminedCell = new BoardCell(determinedCellColumn, determinedCellRow, determinedCellDigit);
-
-            var removedCellNotes = new List<BoardCell>();
-            for (var cellIndex = 0; cellIndex < 81; ++cellIndex)
-            {
-                var cellBitMask = UInt128.One << cellIndex;
-                if ((removedCellNoteBits & cellBitMask) != 0)
-                    removedCellNotes.Add(new BoardCell(cellIndex % 9, cellIndex / 9, determinedCellDigit));
-            }
-
-            RemovedCellNotes = removedCellNotes.ToArray();
-
-            Description = $"行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルがの候補はひとつしかないため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}";
         }
-
-        /// <inheritdoc/>
-        public override BoardCell? DeterminedCell { get; }
-
-        /// <inheritdoc/>
-        public override ReadOnlyMemory<BoardCell> RemovedCellNotes { get; }
-
-        /// <inheritdoc/>
-        public override string Description { get; }
 
         public static NakedSingleOperation? MatchPattern(BoardWorkspace ws)
         {
-            for (var row = 0; row < 9; ++row)
+            for (var cellIndex = BoardCellIndex.MinValue; cellIndex <= BoardCellIndex.MaxValue; ++cellIndex)
             {
-                for (var column = 0; column < 9; ++column)
+                var cellNoteBits = ws.GetNoteBits(cellIndex);
+                if (!ws.IsDetermined(cellIndex) && ushort.IsPow2(cellNoteBits))
                 {
-                    var cellNoteBits = ws.GetNoteBits(row, column);
-                    if (!ws.IsDetermined(column, row) && ushort.IsPow2(cellNoteBits))
-                    {
-                        var cellDigitMinusOne = ushort.TrailingZeroCount(cellNoteBits);
+                    var cellDigit = cellNoteBits.ToCellDigit();
 
-                        var removedCellNoteBits =
-                            ws.GetBitsByDigit(cellDigitMinusOne + 1)
-                            & ~ws.DeterminedCellBits
-                            & ~(UInt128.One << row * 9 + column)
-                            & ~BoardCellHouse.GetVisibleCellsBitMask(row, column);
-                        return new NakedSingleOperation(column, row, cellDigitMinusOne + 1, removedCellNoteBits);
-                    }
+                    // 未確定であり、指定された数字をメモに含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                    var removedCellNoteBits =
+                        ~ws.DeterminedCellBits
+                        & ws.GetNoteBits(cellDigit)
+                        & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(cellIndex)
+                        & ~cellIndex.ToBitMask();
+
+                    var removedCellNotes = removedCellNoteBits.EnumerateForCells(cellDigit).ToArray();
+                    var (determinedCellColumn, determinedCellRow, _) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
+                    var determinedCellPositionText = new BoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString();
+                    var description = $"{determinedCellPositionText}のセルがの候補はひとつしかないため{determinedCellPositionText}のセルの数字は '{cellDigit.ToCellDigitChar()}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}";
+                    return
+                        new NakedSingleOperation(
+                            new BoardCell(determinedCellColumn, determinedCellRow, cellDigit),
+                            removedCellNotes,
+                            description);
                 }
             }
 

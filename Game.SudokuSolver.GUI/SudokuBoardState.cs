@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.GameSolver;
-using Game.SudokuSolver.GUI.Operations;
 using Game.SudokuSolver.GUI.Operations.BeginnerClass;
 using Game.SudokuSolver.GUI.Operations.EasyClass;
+using Game.SudokuSolver.GUI.Operations.InsaneClass;
+using Game.SudokuSolver.GUI.Operations.MediumClass;
 
 namespace Game.SudokuSolver.GUI
 {
@@ -12,7 +13,7 @@ namespace Game.SudokuSolver.GUI
     {
         private readonly BoardCellsSet _cells;
 
-        public SudokuBoardState(int[] initialCellDigits)
+        public SudokuBoardState(char[] initialCellDigits)
         {
             ArgumentNullException.ThrowIfNull(initialCellDigits);
             if (initialCellDigits.Length != 0)
@@ -52,18 +53,17 @@ namespace Game.SudokuSolver.GUI
             operation = HiddenSingleOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+            operation = PointingOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return new[] { operation };
+            operation = BoxLineReductionOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return new[] { operation };
 
-
-
-            
             // TODO: 定石の追加
 #error
 
-            // TODO: 手あたり次第パターンの追加
-#error
-
-
-
+            return ForcingChainOperation.MatchPattern(workspace);
         }
 
         /// <inheritdoc/>

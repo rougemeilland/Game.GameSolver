@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.SudokuSolver.GUI.Operations.BeginnerClass
 {
@@ -9,83 +9,41 @@ namespace Game.SudokuSolver.GUI.Operations.BeginnerClass
     internal class FullHouseOperation
         : SudokuBoardOperation
     {
-        private FullHouseOperation(HouseType house, UInt128 cellHouseBits, int determinedCellColumn, int determinedCellRow, int determinedCellDigit, UInt128 removedCellNoteBits)
-            : base(DifficultyLevel.Beginner)
+        private FullHouseOperation(BoardCell? determinedCell, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
+            : base("フルハウス", DifficultyLevel.Beginner, determinedCell, ReadOnlyMemory<BoardCell>.Empty, removedCellNotes, relatedCellPositions, description)
         {
-#if DEBUG
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellColumn, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellColumn, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellRow, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(determinedCellRow, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(determinedCellDigit, 1);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(determinedCellDigit, 9);
-            System.Diagnostics.Debug.Assert((removedCellNoteBits & ~BoardWorkspace.AllCellsBits) == 0);
-#endif
-            DeterminedCell = new BoardCell(determinedCellColumn, determinedCellRow, determinedCellDigit);
-
-            var removedCellNotes = new List<BoardCell>();
-            for (var cellIndex = 0; cellIndex < 81; ++cellIndex)
-            {
-                var cellBitMask = UInt128.One << cellIndex;
-                if ((removedCellNoteBits & cellBitMask) != 0)
-                    removedCellNotes.Add(new BoardCell(cellIndex % 9, cellIndex / 9, determinedCellDigit));
-            }
-
-            RemovedCellNotes = removedCellNotes.ToArray();
-
-            var relatedCells = new List<BoardCellPosition>();
-            for (var cellIndex = 0; cellIndex < 81; ++cellIndex)
-            {
-                if ((cellHouseBits & UInt128.One << cellIndex) != 0)
-                    relatedCells.Add(new BoardCellPosition(cellIndex % 9, cellIndex / 9));
-            }
-
-            RelatedCells = relatedCells.ToArray();
-
-            Description =
-                house switch
-                {
-                    HouseType.Row => $"列 {determinedCellRow + 1} のセルのうち、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} 以外のセルが既に確定しているため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    HouseType.Column => $"行 {determinedCellColumn + 1} のセルのうち、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} 以外のセルが既に確定しているため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    HouseType.Block => $"行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルが属しているブロックのうち、{determinedCellColumn + 1} 列 {determinedCellRow + 1} 以外のセルが既に確定しているため、行 {determinedCellColumn + 1} 列 {determinedCellRow + 1} のセルの数字は {determinedCellDigit} に確定します。{(RelatedCells.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                    _ => throw new ArgumentOutOfRangeException(nameof(house)),
-                };
         }
-
-        /// <inheritdoc/>
-        public override BoardCell? DeterminedCell { get; }
-
-        /// <inheritdoc/>
-        public override ReadOnlyMemory<BoardCell> RemovedCellNotes { get; }
-
-        /// <inheritdoc/>
-        public override ReadOnlyMemory<BoardCellPosition> RelatedCells { get; }
-
-        /// <inheritdoc/>
-        public override string Description { get; }
 
         public static FullHouseOperation? MatchPattern(BoardWorkspace ws)
         {
-            for (var block = 0; block < 9; ++block)
+            for (var block = BoardCellBlock.MinValue; block <= BoardCellBlock.MaxValue; ++block)
             {
-                var houseMask = BoardCellHouse.GetBlockCellsBitMask(block);
-                var operation = MatchPatternByHouse(ws, HouseType.Block, houseMask);
+                var operation =
+                    MatchPatternByHouse(
+                        ws,
+                        HouseType.Block,
+                        BoardCellGeometry.GetBlockCellsBitMask(block));
                 if (operation is not null)
                     return operation;
             }
 
-            for (var column = 0; column < 9; ++column)
+            for (var column = BoardCellColumn.MinValue; column <= BoardCellColumn.MaxValue; ++column)
             {
-                var houseMask = BoardCellHouse.GetColumnCellsBitMask(column);
-                var operation = MatchPatternByHouse(ws, HouseType.Column, houseMask);
+                var operation =
+                    MatchPatternByHouse(
+                        ws,
+                        HouseType.Column,
+                        BoardCellGeometry.GetColumnCellsBitMask(column));
                 if (operation is not null)
                     return operation;
             }
 
-            for (var row = 0; row < 9; ++row)
+            for (var row = BoardCellRow.MinValue; row <= BoardCellRow.MaxValue; ++row)
             {
-                var houseMask = BoardCellHouse.GetRowCellsBitMask(row);
-                var operation = MatchPatternByHouse(ws, HouseType.Row, houseMask);
+                var operation =
+                    MatchPatternByHouse(
+                        ws, HouseType.Row,
+                        BoardCellGeometry.GetRowCellsBitMask(row));
                 if (operation is not null)
                     return operation;
             }
@@ -99,20 +57,43 @@ namespace Game.SudokuSolver.GUI.Operations.BeginnerClass
                     return null;
                 var foundBitMask = ~determinedCellBitsByBlock & houseMask;
 #if DEBUG
-                System.Diagnostics.Debug.Assert(UInt128.IsPow2(foundBitMask) == true && foundBitMask < UInt128.One << 81);
+                System.Diagnostics.Debug.Assert(UInt128.IsPow2(foundBitMask));
 #endif
-                var pos = (uint)UInt128.TrailingZeroCount(foundBitMask);
-                var row = (int)(pos / 9);
-                var column = (int)(pos % 9);
-                var visibleBitMask =
+                var determinedCellIndex = foundBitMask.GetOneCellIndex();
+#if DEBUG
+                System.Diagnostics.Debug.Assert(determinedCellIndex is >= BoardCellIndex.MinValue and <= BoardCellIndex.MaxValue);
+#endif
+
+                // 未確定であり、確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                var removedCellNoteBits =
                     ~ws.DeterminedCellBits
                     & ~foundBitMask
-                    & BoardCellHouse.GetVisibleCellsBitMask(row, column);
-                for (var digitMinusOne = 0; digitMinusOne < 9; ++digitMinusOne)
+                    & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(determinedCellIndex);
+
+                for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; ++cellDigit)
                 {
-                    var b = ws.GetBitsByDigit(digitMinusOne + 1);
-                    if ((b & foundBitMask) != 0)
-                        return new FullHouseOperation(house, houseMask, column, row, 1, b & visibleBitMask);
+                    var cellNoteBits = ws.GetNotNoteBits(cellDigit);
+                    if ((cellNoteBits & foundBitMask) != 0)
+                    {
+                        var removedCellNotePositions = removedCellNoteBits.EnumerateForCellPositions().ToArray();
+                        var (determinedCellColumn, determinedCellRow, determinedCellBlock) = BoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
+                        var determinedCellPositionText = new BoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString();
+                        var determinedCellDigitText = cellDigit.ToCellDigitChar();
+                        var description =
+                            house switch
+                            {
+                                HouseType.Row => $"{determinedCellRow.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが確定しているため、{determinedCellPositionText}セルの数字を '{determinedCellDigitText}' に確定します。{(removedCellNotePositions.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                                HouseType.Column => $"{determinedCellColumn.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが確定しているため、{determinedCellPositionText}セルの数字を '{determinedCellDigitText}' に確定します。{(removedCellNotePositions.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                                HouseType.Block => $"{determinedCellBlock.ToFriendlyString()}のブロックのセルのうち{determinedCellPositionText}以外のセルが確定しているため、{determinedCellPositionText}セルの数字を '{determinedCellDigitText}' に確定します。{(removedCellNotePositions.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                                _ => throw new ApplicationException(),
+                            };
+                        return
+                            new FullHouseOperation(
+                                new BoardCell(determinedCellIndex, cellDigit),
+                                cellNoteBits.EnumerateForCells(cellDigit).ToArray(),
+                                removedCellNotePositions,
+                                description);
+                    }
                 }
 
                 throw new ApplicationException("Reached code that should be unreachable.");

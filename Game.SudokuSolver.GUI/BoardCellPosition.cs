@@ -4,19 +4,30 @@ namespace Game.SudokuSolver.GUI
 {
     internal readonly struct BoardCellPosition
     {
-        public BoardCellPosition(int column, int row)
+        public BoardCellPosition(BoardCellIndex cellIndex)
         {
 #if DEBUG
-            ArgumentOutOfRangeException.ThrowIfLessThan(column, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(column, 9);
-            ArgumentOutOfRangeException.ThrowIfLessThan(row, 0);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(row, 9);
+            if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
-            Column = (byte)column;
-            Row = (byte)row;
+            var (column, row) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
+            Column = column;
+            Row = row;
         }
 
-        public byte Column { get; }
-        public byte Row { get; }
+        public BoardCellPosition(BoardCellColumn column, BoardCellRow row)
+        {
+#if DEBUG
+            if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(column));
+            if (row is < BoardCellRow.MinValue or > BoardCellRow.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(row));
+#endif
+            Column = column;
+            Row = row;
+        }
+
+        public BoardCellColumn Column { get; }
+        public BoardCellRow Row { get; }
     }
 }
