@@ -8,7 +8,7 @@ using Game.GameSolver;
 
 namespace Game.WateSortSolver.GUI
 {
-    internal class WateSortBoardOperation
+    internal sealed class WateSortBoardOperation
         : GameBoardOperation<WateSortBoardOperation>
     {
     }

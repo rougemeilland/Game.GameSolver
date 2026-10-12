@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace Game.GameSolver
 {
     /// <summary>
-    /// ゲームを解くジェネリッククラスです。
+    /// ゲームを解決するジェネリック抽象クラスです。
     /// </summary>
     /// <typeparam name="STATE_T">ゲームの盤面を示すクラスです。</typeparam>
     /// <typeparam name="OPERATION_T">ゲームの盤面に対するオペレーションを示すクラスです。</typeparam>
-    public class GameSolverEngineGameSolverState<STATE_T, OPERATION_T>
+    public abstract class GameSolverEngineGameSolverState<STATE_T, OPERATION_T>
         where STATE_T : GameBoardState<STATE_T, OPERATION_T>
         where OPERATION_T : GameBoardOperation<OPERATION_T>
     {
@@ -24,7 +23,7 @@ namespace Game.GameSolver
         /// 盤面の状態を同等かどうか判断する <see cref="IEqualityComparer{STATE_T}"/> です。
         /// このオブジェクトは、既に探索済みの盤面の最短策を省略するために使用されます。
         /// </param>
-        public GameSolverEngineGameSolverState()
+        protected GameSolverEngineGameSolverState()
         {
             _stateColelction = new Stack<STATE_T>();
             _alreadyAppearedState = [];

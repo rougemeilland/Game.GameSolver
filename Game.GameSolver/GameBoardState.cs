@@ -15,7 +15,7 @@ namespace Game.GameSolver
         where STATE_T : GameBoardState<STATE_T, OPERATION_T>
         where OPERATION_T : GameBoardOperation<OPERATION_T>
     {
-        private class GameBoardOperationCollection
+        private sealed class GameBoardOperationCollection
             : IGameBoardOperationCollection<OPERATION_T>
         {
             private readonly List<OPERATION_T> _operations;
@@ -33,7 +33,7 @@ namespace Game.GameSolver
             IEnumerator IEnumerable.GetEnumerator() => _operations.GetEnumerator();
         }
 
-        private class CompositKey
+        private sealed class CompositKey
             : IGameBoardStateUniqueKey
         {
             private readonly uint[] _data;
@@ -94,7 +94,7 @@ namespace Game.GameSolver
 
         private GameBoardState(int stepCount, GameBoardOperationCollection operationLog)
         {
-             _status= new(CheckStatus);
+            _status = new(CheckStatus);
             _uniqueKey = new Lazy<CompositKey>(() => new CompositKey(GenerateUniqueKeySource()));
             StepCount = stepCount;
             _operationLog = operationLog;
@@ -131,6 +131,17 @@ namespace Game.GameSolver
             foreach (var operation in EnumerateNextOperations())
                 yield return GenerateNextState(operation);
         }
+
+        /// <summary>
+        /// 指定された盤面に指定されたオペレーションを適用し、新たな盤面を生成します。
+        /// </summary>
+        /// <param name="operation">
+        /// 適用するオペレーションを示す <see cref="OPERATION_T"/> オブジェクトです。
+        /// </param>
+        /// <returns>
+        /// 生成された新たな盤面を示す <see cref="STATE_T"/> オブジェクトです。
+        /// </returns>
+        public STATE_T Trace(OPERATION_T operation) => GenerateNextState(operation);
 
         /// <summary>
         /// 盤面の状態の概要を取得します。

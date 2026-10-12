@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Game.GameSolver\Game.GameSolver.csproj" />
+    <ProjectReference Include="..\Game.SudokuSolver.Core\Game.SudokuSolver.Core.csproj" />
   </ItemGroup>
 
 </Project>

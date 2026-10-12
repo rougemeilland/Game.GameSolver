@@ -7,10 +7,10 @@ using Game.GameSolver;
 
 namespace Game.WateSortSolver.GUI
 {
-    internal class WateSortBoardState
+    internal sealed class WateSortBoardState
         : GameBoardState<WateSortBoardState, WateSortBoardOperation>
     {
-        protected override bool CheckStatus()
+        protected override GameBoardStatus CheckStatus()
         {
             // TODO: 未実装
             throw new NotImplementedException();
