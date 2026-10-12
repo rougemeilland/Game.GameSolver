@@ -16,24 +16,33 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
 
         public static NakedSingleOperation? MatchPattern(BoardWorkspace ws)
         {
+            // 【論拠】
+            // あるセル C とある数字 D に対して、
+            // C の数字の候補が D ただ一つである場合
+            // => C の数字は D で確定する。
+
             for (var cellIndex = BoardCellIndex.MinValue; cellIndex <= BoardCellIndex.MaxValue; ++cellIndex)
             {
-                var cellNoteBits = ws.GetNoteBits(cellIndex);
-                if (!ws.IsDetermined(cellIndex) && ushort.IsPow2(cellNoteBits))
+                var cellNoteBitSet = ws.GetNoteBitSet(cellIndex);
+                if (!ws.IsDetermined(cellIndex) && cellNoteBitSet.IsSingleBit())
                 {
-                    var cellDigit = cellNoteBits.ToCellDigit();
+                    var cellDigit = cellNoteBitSet.GetOneCellNoteDigit();
 
-                    // 未確定であり、指定された数字をメモに含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                    var removedCellNoteBits =
-                        ~ws.DeterminedCellBits
-                        & ws.GetNoteBits(cellDigit)
-                        & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(cellIndex)
-                        & ~cellIndex.ToBitMask();
+                    // 未確定であり、指定された数字を候補に含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                    var removedCellNoteBitSet =
+                        ~ws.DeterminedCellBitSet
+                        & ws.GetNoteBitSet(cellDigit)
+                        & BoardCellGeometry.GetVisibleCellsBitSetByCellIndex(cellIndex)
+                        & ~cellIndex.ToCellIndexBitSet();
 
-                    var removedCellNotes = removedCellNoteBits.EnumerateForCells(cellDigit).ToArray();
+                    var removedCellNotes = removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
                     var (determinedCellColumn, determinedCellRow, _) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
                     var determinedCellPositionText = new BoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString();
-                    var description = $"{determinedCellPositionText}のセルがの候補はひとつしかないため{determinedCellPositionText}のセルの数字は '{cellDigit.ToCellDigitChar()}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}";
+                    var determinedCellDigitText = cellDigit.ToCellDigitChar();
+                    var description =
+                        $"{determinedCellPositionText}のセルの数字の候補は '{determinedCellDigitText}' しかないため、" +
+                        $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。" +
+                        $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     return
                         new NakedSingleOperation(
                             new BoardCell(determinedCellColumn, determinedCellRow, cellDigit),

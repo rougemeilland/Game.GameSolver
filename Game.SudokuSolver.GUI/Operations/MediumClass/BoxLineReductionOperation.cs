@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
 using System.Linq;
 
 namespace Game.SudokuSolver.GUI.Operations.MediumClass
@@ -15,21 +10,23 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
         : SudokuBoardOperation
     {
         private BoxLineReductionOperation(ReadOnlyMemory<BoardCell> hilightedCellNotes, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
-            : base("ボックスラインリダクション", DifficultyLevel.Easy, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+            : base("ボックスラインリダクション", DifficultyLevel.Medium, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
-        public static PointingOperation? MatchPattern(BoardWorkspace ws)
+        public static BoxLineReductionOperation? MatchPattern(BoardWorkspace ws)
         {
-            // TODO: ボックスラインリダクションの実装
-#error
+            // 【論拠】
+            // あるブロック B とある行または列 CorR とある数字 D に対して、
+            // B 内の CorR 上の何れかのセルの数字の候補に D が存在し、かつ B の範囲外の CorR 上以外のセルの数字の候補に D が存在しない場合
+            // => B 内の CorR 上のセルの数字の候補は何れかが D であるので、仮に B 内の CorR 上以外のセルの数字の候補に D が あってもそれらのセルは D にはなり得ない。
 
             for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; cellDigit++)
             {
-                var cellNoteBits = ws.GetNoteBits(cellDigit);
+                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
                 for (var block = BoardCellBlock.MinValue; block <= BoardCellBlock.MaxValue; ++block)
                 {
-                    var blockHouseBitMask = BoardCellGeometry.GetBlockCellsBitMask(block);
+                    var blockHouseBitMask = BoardCellGeometry.GetBlockCellsBitSet(block);
 
                     // 行ハウスの検索
                     for (var blockRowOffset = BoardCellBlockRow.MinValue; blockRowOffset <= BoardCellBlockRow.MaxValue; ++blockRowOffset)
@@ -39,10 +36,10 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                BoardCellGeometry.GetRowCellsBitMask(row),
+                                BoardCellGeometry.GetRowCellsBitSet(row),
                                 row.ToFriendlyString(),
                                 cellDigit,
-                                cellNoteBits);
+                                cellNoteBitSet);
                         if (operation is not null)
                             return operation;
                     }
@@ -55,10 +52,10 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                BoardCellGeometry.GetColumnCellsBitMask(column),
+                                BoardCellGeometry.GetColumnCellsBitSet(column),
                                 column.ToFriendlyString(),
                                 cellDigit,
-                                cellNoteBits);
+                                cellNoteBitSet);
                         if (operation is not null)
                             return operation;
                     }
@@ -67,23 +64,24 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
 
             return null;
 
-            static PointingOperation? MatchPatternByHouse(BoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, BoardCellDigit cellDigit, UInt128 cellNoteBits)
+            static BoxLineReductionOperation? MatchPatternByHouse(BoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, BoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
-                var hilighedCellNoteBits = cellNoteBits & blockHouseBitMask & rowBitMask;
-                var removedCellNoteBits = cellNoteBits & ~blockHouseBitMask & rowBitMask;
-                if (hilighedCellNoteBits != 0 && (cellNoteBits & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBits != 0)
+                var hilighedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & rowBitMask;
+                var removedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & ~rowBitMask;
+                if (hilighedCellNoteBitSet != 0 && (cellNoteBitSet & ~blockHouseBitMask & rowBitMask) == 0 && removedCellNoteBitSet != 0)
                 {
-                    // あるブロック B とある行または列 CR とある数字 D に対して、
-                    // B 内の CR の何れかのセルの候補に D が存在し、かつ B 内の CR 以外のセルの候補に D が存在せず、かつ B 以外の CR のセルの候補に D の候補が存在する場合
-                    // => B 以外の CR セルは D にはなり得ないので、それらのセルの候補から D を削除する。
                     var cellDigitChar = cellDigit.ToCellDigitChar();
-                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBits.EnumerateForCellPositions().Select(position => position.ToFriendlyString()))})";
+                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
+                    var description =
+                        $"{columnOrRowHouseText}には{block.ToFriendlyString()}のブロックと重なるセルのみに数字の候補 '{cellDigitChar}' が含まれており、" +
+                        $"必ずこれらのセルの何れかが '{cellDigitChar}' になります。" +
+                        $"したがって、{block.ToFriendlyString()}のブロックにある他のセル {removedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を削除します。";
                     return
-                        new PointingOperation(
-                            hilighedCellNoteBits.EnumerateForCells(cellDigit).ToArray(),
-                            removedCellNoteBits.EnumerateForCells(cellDigit).ToArray(),
-                            (blockHouseBitMask | rowBitMask).EnumerateForCellPositions().ToArray(),
-                            $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれており、これらのセルの何れかが '{cellDigitChar}' のはずです。そのため、{columnOrRowHouseText}にある他のセル {removedCellNotePositionTexts} は '{cellDigitChar}' になり得ないので候補から削除します。");
+                        new BoxLineReductionOperation(
+                            hilighedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
+                            removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
+                            (blockHouseBitMask | rowBitMask).EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                            description);
                 }
 
                 return null;

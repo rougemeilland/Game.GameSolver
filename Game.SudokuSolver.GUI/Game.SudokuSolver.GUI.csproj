@@ -30,9 +30,4 @@
     <ProjectReference Include="..\Game.GameSolver\Game.GameSolver.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Operations\HardClass\" />
-    <Folder Include="Operations\ExtremeClass\" />
-  </ItemGroup>
-
 </Project>

@@ -17,28 +17,38 @@ namespace Game.SudokuSolver.GUI.Operations.InsaneClass
 
         public static IEnumerable<ForcingChainOperation> MatchPattern(BoardWorkspace ws)
         {
-            var undterminedBits = ~ws.DeterminedCellBits & BoardWorkspace.AllCellBits;
+            // 【論拠】
+            // なし。
+            //
+            // (敢えて述べるなら)
+            // ある未確定セル C とある数字 D に対して、
+            // C の数字の候補に D が含まれている場合
+            // => C の数字は仮に D と仮定して盤面の解決を試み、もし失敗した場合は C の数字は D ではないと判明する。
+
+            var undterminedBitSet = ~ws.DeterminedCellBitSet & BoardWorkspace.AllCellIndexBitSet;
 #if DEBUG
-            System.Diagnostics.Debug.Assert(undterminedBits != 0);
+            System.Diagnostics.Debug.Assert(undterminedBitSet != 0);
 #endif
-            var foundCellIndex = undterminedBits.GetOneCellIndex();
-            var foundCellMask = foundCellIndex.ToBitMask();
+            var foundCellIndex = undterminedBitSet.GetOneCellIndex();
+            var foundCellMask = foundCellIndex.ToCellIndexBitSet();
             for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; ++cellDigit)
             {
-                var noteBits = ws.GetNoteBits(cellDigit);
-                if ((noteBits & foundCellMask) != 0)
+                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
+                if ((cellNoteBitSet & foundCellMask) != 0)
                 {
-                    // 未確定であり、指定された数字をメモに含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                    var removedCellsNoteBits =
-                        ~ws.DeterminedCellBits
-                        & noteBits
-                        & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(foundCellIndex)
+                    // 未確定であり、指定された数字を候補に含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                    var removedCellsNoteBitSet =
+                        ~ws.DeterminedCellBitSet
+                        & cellNoteBitSet
+                        & BoardCellGeometry.GetVisibleCellsBitSetByCellIndex(foundCellIndex)
                         & ~foundCellMask;
 
                     var (determinedCellColumn, determinedCellRow, _) = BoardCellGeometry.GetColumnRowBlock(foundCellIndex);
-                    var removedCellNotes = removedCellsNoteBits.EnumerateForCells(cellDigit).ToArray();
-                    var description = $"{new BoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString()}のセルの数字を '{cellDigit.ToCellDigitChar()}' と仮定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}";
-
+                    var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
+                    var determinedCellDigitText = cellDigit.ToCellDigitChar();
+                    var description =
+                        $"{new BoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。" +
+                        $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     yield return
                         new ForcingChainOperation(
                             new BoardCell(determinedCellColumn, determinedCellRow, cellDigit),

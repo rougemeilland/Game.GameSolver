@@ -7,7 +7,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字のセルと列を同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _columnHouseCellsBitMasksByCellIndex =
+        private static readonly UInt128[] _columnHouseCellsBitSetsByCellIndex =
         [
             new UInt128(0x0000000000000100ul, 0x8040201008040201ul), new UInt128(0x0000000000000201ul, 0x0080402010080402ul), new UInt128(0x0000000000000402ul, 0x0100804020100804ul), new UInt128(0x0000000000000804ul, 0x0201008040201008ul), new UInt128(0x0000000000001008ul, 0x0402010080402010ul), new UInt128(0x0000000000002010ul, 0x0804020100804020ul), new UInt128(0x0000000000004020ul, 0x1008040201008040ul), new UInt128(0x0000000000008040ul, 0x2010080402010080ul), new UInt128(0x0000000000010080ul, 0x4020100804020100ul),
             new UInt128(0x0000000000000100ul, 0x8040201008040201ul), new UInt128(0x0000000000000201ul, 0x0080402010080402ul), new UInt128(0x0000000000000402ul, 0x0100804020100804ul), new UInt128(0x0000000000000804ul, 0x0201008040201008ul), new UInt128(0x0000000000001008ul, 0x0402010080402010ul), new UInt128(0x0000000000002010ul, 0x0804020100804020ul), new UInt128(0x0000000000004020ul, 0x1008040201008040ul), new UInt128(0x0000000000008040ul, 0x2010080402010080ul), new UInt128(0x0000000000010080ul, 0x4020100804020100ul),
@@ -23,7 +23,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字の列と列を同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _columnHouseCellsBitMasksByColumn =
+        private static readonly UInt128[] _columnHouseCellsBitSetsByColumn =
         [
             new UInt128(0x0000000000000100ul, 0x8040201008040201ul),
             new UInt128(0x0000000000000201ul, 0x0080402010080402ul),
@@ -39,7 +39,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字のセルと行を同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _rowHouseCellsBitMasksByCellIndex =
+        private static readonly UInt128[] _rowHouseCellsBitSetsByCellIndex =
         [
             new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful), new UInt128(0x0000000000000000ul, 0x00000000000001fful),
             new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul), new UInt128(0x0000000000000000ul, 0x000000000003fe00ul),
@@ -55,7 +55,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字の行と行を同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _rowHouseCellsBitMasksByRow =
+        private static readonly UInt128[] _rowHouseCellsBitSetsByRow =
         [
             new UInt128(0x0000000000000000ul, 0x00000000000001fful),
             new UInt128(0x0000000000000000ul, 0x000000000003fe00ul),
@@ -71,7 +71,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字のセルとブロックを同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _blockHouseCellsBitMasksByCellIndex =
+        private static readonly UInt128[] _blockHouseCellsBitSetsByCellIndex =
         [
             new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul),
             new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x0000000000e07038ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul), new UInt128(0x0000000000000000ul, 0x00000000070381c0ul),
@@ -87,7 +87,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字のブロックとブロックを同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _blockHouseCellsBitMasksByBlock =
+        private static readonly UInt128[] _blockHouseCellsBitSetsByBlock =
         [
             new UInt128(0x0000000000000000ul, 0x00000000001c0e07ul),
             new UInt128(0x0000000000000000ul, 0x0000000000e07038ul),
@@ -103,7 +103,7 @@ namespace Game.SudokuSolver.GUI
         /// <summary>
         /// 添え字のセルと行、列、ブロックの何れかを同じくするセルの集合。
         /// </summary>
-        private static readonly UInt128[] _visibleCellsBitMasksByCellIndex =
+        private static readonly UInt128[] _visibleCellsBitSetsByCellIndex =
         [
             new UInt128(0x0000000000000100ul, 0x80402010081c0ffful), new UInt128(0x0000000000000201ul, 0x00804020101c0ffful), new UInt128(0x0000000000000402ul, 0x01008040201c0ffful), new UInt128(0x0000000000000804ul, 0x0201008040e071fful), new UInt128(0x0000000000001008ul, 0x0402010080e071fful), new UInt128(0x0000000000002010ul, 0x0804020100e071fful), new UInt128(0x0000000000004020ul, 0x10080402070381fful), new UInt128(0x0000000000008040ul, 0x20100804070381fful), new UInt128(0x0000000000010080ul, 0x40201008070381fful),
             new UInt128(0x0000000000000100ul, 0x80402010081ffe07ul), new UInt128(0x0000000000000201ul, 0x00804020101ffe07ul), new UInt128(0x0000000000000402ul, 0x01008040201ffe07ul), new UInt128(0x0000000000000804ul, 0x0201008040e3fe38ul), new UInt128(0x0000000000001008ul, 0x0402010080e3fe38ul), new UInt128(0x0000000000002010ul, 0x0804020100e3fe38ul), new UInt128(0x0000000000004020ul, 0x100804020703ffc0ul), new UInt128(0x0000000000008040ul, 0x201008040703ffc0ul), new UInt128(0x0000000000010080ul, 0x402010080703ffc0ul),
@@ -149,7 +149,7 @@ namespace Game.SudokuSolver.GUI
         ];
 
         /// <summary>
-        /// 列ハウスと重なるブロックの集合。第一添え字は列、第二添え字は 0 から 2 の整数。
+        /// 列ハウスと重なるブロックの集合。第一添え字は列、第二添え字は 0 から 2 までの整数。
         /// </summary>
         private static readonly BoardCellBlock[][] _blocksByColumn =
         [
@@ -165,7 +165,7 @@ namespace Game.SudokuSolver.GUI
         ];
 
         /// <summary>
-        /// 行ハウスと重なるブロックの集合。第一添え字は行、第二添え字は 0 から 2 の整数。
+        /// 行ハウスと重なるブロックの集合。第一添え字は行、第二添え字は 0 から 2 までの整数。
         /// </summary>
         private static readonly BoardCellBlock[][] _blocksByRow =
         [
@@ -178,6 +178,53 @@ namespace Game.SudokuSolver.GUI
             [BoardCellBlock.FirstValue + 6, BoardCellBlock.FirstValue + 7, BoardCellBlock.FirstValue + 8],
             [BoardCellBlock.FirstValue + 6, BoardCellBlock.FirstValue + 7, BoardCellBlock.FirstValue + 8],
             [BoardCellBlock.FirstValue + 6, BoardCellBlock.FirstValue + 7, BoardCellBlock.FirstValue + 8],
+        ];
+        /// <summary>
+        /// 列ハウスに含まれるセル位置の集合。第一添え字は列、第二添え字は 0 から 8 までの整数。
+        /// </summary>
+        private static readonly BoardCellIndex[][] _cellIndexesByColumn =
+        [
+            [BoardCellIndex.FirstValue + 0, BoardCellIndex.FirstValue + 9, BoardCellIndex.FirstValue + 18, BoardCellIndex.FirstValue + 27, BoardCellIndex.FirstValue + 36, BoardCellIndex.FirstValue + 45, BoardCellIndex.FirstValue + 54, BoardCellIndex.FirstValue + 63, BoardCellIndex.FirstValue + 72],
+            [BoardCellIndex.FirstValue + 1, BoardCellIndex.FirstValue + 10, BoardCellIndex.FirstValue + 19, BoardCellIndex.FirstValue + 28, BoardCellIndex.FirstValue + 37, BoardCellIndex.FirstValue + 46, BoardCellIndex.FirstValue + 55, BoardCellIndex.FirstValue + 64, BoardCellIndex.FirstValue + 73],
+            [BoardCellIndex.FirstValue + 2, BoardCellIndex.FirstValue + 11, BoardCellIndex.FirstValue + 20, BoardCellIndex.FirstValue + 29, BoardCellIndex.FirstValue + 38, BoardCellIndex.FirstValue + 47, BoardCellIndex.FirstValue + 56, BoardCellIndex.FirstValue + 65, BoardCellIndex.FirstValue + 74],
+            [BoardCellIndex.FirstValue + 3, BoardCellIndex.FirstValue + 12, BoardCellIndex.FirstValue + 21, BoardCellIndex.FirstValue + 30, BoardCellIndex.FirstValue + 39, BoardCellIndex.FirstValue + 48, BoardCellIndex.FirstValue + 57, BoardCellIndex.FirstValue + 66, BoardCellIndex.FirstValue + 75],
+            [BoardCellIndex.FirstValue + 4, BoardCellIndex.FirstValue + 13, BoardCellIndex.FirstValue + 22, BoardCellIndex.FirstValue + 31, BoardCellIndex.FirstValue + 40, BoardCellIndex.FirstValue + 49, BoardCellIndex.FirstValue + 58, BoardCellIndex.FirstValue + 67, BoardCellIndex.FirstValue + 76],
+            [BoardCellIndex.FirstValue + 5, BoardCellIndex.FirstValue + 14, BoardCellIndex.FirstValue + 23, BoardCellIndex.FirstValue + 32, BoardCellIndex.FirstValue + 41, BoardCellIndex.FirstValue + 50, BoardCellIndex.FirstValue + 59, BoardCellIndex.FirstValue + 68, BoardCellIndex.FirstValue + 77],
+            [BoardCellIndex.FirstValue + 6, BoardCellIndex.FirstValue + 15, BoardCellIndex.FirstValue + 24, BoardCellIndex.FirstValue + 33, BoardCellIndex.FirstValue + 42, BoardCellIndex.FirstValue + 51, BoardCellIndex.FirstValue + 60, BoardCellIndex.FirstValue + 69, BoardCellIndex.FirstValue + 78],
+            [BoardCellIndex.FirstValue + 7, BoardCellIndex.FirstValue + 16, BoardCellIndex.FirstValue + 25, BoardCellIndex.FirstValue + 34, BoardCellIndex.FirstValue + 43, BoardCellIndex.FirstValue + 52, BoardCellIndex.FirstValue + 61, BoardCellIndex.FirstValue + 70, BoardCellIndex.FirstValue + 79],
+            [BoardCellIndex.FirstValue + 8, BoardCellIndex.FirstValue + 17, BoardCellIndex.FirstValue + 26, BoardCellIndex.FirstValue + 35, BoardCellIndex.FirstValue + 44, BoardCellIndex.FirstValue + 53, BoardCellIndex.FirstValue + 62, BoardCellIndex.FirstValue + 71, BoardCellIndex.FirstValue + 80],
+        ];
+
+        /// <summary>
+        /// 行ハウスに含まれるセル位置の集合。第一添え字は行、第二添え字は 0 から 8 までの整数。
+        /// </summary>
+        private static readonly BoardCellIndex[][] _cellIndexesByRow =
+        [
+            [BoardCellIndex.FirstValue + 0, BoardCellIndex.FirstValue + 1, BoardCellIndex.FirstValue + 2, BoardCellIndex.FirstValue + 3, BoardCellIndex.FirstValue + 4, BoardCellIndex.FirstValue + 5, BoardCellIndex.FirstValue + 6, BoardCellIndex.FirstValue + 7, BoardCellIndex.FirstValue + 8],
+            [BoardCellIndex.FirstValue + 9, BoardCellIndex.FirstValue + 10, BoardCellIndex.FirstValue + 11, BoardCellIndex.FirstValue + 12, BoardCellIndex.FirstValue + 13, BoardCellIndex.FirstValue + 14, BoardCellIndex.FirstValue + 15, BoardCellIndex.FirstValue + 16, BoardCellIndex.FirstValue + 17],
+            [BoardCellIndex.FirstValue + 18, BoardCellIndex.FirstValue + 19, BoardCellIndex.FirstValue + 20, BoardCellIndex.FirstValue + 21, BoardCellIndex.FirstValue + 22, BoardCellIndex.FirstValue + 23, BoardCellIndex.FirstValue + 24, BoardCellIndex.FirstValue + 25, BoardCellIndex.FirstValue + 26],
+            [BoardCellIndex.FirstValue + 27, BoardCellIndex.FirstValue + 28, BoardCellIndex.FirstValue + 29, BoardCellIndex.FirstValue + 30, BoardCellIndex.FirstValue + 31, BoardCellIndex.FirstValue + 32, BoardCellIndex.FirstValue + 33, BoardCellIndex.FirstValue + 34, BoardCellIndex.FirstValue + 35],
+            [BoardCellIndex.FirstValue + 36, BoardCellIndex.FirstValue + 37, BoardCellIndex.FirstValue + 38, BoardCellIndex.FirstValue + 39, BoardCellIndex.FirstValue + 40, BoardCellIndex.FirstValue + 41, BoardCellIndex.FirstValue + 42, BoardCellIndex.FirstValue + 43, BoardCellIndex.FirstValue + 44],
+            [BoardCellIndex.FirstValue + 45, BoardCellIndex.FirstValue + 46, BoardCellIndex.FirstValue + 47, BoardCellIndex.FirstValue + 48, BoardCellIndex.FirstValue + 49, BoardCellIndex.FirstValue + 50, BoardCellIndex.FirstValue + 51, BoardCellIndex.FirstValue + 52, BoardCellIndex.FirstValue + 53],
+            [BoardCellIndex.FirstValue + 54, BoardCellIndex.FirstValue + 55, BoardCellIndex.FirstValue + 56, BoardCellIndex.FirstValue + 57, BoardCellIndex.FirstValue + 58, BoardCellIndex.FirstValue + 59, BoardCellIndex.FirstValue + 60, BoardCellIndex.FirstValue + 61, BoardCellIndex.FirstValue + 62],
+            [BoardCellIndex.FirstValue + 63, BoardCellIndex.FirstValue + 64, BoardCellIndex.FirstValue + 65, BoardCellIndex.FirstValue + 66, BoardCellIndex.FirstValue + 67, BoardCellIndex.FirstValue + 68, BoardCellIndex.FirstValue + 69, BoardCellIndex.FirstValue + 70, BoardCellIndex.FirstValue + 71],
+            [BoardCellIndex.FirstValue + 72, BoardCellIndex.FirstValue + 73, BoardCellIndex.FirstValue + 74, BoardCellIndex.FirstValue + 75, BoardCellIndex.FirstValue + 76, BoardCellIndex.FirstValue + 77, BoardCellIndex.FirstValue + 78, BoardCellIndex.FirstValue + 79, BoardCellIndex.FirstValue + 80],
+        ];
+
+        /// <summary>
+        /// ブロックハウスに含まれるセル位置の集合。第一添え字はブロック、第二添え字は 0 から 8 までの整数。
+        /// </summary>
+        private static readonly BoardCellIndex[][] _cellIndexesByBlock =
+        [
+            [BoardCellIndex.FirstValue + 0, BoardCellIndex.FirstValue + 1, BoardCellIndex.FirstValue + 2, BoardCellIndex.FirstValue + 9, BoardCellIndex.FirstValue + 10, BoardCellIndex.FirstValue + 11, BoardCellIndex.FirstValue + 18, BoardCellIndex.FirstValue + 19, BoardCellIndex.FirstValue + 20],
+            [BoardCellIndex.FirstValue + 3, BoardCellIndex.FirstValue + 4, BoardCellIndex.FirstValue + 5, BoardCellIndex.FirstValue + 12, BoardCellIndex.FirstValue + 13, BoardCellIndex.FirstValue + 14, BoardCellIndex.FirstValue + 21, BoardCellIndex.FirstValue + 22, BoardCellIndex.FirstValue + 23],
+            [BoardCellIndex.FirstValue + 6, BoardCellIndex.FirstValue + 7, BoardCellIndex.FirstValue + 8, BoardCellIndex.FirstValue + 15, BoardCellIndex.FirstValue + 16, BoardCellIndex.FirstValue + 17, BoardCellIndex.FirstValue + 24, BoardCellIndex.FirstValue + 25, BoardCellIndex.FirstValue + 26],
+            [BoardCellIndex.FirstValue + 27, BoardCellIndex.FirstValue + 28, BoardCellIndex.FirstValue + 29, BoardCellIndex.FirstValue + 36, BoardCellIndex.FirstValue + 37, BoardCellIndex.FirstValue + 38, BoardCellIndex.FirstValue + 45, BoardCellIndex.FirstValue + 46, BoardCellIndex.FirstValue + 47],
+            [BoardCellIndex.FirstValue + 30, BoardCellIndex.FirstValue + 31, BoardCellIndex.FirstValue + 32, BoardCellIndex.FirstValue + 39, BoardCellIndex.FirstValue + 40, BoardCellIndex.FirstValue + 41, BoardCellIndex.FirstValue + 48, BoardCellIndex.FirstValue + 49, BoardCellIndex.FirstValue + 50],
+            [BoardCellIndex.FirstValue + 33, BoardCellIndex.FirstValue + 34, BoardCellIndex.FirstValue + 35, BoardCellIndex.FirstValue + 42, BoardCellIndex.FirstValue + 43, BoardCellIndex.FirstValue + 44, BoardCellIndex.FirstValue + 51, BoardCellIndex.FirstValue + 52, BoardCellIndex.FirstValue + 53],
+            [BoardCellIndex.FirstValue + 54, BoardCellIndex.FirstValue + 55, BoardCellIndex.FirstValue + 56, BoardCellIndex.FirstValue + 63, BoardCellIndex.FirstValue + 64, BoardCellIndex.FirstValue + 65, BoardCellIndex.FirstValue + 72, BoardCellIndex.FirstValue + 73, BoardCellIndex.FirstValue + 74],
+            [BoardCellIndex.FirstValue + 57, BoardCellIndex.FirstValue + 58, BoardCellIndex.FirstValue + 59, BoardCellIndex.FirstValue + 66, BoardCellIndex.FirstValue + 67, BoardCellIndex.FirstValue + 68, BoardCellIndex.FirstValue + 75, BoardCellIndex.FirstValue + 76, BoardCellIndex.FirstValue + 77],
+            [BoardCellIndex.FirstValue + 60, BoardCellIndex.FirstValue + 61, BoardCellIndex.FirstValue + 62, BoardCellIndex.FirstValue + 69, BoardCellIndex.FirstValue + 70, BoardCellIndex.FirstValue + 71, BoardCellIndex.FirstValue + 78, BoardCellIndex.FirstValue + 79, BoardCellIndex.FirstValue + 80],
         ];
 
         /// <summary>

@@ -15,14 +15,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定された行ハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetRowCellsBitMask(BoardCellRow row)
+        public static UInt128 GetRowCellsBitSet(BoardCellRow row)
         {
 #if DEBUG
             if (row is < BoardCellRow.MinValue or > BoardCellRow.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(row));
 #endif
 
-            return _rowHouseCellsBitMasksByRow[row - BoardCellRow.One];
+            return _rowHouseCellsBitSetsByRow[row - BoardCellRow.One];
         }
 
         /// <summary>
@@ -35,14 +35,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定された行ハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetRowCellsBitMask(BoardCellIndex cellIndex)
+        public static UInt128 GetRowCellsBitSet(BoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex < BoardCellIndex.MinValue | cellIndex > BoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
 
-            return _rowHouseCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _rowHouseCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -55,14 +55,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定された行ハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetColumnCellsBitMask(BoardCellColumn column)
+        public static UInt128 GetColumnCellsBitSet(BoardCellColumn column)
         {
 #if DEBUG
             if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(column));
 #endif
 
-            return _columnHouseCellsBitMasksByColumn[column - BoardCellColumn.One];
+            return _columnHouseCellsBitSetsByColumn[column - BoardCellColumn.One];
         }
 
         /// <summary>
@@ -75,14 +75,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定された行ハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetColumnCellsBitMask(BoardCellIndex cellIndex)
+        public static UInt128 GetColumnCellsBitSet(BoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
 
-            return _columnHouseCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _columnHouseCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -95,14 +95,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定されたブロックハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetBlockCellsBitMask(BoardCellBlock block)
+        public static UInt128 GetBlockCellsBitSet(BoardCellBlock block)
         {
 #if DEBUG
             if (block is < BoardCellBlock.MinValue or > BoardCellBlock.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(block));
 #endif
 
-            return _blockHouseCellsBitMasksByBlock[block - BoardCellBlock.FirstValue];
+            return _blockHouseCellsBitSetsByBlock[block - BoardCellBlock.FirstValue];
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Game.SudokuSolver.GUI
         /// 指定されたセルが属するブロックハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetBlockCellsBitMask(BoardCellColumn column, BoardCellRow row)
+        public static UInt128 GetBlockCellsBitSet(BoardCellColumn column, BoardCellRow row)
         {
 #if DEBUG
             if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
@@ -131,7 +131,7 @@ namespace Game.SudokuSolver.GUI
 #if DEBUG
             System.Diagnostics.Debug.Assert(cellIndex is >= BoardCellIndex.MinValue and <= BoardCellIndex.MaxValue);
 #endif
-            return _blockHouseCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _blockHouseCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -144,14 +144,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定されたセルが属するブロックハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetBlockCellsBitMask(BoardCellIndex cellIndex)
+        public static UInt128 GetBlockCellsBitSet(BoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
 
-            return _blockHouseCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _blockHouseCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace Game.SudokuSolver.GUI
         /// 指定されたセルが属する全てのハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetVisibleCellsBitMask(BoardCellColumn column, BoardCellRow row)
+        public static UInt128 GetVisibleCellsBitSet(BoardCellColumn column, BoardCellRow row)
         {
 #if DEBUG
             if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
@@ -180,7 +180,7 @@ namespace Game.SudokuSolver.GUI
 #if DEBUG
             System.Diagnostics.Debug.Assert(cellIndex is >= BoardCellIndex.MinValue and <= BoardCellIndex.MaxValue);
 #endif
-            return _visibleCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _visibleCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -193,14 +193,14 @@ namespace Game.SudokuSolver.GUI
         /// 指定されたセルが属する全てのハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetVisibleCellsBitMaskByCellIndex(BoardCellIndex cellIndex)
+        public static UInt128 GetVisibleCellsBitSetByCellIndex(BoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
 
-            return _visibleCellsBitMasksByCellIndex[cellIndex - BoardCellIndex.FirstValue];
+            return _visibleCellsBitSetsByCellIndex[cellIndex - BoardCellIndex.FirstValue];
         }
 
         /// <summary>
@@ -293,6 +293,69 @@ namespace Game.SudokuSolver.GUI
 #endif
 
             return new ReadOnlyMemory<BoardCellBlock>(_blocksByRow[row - BoardCellRow.One]);
+        }
+
+        /// <summary>
+        /// 指定された列に含まれるセルの位置の配列を取得します。
+        /// </summary>
+        /// <param name="column">
+        /// 指定された列を示す <see cref="BoardCellColumn"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの位置を示す <see cref="BoardCellIndex"/> の配列です。
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static ReadOnlyMemory<BoardCellIndex> GetCellIndexes(BoardCellColumn column)
+        {
+#if DEBUG
+            if (column is < BoardCellColumn.MinValue or > BoardCellColumn.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(column));
+#endif
+
+            return new ReadOnlyMemory<BoardCellIndex>(_cellIndexesByColumn[column - BoardCellColumn.One]);
+        }
+
+        /// <summary>
+        /// 指定された行に含まれるセルの位置の配列を取得します。
+        /// </summary>
+        /// <param name="row">
+        /// 指定された行を示す <see cref="BoardCellRown"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの位置を示す <see cref="BoardCellIndex"/> の配列です。
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static ReadOnlyMemory<BoardCellIndex> GetCellIndexes(BoardCellRow row)
+        {
+#if DEBUG
+            if (row is < BoardCellRow.MinValue or > BoardCellRow.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(row));
+#endif
+
+            return new ReadOnlyMemory<BoardCellIndex>(_cellIndexesByRow[row - BoardCellRow.One]);
+        }
+
+        /// <summary>
+        /// 指定されたブロックに含まれるセルの位置の配列を取得します。
+        /// </summary>
+        /// <param name="block">
+        /// 指定されたブロックを示す <see cref="BoardCellBlock"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの位置を示す <see cref="BoardCellIndex"/> の配列です。
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static ReadOnlyMemory<BoardCellIndex> GetCellIndexes(BoardCellBlock block)
+        {
+#if DEBUG
+            if (block is < BoardCellBlock.MinValue or > BoardCellBlock.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(block));
+#endif
+
+            return new ReadOnlyMemory<BoardCellIndex>(_cellIndexesByBlock[block - BoardCellBlock.FirstValue]);
         }
 
         /// <summary>

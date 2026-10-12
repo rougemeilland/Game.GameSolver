@@ -128,12 +128,12 @@ namespace SourceGenerator
                     sourceWriter.WriteLine("    internal static partial class BoardCellGeometry");
                     sourceWriter.WriteLine("    {");
 
-                    #region _columnHouseCellsBitMasksByCellIndex
+                    #region _columnHouseCellsBitSetsByCellIndex
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字のセルと列を同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _columnHouseCellsBitMasksByCellIndex =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _columnHouseCellsBitSetsByCellIndex =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -141,10 +141,10 @@ namespace SourceGenerator
                             .Where(item => item.cell1.column == item.cell2.column)
                             .Select(item => (item.cell1.cellIndex, otherCellIndex: item.cell2.cellIndex))
                             .GroupBy(item => item.cellIndex)
-                            .Select(g => (cellIndex: g.Key, bitsOfCellOtherIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
+                            .Select(g => (cellIndex: g.Key, bitSetOfCellOtherIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
                             .Distinct()
                             .OrderBy(item => item.cellIndex)
-                            .Select(item => item.bitsOfCellOtherIndex)
+                            .Select(item => item.bitSetOfCellOtherIndex)
                             .ToArray();
                         if (source.Length != 81)
                             throw new ApplicationException();
@@ -156,12 +156,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _columnHouseCellsBitMasksByColumn
+                    #region _columnHouseCellsBitSetsByColumn
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字の列と列を同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _columnHouseCellsBitMasksByColumn =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _columnHouseCellsBitSetsByColumn =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -170,10 +170,10 @@ namespace SourceGenerator
                             .Select(item => (item.cell1.column, item.cell2.cellIndex))
                             .Distinct()
                             .GroupBy(item => item.column)
-                            .Select(g => (column: g.Key, bitsOfCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
+                            .Select(g => (column: g.Key, bitSetOfCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
                             .Distinct()
                             .OrderBy(item => item.column)
-                            .Select(item => item.bitsOfCellIndex)
+                            .Select(item => item.bitSetOfCellIndex)
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
@@ -185,12 +185,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _rowHouseCellsBitMasksByCellIndex
+                    #region _rowHouseCellsBitSetsByCellIndex
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字のセルと行を同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _rowHouseCellsBitMasksByCellIndex =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _rowHouseCellsBitSetsByCellIndex =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -198,9 +198,9 @@ namespace SourceGenerator
                             .Where(item => item.cell1.row == item.cell2.row)
                             .Select(item => (item.cell1.cellIndex, otherCellIndex: item.cell2.cellIndex))
                             .GroupBy(item => item.cellIndex)
-                            .Select(g => (cellIndex: g.Key, bitsOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
+                            .Select(g => (cellIndex: g.Key, bitSetOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
                             .OrderBy(item => item.cellIndex)
-                            .Select(item => item.bitsOfOtherCellIndex)
+                            .Select(item => item.bitSetOfOtherCellIndex)
                             .ToArray();
                         if (source.Length != 81)
                             throw new ApplicationException();
@@ -212,12 +212,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _rowHouseCellsBitMasksByRow
+                    #region _rowHouseCellsBitSetsByRow
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字の行と行を同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _rowHouseCellsBitMasksByRow =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _rowHouseCellsBitSetsByRow =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -226,10 +226,10 @@ namespace SourceGenerator
                             .Select(item => (item.cell1.row, item.cell2.cellIndex))
                             .Distinct()
                             .GroupBy(item => item.row)
-                            .Select(g => (row: g.Key, bitsOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
+                            .Select(g => (row: g.Key, bitSetOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
                             .Distinct()
                             .OrderBy(item => item.row)
-                            .Select(item => item.bitsOfOtherCellIndex)
+                            .Select(item => item.bitSetOfOtherCellIndex)
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
@@ -241,12 +241,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _blockHouseCellsBitMasksByCellIndex
+                    #region _blockHouseCellsBitSetsByCellIndex
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字のセルとブロックを同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _blockHouseCellsBitMasksByCellIndex =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _blockHouseCellsBitSetsByCellIndex =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -254,9 +254,9 @@ namespace SourceGenerator
                             .Where(item => item.cell1.block == item.cell2.block)
                             .Select(item => (item.cell1.cellIndex, otherCellIndex: item.cell2.cellIndex))
                             .GroupBy(item => item.cellIndex)
-                            .Select(g => (cellIndex: g.Key, bitsOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
+                            .Select(g => (cellIndex: g.Key, bitSetOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
                             .OrderBy(item => item.cellIndex)
-                            .Select(item => item.bitsOfOtherCellIndex)
+                            .Select(item => item.bitSetOfOtherCellIndex)
                             .ToArray();
                         if (source.Length != 81)
                             throw new ApplicationException();
@@ -268,12 +268,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _blockHouseCellsBitMasksByBlock
+                    #region _blockHouseCellsBitSetsByBlock
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字のブロックとブロックを同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _blockHouseCellsBitMasksByBlock =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _blockHouseCellsBitSetsByBlock =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -282,10 +282,10 @@ namespace SourceGenerator
                             .Select(item => (item.cell1.block, item.cell2.cellIndex))
                             .Distinct()
                             .GroupBy(item => item.block)
-                            .Select(g => (block: g.Key, bitsOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
+                            .Select(g => (block: g.Key, bitSetOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.cellIndex))))
                             .Distinct()
                             .OrderBy(item => item.block)
-                            .Select(item => item.bitsOfOtherCellIndex)
+                            .Select(item => item.bitSetOfOtherCellIndex)
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
@@ -297,12 +297,12 @@ namespace SourceGenerator
 
                     sourceWriter.WriteLine();
 
-                    #region _visibleCellsBitMasksByCellIndex
+                    #region _visibleCellsBitSetsByCellIndex
                     {
                         sourceWriter.WriteLine("        /// <summary>");
                         sourceWriter.WriteLine("        /// 添え字のセルと行、列、ブロックの何れかを同じくするセルの集合。");
                         sourceWriter.WriteLine("        /// </summary>");
-                        sourceWriter.WriteLine("        private static readonly UInt128[] _visibleCellsBitMasksByCellIndex =");
+                        sourceWriter.WriteLine("        private static readonly UInt128[] _visibleCellsBitSetsByCellIndex =");
                         sourceWriter.WriteLine("        [");
                         var source =
                             EnumerateDetailOfCellGeometry()
@@ -310,9 +310,9 @@ namespace SourceGenerator
                             .Where(item => item.cell1.block == item.cell2.block || item.cell1.column == item.cell2.column || item.cell1.row == item.cell2.row)
                             .Select(item => (item.cell1.cellIndex, otherCellIndex: item.cell2.cellIndex))
                             .GroupBy(item => item.cellIndex)
-                            .Select(g => (cellIndex: g.Key, bitsOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
+                            .Select(g => (cellIndex: g.Key, bitSetOfOtherCellIndex: g.Aggregate(UInt128.Zero, (result, item) => result | (UInt128.One << item.otherCellIndex))))
                             .OrderBy(item => item.cellIndex)
-                            .Select(item => item.bitsOfOtherCellIndex)
+                            .Select(item => item.bitSetOfOtherCellIndex)
                             .ToArray();
                         if (source.Length != 81)
                             throw new ApplicationException();
@@ -342,8 +342,8 @@ namespace SourceGenerator
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
-                        for (var index = 0; index < 9; ++index)
-                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index].Select(row => $"BoardCellColumn.One + {row}"))}],");
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(column => column).Select(index2 => $"BoardCellColumn.One + {index2}"))}],");
                         sourceWriter.WriteLine("        ];");
                     }
                     #endregion
@@ -368,8 +368,8 @@ namespace SourceGenerator
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
-                        for (var index = 0; index < 9; ++index)
-                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index].Select(row => $"BoardCellRow.One + {row}"))}],");
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(row => row).Select(index2 => $"BoardCellRow.One + {index2}"))}],");
                         sourceWriter.WriteLine("        ];");
                     }
                     #endregion
@@ -379,7 +379,7 @@ namespace SourceGenerator
                     #region _blocksByColumn
                     {
                         sourceWriter.WriteLine("        /// <summary>");
-                        sourceWriter.WriteLine("        /// 列ハウスと重なるブロックの集合。第一添え字は列、第二添え字は 0 から 2 の整数。");
+                        sourceWriter.WriteLine("        /// 列ハウスと重なるブロックの集合。第一添え字は列、第二添え字は 0 から 2 までの整数。");
                         sourceWriter.WriteLine("        /// </summary>");
                         sourceWriter.WriteLine("        private static readonly BoardCellBlock[][] _blocksByColumn =");
                         sourceWriter.WriteLine("        [");
@@ -394,8 +394,8 @@ namespace SourceGenerator
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
-                        for (var index = 0; index < 9; ++index)
-                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index].Select(row => $"BoardCellBlock.FirstValue + {row}"))}],");
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(block => block).Select(index2 => $"BoardCellBlock.FirstValue + {index2}"))}],");
                         sourceWriter.WriteLine("        ];");
                     }
                     #endregion
@@ -405,7 +405,7 @@ namespace SourceGenerator
                     #region _blocksByRow
                     {
                         sourceWriter.WriteLine("        /// <summary>");
-                        sourceWriter.WriteLine("        /// 行ハウスと重なるブロックの集合。第一添え字は行、第二添え字は 0 から 2 の整数。");
+                        sourceWriter.WriteLine("        /// 行ハウスと重なるブロックの集合。第一添え字は行、第二添え字は 0 から 2 までの整数。");
                         sourceWriter.WriteLine("        /// </summary>");
                         sourceWriter.WriteLine("        private static readonly BoardCellBlock[][] _blocksByRow =");
                         sourceWriter.WriteLine("        [");
@@ -420,8 +420,84 @@ namespace SourceGenerator
                             .ToArray();
                         if (source.Length != 9)
                             throw new ApplicationException();
-                        for (var index = 0; index < 9; ++index)
-                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index].Select(row => $"BoardCellBlock.FirstValue + {row}"))}],");
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(block => block).Select(index2 => $"BoardCellBlock.FirstValue + {index2}"))}],");
+                        sourceWriter.WriteLine("        ];");
+                    }
+                    #endregion
+
+                    #region _cellIndexesByColumn
+                    {
+                        sourceWriter.WriteLine("        /// <summary>");
+                        sourceWriter.WriteLine("        /// 列ハウスに含まれるセル位置の集合。第一添え字は列、第二添え字は 0 から 8 までの整数。");
+                        sourceWriter.WriteLine("        /// </summary>");
+                        sourceWriter.WriteLine("        private static readonly BoardCellIndex[][] _cellIndexesByColumn =");
+                        sourceWriter.WriteLine("        [");
+                        var source =
+                            EnumerateDetailOfCellGeometry()
+                            .Select(item => (item.column, item.cellIndex))
+                            .Distinct()
+                            .GroupBy(item => item.column)
+                            .Select(g => (column: g.Key, cellIndexes: g.Select(item => item.cellIndex).ToArray()))
+                            .OrderBy(item => item.column)
+                            .Select(item => item.cellIndexes)
+                            .ToArray();
+                        if (source.Length != 9)
+                            throw new ApplicationException();
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(cellIndex => cellIndex).Select(index2 => $"BoardCellIndex.FirstValue + {index2}"))}],");
+                        sourceWriter.WriteLine("        ];");
+                    }
+                    #endregion
+
+                    sourceWriter.WriteLine();
+
+                    #region _cellIndexesByRow
+                    {
+                        sourceWriter.WriteLine("        /// <summary>");
+                        sourceWriter.WriteLine("        /// 行ハウスに含まれるセル位置の集合。第一添え字は行、第二添え字は 0 から 8 までの整数。");
+                        sourceWriter.WriteLine("        /// </summary>");
+                        sourceWriter.WriteLine("        private static readonly BoardCellIndex[][] _cellIndexesByRow =");
+                        sourceWriter.WriteLine("        [");
+                        var source =
+                            EnumerateDetailOfCellGeometry()
+                            .Select(item => (item.row, item.cellIndex))
+                            .Distinct()
+                            .GroupBy(item => item.row)
+                            .Select(g => (row: g.Key, cellIndexes: g.Select(item => item.cellIndex).ToArray()))
+                            .OrderBy(item => item.row)
+                            .Select(item => item.cellIndexes)
+                            .ToArray();
+                        if (source.Length != 9)
+                            throw new ApplicationException();
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(cellIndex => cellIndex).Select(index2 => $"BoardCellIndex.FirstValue + {index2}"))}],");
+                        sourceWriter.WriteLine("        ];");
+                    }
+                    #endregion
+
+                    sourceWriter.WriteLine();
+
+                    #region _cellIndexesByBlock
+                    {
+                        sourceWriter.WriteLine("        /// <summary>");
+                        sourceWriter.WriteLine("        /// ブロックハウスに含まれるセル位置の集合。第一添え字はブロック、第二添え字は 0 から 8 までの整数。");
+                        sourceWriter.WriteLine("        /// </summary>");
+                        sourceWriter.WriteLine("        private static readonly BoardCellIndex[][] _cellIndexesByBlock =");
+                        sourceWriter.WriteLine("        [");
+                        var source =
+                            EnumerateDetailOfCellGeometry()
+                            .Select(item => (item.block, item.cellIndex))
+                            .Distinct()
+                            .GroupBy(item => item.block)
+                            .Select(g => (block: g.Key, cellIndexes: g.Select(item => item.cellIndex).ToArray()))
+                            .OrderBy(item => item.block)
+                            .Select(item => item.cellIndexes)
+                            .ToArray();
+                        if (source.Length != 9)
+                            throw new ApplicationException();
+                        for (var index1 = 0; index1 < 9; ++index1)
+                            sourceWriter.WriteLine($"            [{string.Join(", ", source[index1].OrderBy(cellIndex => cellIndex).Select(index2 => $"BoardCellIndex.FirstValue + {index2}"))}],");
                         sourceWriter.WriteLine("        ];");
                     }
                     #endregion

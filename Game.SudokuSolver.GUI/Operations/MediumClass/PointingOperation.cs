@@ -10,18 +10,23 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
         : SudokuBoardOperation
     {
         private PointingOperation(ReadOnlyMemory<BoardCell> hilightedCellNotes, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
-            : base("ポインティング", DifficultyLevel.Easy, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+            : base("ポインティング", DifficultyLevel.Medium, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
         public static PointingOperation? MatchPattern(BoardWorkspace ws)
         {
+            // 【論拠】
+            // あるブロック B とある行または列 CorR とある数字 D に対して、
+            // B 内の CorR 上の何れかのセルの数字の候補に D が存在し、かつ B 内の CorR 上以外のセルの数字の候補に D が存在しない場合
+            // => B 内の CorR 上の何れかのセルの数字が D であるので、B の範囲外の CorR 上のセルの数字の候補では D は否定される。
+
             for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; cellDigit++)
             {
-                var cellNoteBits = ws.GetNoteBits(cellDigit);
+                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
                 for (var block = BoardCellBlock.MinValue; block <= BoardCellBlock.MaxValue; ++block)
                 {
-                    var blockHouseBitMask = BoardCellGeometry.GetBlockCellsBitMask(block);
+                    var blockHouseBitMask = BoardCellGeometry.GetBlockCellsBitSet(block);
 
                     // 行ハウスの検索
                     for (var blockRowOffset = BoardCellBlockRow.MinValue; blockRowOffset <= BoardCellBlockRow.MaxValue; ++blockRowOffset)
@@ -31,10 +36,10 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                BoardCellGeometry.GetRowCellsBitMask(row),
+                                BoardCellGeometry.GetRowCellsBitSet(row),
                                 row.ToFriendlyString(),
                                 cellDigit,
-                                cellNoteBits);
+                                cellNoteBitSet);
                         if (operation is not null)
                             return operation;
                     }
@@ -47,10 +52,10 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                BoardCellGeometry.GetColumnCellsBitMask(column),
+                                BoardCellGeometry.GetColumnCellsBitSet(column),
                                 column.ToFriendlyString(),
                                 cellDigit,
-                                cellNoteBits);
+                                cellNoteBitSet);
                         if (operation is not null)
                             return operation;
                     }
@@ -59,23 +64,24 @@ namespace Game.SudokuSolver.GUI.Operations.MediumClass
 
             return null;
 
-            static PointingOperation? MatchPatternByHouse(BoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, BoardCellDigit cellDigit, UInt128 cellNoteBits)
+            static PointingOperation? MatchPatternByHouse(BoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, BoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
-                var hilighedCellNoteBits = cellNoteBits & blockHouseBitMask & rowBitMask;
-                var removedCellNoteBits = cellNoteBits & ~blockHouseBitMask & rowBitMask;
-                if (hilighedCellNoteBits != 0 && (cellNoteBits & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBits != 0)
+                var hilighedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & rowBitMask;
+                var removedCellNoteBitSet = cellNoteBitSet & ~blockHouseBitMask & rowBitMask;
+                if (hilighedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBitSet != 0)
                 {
-                    // あるブロック B とある行または列 CR とある数字 D に対して、
-                    // B 内の CR の何れかのセルの候補に D が存在し、かつ B 内の CR 以外のセルの候補に D が存在せず、かつ B 以外の CR のセルの候補に D の候補が存在する場合
-                    // => B 以外の CR セルは D にはなり得ないので、それらのセルの候補から D を削除する。
                     var cellDigitChar = cellDigit.ToCellDigitChar();
-                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBits.EnumerateForCellPositions().Select(position => position.ToFriendlyString()))})";
+                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToCellPositions())})";
+                    var description
+                        = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれているので、" +
+                        $"必ずこれらのセルの何れかが '{cellDigitChar}' となります。" +
+                        $"そのため、{columnOrRowHouseText}にある他のセル {removedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を削除します。";
                     return
                         new PointingOperation(
-                            hilighedCellNoteBits.EnumerateForCells(cellDigit).ToArray(),
-                            removedCellNoteBits.EnumerateForCells(cellDigit).ToArray(),
-                            (blockHouseBitMask | rowBitMask).EnumerateForCellPositions().ToArray(),
-                            $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれており、これらのセルの何れかが '{cellDigitChar}' のはずです。そのため、{columnOrRowHouseText}にある他のセル {removedCellNotePositionTexts} は '{cellDigitChar}' になり得ないので候補から削除します。");
+                            hilighedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
+                            removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
+                            (blockHouseBitMask | rowBitMask).EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                            description);
                 }
 
                 return null;

@@ -11,6 +11,23 @@ namespace Game.SudokuSolver.GUI
     {
         protected SudokuBoardOperation(string title, DifficultyLevel difficulty, BoardCell? determinedCell, ReadOnlyMemory<BoardCell> hilightedCellNotes, ReadOnlyMemory<BoardCell> removedCellNotes, ReadOnlyMemory<BoardCellPosition> relatedCellPositions, string description)
         {
+#if DEBUG
+            {
+
+                // HilightedCellNotes と RemovedCellNotes に同じ要素が含まれていてはならない
+                for (var index1 = 0; index1 < hilightedCellNotes.Length; ++index1)
+                {
+                    var pos1 = hilightedCellNotes.Span[index1];
+                    for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
+                    {
+                        var pos2 = removedCellNotes.Span[index2];
+                        if (pos1 == pos2)
+                            throw new ApplicationException();
+                    }
+                }
+            }
+#endif
+
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
@@ -45,27 +62,27 @@ namespace Game.SudokuSolver.GUI
         public BoardCell? DeterminedCell { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ肯定的なセルのメモのコレクションを取得します。
+        /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
         /// </summary>
         /// <value>
         /// セルを示す <see cref="BoardCell"/> 値のコレクションです。
         /// </value>
         /// <remarks>
         /// <para>
-        /// このプロパティは、例えば、セルのメモの絞り込みの根拠となったセルのメモのコレクションを意味します。
+        /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
         /// </para>
         /// </remarks>
         public ReadOnlyMemory<BoardCell> HilightedCellNotes { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ否定的なセルのメモのコレクションを取得します。
+        /// オペレーションの説明に役立つ否定的なセルの数字の候補のコレクションを取得します。
         /// </summary>
         /// <value>
         /// セルを示す <see cref="BoardCell"/> 値のコレクションです。
         /// </value>
         /// <remarks>
         /// <para>
-        /// このプロパティは、例えば、オペレーションの結果により削除されるセルのメモのコレクションを意味します。
+        /// このプロパティは、例えば、オペレーションの結果により削除されるセルの数字の候補のコレクションを意味します。
         /// </para>
         /// </remarks>
         public ReadOnlyMemory<BoardCell> RemovedCellNotes { get; }
@@ -78,7 +95,7 @@ namespace Game.SudokuSolver.GUI
         /// </value>
         /// <remarks>
         /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルメモの絞り込みの説明に役立つ範囲 (行、列、ブロック、任意のセルからの歌詞範囲、など) を意味します。
+        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みの説明に役立つ範囲 (行、列、ブロック、任意のセルからの歌詞範囲、など) を意味します。
         /// </para>
         /// </remarks>
         public ReadOnlyMemory<BoardCellPosition> RelatedCellPositions;

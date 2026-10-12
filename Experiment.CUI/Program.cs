@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Experiment.CUI
@@ -11,11 +10,11 @@ namespace Experiment.CUI
             var columnHouseBitmask = new UInt128[81];
             for (var row = 0; row < 9; ++row)
             {
-                var bits = UInt128.Zero;
+                var bitSet = UInt128.Zero;
                 for (var column = 0; column < 9; ++column)
-                    bits |= UInt128.One << (row * 9 + column);
+                    bitSet |= UInt128.One << (row * 9 + column);
                 for (var column = 0; column < 9; ++column)
-                    columnHouseBitmask[row * 9 + column] = bits;
+                    columnHouseBitmask[row * 9 + column] = bitSet;
             }
 
             for (var row = 0; row < 9; ++row)

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver.GUI
 {
     internal readonly struct BoardCellPosition
+        : IEquatable<BoardCellPosition>
     {
         public BoardCellPosition(BoardCellIndex cellIndex)
         {
@@ -10,7 +12,7 @@ namespace Game.SudokuSolver.GUI
             if (cellIndex is < BoardCellIndex.MinValue or > BoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
 #endif
-            var (column, row) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
+            var (column, row, _) = BoardCellGeometry.GetColumnRowBlock(cellIndex);
             Column = column;
             Row = row;
         }
@@ -29,5 +31,22 @@ namespace Game.SudokuSolver.GUI
 
         public BoardCellColumn Column { get; }
         public BoardCellRow Row { get; }
+
+        public bool Equals(BoardCellPosition other)
+            => Column == other.Column && Row == other.Row;
+
+        public override bool Equals(object? other)
+            => other != null && GetType() == other.GetType() && Equals((BoardCellPosition)other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Column, Row);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(BoardCellPosition left, BoardCellPosition right)
+            => left.Equals(right);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(BoardCellPosition left, BoardCellPosition right)
+            => !left.Equals(right);
     }
 }

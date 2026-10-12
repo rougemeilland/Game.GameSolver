@@ -16,9 +16,14 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
 
         public static HiddenSingleOperation? MatchPattern(BoardWorkspace ws)
         {
+            // 【論拠】
+            // あるハウス H と H 内のセル C とある数字 D に対して、
+            // H 内の C の数字の候補に D が含まれており、かつ C 以外のすべてのセルの数字の候補に D が含まれていない場合
+            // => C の数字は D で確定する。
+
             for (var cellDigit = BoardCellDigit.MinValue; cellDigit <= BoardCellDigit.MaxValue; ++cellDigit)
             {
-                var noteBits = ws.GetNoteBits(cellDigit);
+                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
 
                 for (var block = BoardCellBlock.MinValue; block <= BoardCellBlock.MaxValue; ++block)
                 {
@@ -26,9 +31,9 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             HouseType.Block,
-                            BoardCellGeometry.GetBlockCellsBitMask(block),
+                            BoardCellGeometry.GetBlockCellsBitSet(block),
                             cellDigit,
-                            noteBits);
+                            cellNoteBitSet);
                     if (operation is not null)
                         return operation;
                 }
@@ -39,9 +44,9 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             HouseType.Column,
-                            BoardCellGeometry.GetColumnCellsBitMask(column),
+                            BoardCellGeometry.GetColumnCellsBitSet(column),
                             cellDigit + 1,
-                            noteBits);
+                            cellNoteBitSet);
                     if (operation is not null)
                         return operation;
                 }
@@ -52,9 +57,9 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             HouseType.Row,
-                            BoardCellGeometry.GetRowCellsBitMask(row),
+                            BoardCellGeometry.GetRowCellsBitSet(row),
                             cellDigit + 1,
-                            noteBits);
+                            cellNoteBitSet);
                     if (operation is not null)
                         return operation;
                 }
@@ -62,32 +67,41 @@ namespace Game.SudokuSolver.GUI.Operations.EasyClass
 
             return null;
 
-            static HiddenSingleOperation? MatchPatternByHouse(BoardWorkspace ws, HouseType house, UInt128 houseBitMask, BoardCellDigit cellDigit, UInt128 noteBits)
+            static HiddenSingleOperation? MatchPatternByHouse(BoardWorkspace ws, HouseType house, UInt128 houseBitMask, BoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
-                var foundBits = noteBits & houseBitMask;
-                if (UInt128.PopCount(foundBits) != 1)
+                var foundBitSet = cellNoteBitSet & houseBitMask;
+                if (UInt128.PopCount(foundBitSet) != 1)
                     return null;
-                var determinedCellIndex = foundBits.GetOneCellIndex();
+                var determinedCellIndex = foundBitSet.GetOneCellIndex();
 
-                // 未確定であり、指定された数字をメモに含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                var removedCellsNoteBits =
-                    ~ws.DeterminedCellBits
-                    & noteBits
-                    & BoardCellGeometry.GetVisibleCellsBitMaskByCellIndex(determinedCellIndex)
-                    & ~foundBits;
+                // 未確定であり、指定された数字を候補に含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
+                var removedCellsNoteBitSet =
+                    ~ws.DeterminedCellBitSet
+                    & cellNoteBitSet
+                    & BoardCellGeometry.GetVisibleCellsBitSetByCellIndex(determinedCellIndex)
+                    & ~foundBitSet;
 
-                var removedCellNotes = removedCellsNoteBits.EnumerateForCells(cellDigit).ToArray();
-                var relatedCellPositions = houseBitMask.EnumerateForCellPositions().ToArray();
+                var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
+                var relatedCellPositions = houseBitMask.EnumerateAsCellIndexes().ToCellPositions().ToArray();
                 var (determinedCellColumn, determinedCellRow, determinedCellBlock) = BoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
-                var determinedCellPosiionText = new BoardCellPosition(determinedCellIndex).ToFriendlyString();
-                var determinedCellChar = cellDigit.ToCellDigitChar();
+                var determinedCellPosiionText = determinedCellIndex.ToFriendlyString();
+                var determinedCellDigitText = cellDigit.ToCellDigitChar();
 
                 var description =
                     house switch
                     {
-                        HouseType.Row => $"{determinedCellRow.ToFriendlyString()}のセルのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                        HouseType.Column => $"{determinedCellColumn.ToFriendlyString()} のセルのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
-                        HouseType.Block => $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち、数字 '{determinedCellChar}' であり得るセルが{determinedCellPosiionText}のみであるため、{determinedCellPosiionText}のセルの数字は '{determinedCellChar}' に確定します。{(removedCellNotes.Length > 0 ? "これにより他のいくつかのセルのメモが削除されます。" : "")}",
+                        HouseType.Row =>
+                            $"{determinedCellRow.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                        HouseType.Column =>
+                            $"{determinedCellColumn.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                        HouseType.Block =>
+                            $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };
 
