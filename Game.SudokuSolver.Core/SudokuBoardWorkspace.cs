@@ -52,7 +52,7 @@ namespace Game.SudokuSolver
         /// 指定されたセルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
         /// </param>
         /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"、そうではないのなら <see langword="false"/> です。
+        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public bool IsDetermined(SudokuBoardCellIndex cellIndex) => _cellsSource.IsDetermined(cellIndex);
@@ -67,7 +67,7 @@ namespace Game.SudokuSolver
         /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
         /// </param>
         /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"、そうではないのなら <see langword="false"/> です。
+        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public bool IsDetermined(SudokuBoardCellColumn column, SudokuBoardCellRow row) => _cellsSource.IsDetermined(column, row);

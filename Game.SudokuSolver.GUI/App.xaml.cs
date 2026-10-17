@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Game.SudokuSolver.GUI
 {
@@ -10,5 +8,4 @@ namespace Game.SudokuSolver.GUI
     public partial class App : Application
     {
     }
-
 }

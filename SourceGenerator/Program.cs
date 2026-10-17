@@ -43,7 +43,7 @@ namespace SourceGenerator
                     using var sourceWriter = new StreamWriter(outputPath, false, Encoding.UTF8);
                     sourceWriter.WriteLine("namespace Game.SudokuSolver");
                     sourceWriter.WriteLine("{");
-                    sourceWriter.WriteLine("    internal partial class SudokuBoardCellsSet");
+                    sourceWriter.WriteLine("    internal sealed partial class SudokuBoardCellsSet");
                     sourceWriter.WriteLine("    {");
                     sourceWriter.WriteLine("        private static readonly byte[][] _visibleCellsIndexes =");
                     sourceWriter.WriteLine("        [");
@@ -125,7 +125,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine();
                     sourceWriter.WriteLine("namespace Game.SudokuSolver");
                     sourceWriter.WriteLine("{");
-                    sourceWriter.WriteLine("    internal partial class SudokuBoardCellGeometry");
+                    sourceWriter.WriteLine("    internal sealed partial class SudokuBoardCellGeometry");
                     sourceWriter.WriteLine("    {");
 
                     #region _columnHouseCellsBitSetsByCellIndex

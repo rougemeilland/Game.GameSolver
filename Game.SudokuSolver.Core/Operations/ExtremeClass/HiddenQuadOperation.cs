@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
     internal sealed class HiddenQuadOperation
         : SudokuBoardOperation
     {
-        private HiddenQuadOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("隠れ四国同盟", SudokuBoardDifficultyLevel.Extreme, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private HiddenQuadOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("隠れ四国同盟", SudokuBoardDifficultyLevel.Extreme, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -112,7 +112,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     {
                                         // この時点で、隠れ四国同盟によって否定される数字の候補が存在する
 
-                                        var hilightedCellNote =
+                                        var highlightedCellNote =
                                             (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex1)
                                             .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex2))
                                             .Concat((cellNoteBitSet3 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex3))
@@ -147,7 +147,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             $"したがって、四つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
                                         return
                                             new HiddenQuadOperation(
-                                                hilightedCellNote,
+                                                highlightedCellNote,
                                                 removedCellNotes,
                                                 houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
                                                 description);

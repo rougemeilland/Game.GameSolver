@@ -13,13 +13,14 @@ namespace Game.SudokuSolver
         private const ushort _ALL_NOTE_BIT_MASK = (1 << 9) - 1;
         private const ushort _ALL_BIT_MASK = _IS_DETERMINED | _ALL_NOTE_BIT_MASK;
 
-        private readonly ushort[] _cells = new ushort[81];
+        private readonly ushort[] _cells = new ushort[SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1];
 
-        public SudokuBoardCellsSet(char[] cells)
+        public SudokuBoardCellsSet(ReadOnlySpan<string> cellDigits)
         {
-            ArgumentNullException.ThrowIfNull(cells);
-            if (cells.Length != _cells.Length)
-                throw new ArgumentException("The size of the cell array must be 81.", nameof(cells));
+            if (cellDigits.Length != _cells.Length)
+                throw new ArgumentException($"The size of the cell array must be {_cells.Length}.", nameof(cellDigits));
+
+            _cells.AsSpan().Fill(_ALL_NOTE_BIT_MASK);
 
 #if DEBUG
             var returned = true;
@@ -28,13 +29,14 @@ namespace Game.SudokuSolver
 #endif
                 for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
                 {
-                    var cellDigitChar = cells[cellIndex - SudokuBoardCellIndex.FirstValue];
-                    if (cellDigitChar is not ' ' and not '\0')
+                    var cellDigitString = cellDigits[cellIndex - SudokuBoardCellIndex.FirstValue];
+                    if (cellDigitString.Length > 1)
                         throw new ApplicationException();
-
-                    if (cellDigitChar is >= '0' and <= '9')
+                    if (cellDigitString.Length > 0)
                     {
-                        if (!DetermineCellCore(cellIndex, cellDigitChar.ToCellDigit()))
+                        if (cellDigitString[0] is < '1' or > '9')
+                            throw new ApplicationException();
+                        if (!DetermineCellCore(cellIndex, cellDigitString[0].ToCellDigit()))
                             throw new ApplicationException("Failed to initialize the board. There is likely a duplicate digit in one of the houses (row, column, or block).");
                     }
                 }
@@ -87,7 +89,7 @@ namespace Game.SudokuSolver
         /// 指定されたセルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
         /// </param>
         /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"、そうではないのなら <see langword="false"/> です。
+        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public bool IsDetermined(SudokuBoardCellIndex cellIndex)
@@ -109,7 +111,7 @@ namespace Game.SudokuSolver
         /// 指定されたセルの行です。行は 0 から 8 までの整数です。
         /// </param>
         /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"、そうではないのなら <see langword="false"/> です。
+        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public bool IsDetermined(SudokuBoardCellColumn column, SudokuBoardCellRow row)
@@ -326,7 +328,7 @@ namespace Game.SudokuSolver
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
         /// </param>
         /// <returns>
-        /// 数字の候補の削除に成功した場合は <see langword="true"/>、そうではない場合は <see cref="false"/> を返します。
+        /// 数字の候補の削除に成功した場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
         /// <para>
         /// 以下のような場合に数字の候補の削除に失敗します。
         /// <list type="bullet">
@@ -364,7 +366,7 @@ namespace Game.SudokuSolver
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
         /// </param>
         /// <returns>
-        /// 数字の候補の削除に成功した場合は <see langword="true"/>、そうではない場合は <see cref="false"/> を返します。
+        /// 数字の候補の削除に成功した場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
         /// <para>
         /// 以下のような場合に数字の候補の削除に失敗します。
         /// <list type="bullet">
@@ -575,7 +577,7 @@ namespace Game.SudokuSolver
                 var digit = _cells[index];
                 if ((digit & _IS_DETERMINED) != 0)
                 {
-                    System.Diagnostics.Debug.Assert(digit is >= 1 and <= 9);
+                    System.Diagnostics.Debug.Assert((digit &~_IS_DETERMINED) is >= 0 and < 9);
                 }
             }
 

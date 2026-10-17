@@ -323,7 +323,7 @@ namespace Game.SudokuSolver
         /// 指定された行に含まれるセルの位置の配列を取得します。
         /// </summary>
         /// <param name="row">
-        /// 指定された行を示す <see cref="BoardCellRown"/> 値です。
+        /// 指定された行を示す <see cref="SudokuBoardCellRow"/> 値です。
         /// </param>
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> の配列です。

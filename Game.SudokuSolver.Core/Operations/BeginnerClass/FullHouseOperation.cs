@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
     internal sealed class FullHouseOperation
         : SudokuBoardOperation
     {
-        private FullHouseOperation(SudokuBoardCell? determinedCell, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("フルハウス", SudokuBoardDifficultyLevel.Beginner, determinedCell, ReadOnlyMemory<SudokuBoardCell>.Empty, removedCellNotes, relatedCellPositions, description)
+        private FullHouseOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("フルハウス", SudokuBoardDifficultyLevel.Beginner, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -80,7 +80,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     {
                         var removedCellNotes = removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
                         var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
-                        var determinedCellPositionText = new SudokuBoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString();
+                        var determinedCellPositionText = new SudokuBoardCellPosition(determinedCellIndex).ToFriendlyString();
                         var determinedCellDigitText = cellDigit.ToCellDigitChar();
                         var description =
                             house switch
@@ -101,7 +101,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                             };
                         return
                             new FullHouseOperation(
-                                new SudokuBoardCell(determinedCellIndex, cellDigit),
+                                new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
                                 removedCellNotes,
                                 houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
                                 description);

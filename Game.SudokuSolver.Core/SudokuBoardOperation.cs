@@ -9,15 +9,39 @@ namespace Game.SudokuSolver
     public abstract class SudokuBoardOperation
         : GameBoardOperation<SudokuBoardOperation>
     {
-        protected SudokuBoardOperation(string title, SudokuBoardDifficultyLevel difficulty, SudokuBoardCell? determinedCell, ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+        /// <summary>
+        /// コンストラクタです。
+        /// </summary>
+        /// <param name="title">
+        /// 定石の名前を示す <see cref="string"/> オブジェクトです。
+        /// </param>
+        /// <param name="difficulty">
+        /// 定石の難易度を示す <see cref="SudokuBoardDifficultyLevel"/> 値です。
+        /// </param>
+        /// <param name="determinedCell">
+        /// 定石を適用した結果数字が確定したセルが存在する場合はそのセルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値、そうではない場合は <see langword="null"/> です。
+        /// </param>
+        /// <param name="highlightedCellNotes">
+        /// 定石のキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
+        /// </param>
+        /// <param name="removedCellNotes">
+        /// 定石を適用した結果により否定される数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
+        /// </param>
+        /// <param name="relatedCellPositions">
+        /// 定石の適用範囲のセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の配列です。
+        /// </param>
+        /// <param name="description">
+        /// 定石の解説のテキストを示す <see cref="string"/>オブジェクトです。
+        /// </param>
+        protected SudokuBoardOperation(string title, SudokuBoardDifficultyLevel difficulty, SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
         {
 #if DEBUG
             {
 
-                // HilightedCellNotes と RemovedCellNotes に同じ要素が含まれていてはならない
-                for (var index1 = 0; index1 < hilightedCellNotes.Length; ++index1)
+                // HighlightedCellNotes と RemovedCellNotes に同じ要素が含まれていてはならない
+                for (var index1 = 0; index1 < highlightedCellNotes.Length; ++index1)
                 {
-                    var highlitedCellNote = hilightedCellNotes.Span[index1];
+                    var highlitedCellNote = highlightedCellNotes.Span[index1];
                     for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
                     {
                         var removedCellNote = removedCellNotes.Span[index2];
@@ -31,7 +55,7 @@ namespace Game.SudokuSolver
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
-            HilightedCellNotes = hilightedCellNotes;
+            HighlightedCellNotes = highlightedCellNotes;
             RemovedCellNotes = removedCellNotes;
             RelatedCellPositions = relatedCellPositions;
             Description = description;
@@ -55,37 +79,37 @@ namespace Game.SudokuSolver
         /// オペレーションにより確定されるセルを取得します。
         /// </summary>
         /// <value>
-        /// 確定されたセルが存在する場合はそのセルを示す <see cref="SudokuBoardCell"/> 値です。そうではない場合は <see langword="null"/> です。
+        /// 確定されたセルが存在する場合はそのセルを示す <see cref="SudokuBoardCellPositionDigit"/> 値です。そうではない場合は <see langword="null"/> です。
         /// </value>
         /// <remarks>
         /// </remarks>
-        public SudokuBoardCell? DeterminedCell { get; }
+        public SudokuBoardCellPositionDigit? DeterminedCell { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
         /// </summary>
         /// <value>
-        /// セルを示す <see cref="SudokuBoardCell"/> 値のコレクションです。
+        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
         /// </value>
         /// <remarks>
         /// <para>
         /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
         /// </para>
         /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCell> HilightedCellNotes { get; }
+        public ReadOnlyMemory<SudokuBoardCellPositionDigit> HighlightedCellNotes { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ否定的なセルの数字の候補のコレクションを取得します。
         /// </summary>
         /// <value>
-        /// セルを示す <see cref="SudokuBoardCell"/> 値のコレクションです。
+        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
         /// </value>
         /// <remarks>
         /// <para>
         /// このプロパティは、例えば、オペレーションの結果により削除されるセルの数字の候補のコレクションを意味します。
         /// </para>
         /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCell> RemovedCellNotes { get; }
+        public ReadOnlyMemory<SudokuBoardCellPositionDigit> RemovedCellNotes { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ関連セルのコレクションを取得します。
@@ -98,7 +122,7 @@ namespace Game.SudokuSolver
         /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みの説明に役立つ範囲 (行、列、ブロック、任意のセルからの歌詞範囲、など) を意味します。
         /// </para>
         /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPosition> RelatedCellPositions;
+        public ReadOnlyMemory<SudokuBoardCellPosition> RelatedCellPositions { get; }
 
         /// <summary>
         /// オペレーションの動作内容を示す文字列を取得します。

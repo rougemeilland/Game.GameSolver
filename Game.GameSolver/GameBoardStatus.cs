@@ -21,7 +21,7 @@
         Success,
 
         /// <summary>
-        /// 解決に成功した
+        /// 解決に失敗した
         /// </summary>
         Failed,
     }

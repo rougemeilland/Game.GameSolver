@@ -9,15 +9,14 @@ namespace Game.SudokuSolver.Operations.HardClass
     internal sealed class XWingOperation
         : SudokuBoardOperation
     {
-        private XWingOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("X-ウィング", SudokuBoardDifficultyLevel.Hard, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private XWingOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("X-ウィング", SudokuBoardDifficultyLevel.Hard, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
         public static XWingOperation? MatchPattern(SudokuBoardWorkspace ws)
         {
             // TODO: X-ウィングの実装
-#error
 
             // 【論拠】
             // あるハウス H と ある二つの数字 D1, D2 とある二つのセル C1, C2 に対して、
@@ -102,7 +101,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 // この時点で、隠れ二国同盟によって否定される数字の数字の候補が存在する
 
                                 // 隠れ二国同盟によって否定されるセルの位置と数字の候補を求める
-                                var hilightedCellNote =
+                                var highlightedCellNote =
                                     (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex1)
                                     .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex2))
                                     .ToArray();
@@ -130,7 +129,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     $"したがって、二つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
                                 return
                                     new XWingOperation(
-                                        hilightedCellNote,
+                                        highlightedCellNote,
                                         removedCellNotes,
                                         houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
                                         description);

@@ -10,5 +10,4 @@ namespace Game.WateSortSolver.GUI
     public partial class App : Application
     {
     }
-
 }

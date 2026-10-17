@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class PointingOperation
         : SudokuBoardOperation
     {
-        private PointingOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("ポインティング", SudokuBoardDifficultyLevel.Medium, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private PointingOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("ポインティング", SudokuBoardDifficultyLevel.Medium, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -66,9 +66,9 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
             static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
-                var hilighedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & rowBitMask;
+                var highlightedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & rowBitMask;
                 var removedCellNoteBitSet = cellNoteBitSet & ~blockHouseBitMask & rowBitMask;
-                if (hilighedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBitSet != 0)
+                if (highlightedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBitSet != 0)
                 {
                     var cellDigitChar = cellDigit.ToCellDigitChar();
                     var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToCellPositions())})";
@@ -78,7 +78,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         $"そのため、{columnOrRowHouseText}にある他のセル {removedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を削除します。";
                     return
                         new PointingOperation(
-                            hilighedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
+                            highlightedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
                             removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
                             (blockHouseBitMask | rowBitMask).EnumerateAsCellIndexes().ToCellPositions().ToArray(),
                             description);

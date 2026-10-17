@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.EasyClass
     internal sealed class NakedSingleOperation
         : SudokuBoardOperation
     {
-        private NakedSingleOperation(SudokuBoardCell? determinedCell, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, string description)
-            : base("一択セル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCell>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+        private NakedSingleOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, string description)
+            : base("一択セル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
         {
         }
 
@@ -36,8 +36,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         & ~cellIndex.ToCellIndexBitSet();
 
                     var removedCellNotes = removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
-                    var (determinedCellColumn, determinedCellRow, _) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex);
-                    var determinedCellPositionText = new SudokuBoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString();
+                    var determinedCellPositionText = new SudokuBoardCellPosition(cellIndex).ToFriendlyString();
                     var determinedCellDigitText = cellDigit.ToCellDigitChar();
                     var description =
                         $"{determinedCellPositionText}のセルの数字の候補は '{determinedCellDigitText}' しかないため、" +
@@ -45,7 +44,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     return
                         new NakedSingleOperation(
-                            new SudokuBoardCell(determinedCellColumn, determinedCellRow, cellDigit),
+                            new SudokuBoardCellPositionDigit(cellIndex, cellDigit),
                             removedCellNotes,
                             description);
                 }

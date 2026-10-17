@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.EasyClass
     internal sealed class HiddenSingleOperation
         : SudokuBoardOperation
     {
-        private HiddenSingleOperation(SudokuBoardCell? determinedCell, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("隠れシングル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCell>.Empty, removedCellNotes, relatedCellPositions, description)
+        private HiddenSingleOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("隠れシングル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -107,7 +107,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
 
                 return
                     new HiddenSingleOperation(
-                        new SudokuBoardCell(determinedCellIndex, cellDigit),
+                        new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
                         removedCellNotes,
                         relatedCellPositions,
                         description);

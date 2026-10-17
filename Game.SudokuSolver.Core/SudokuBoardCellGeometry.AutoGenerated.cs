@@ -2,7 +2,7 @@
 
 namespace Game.SudokuSolver
 {
-    internal partial class SudokuBoardCellGeometry
+    internal sealed partial class SudokuBoardCellGeometry
     {
         /// <summary>
         /// 添え字のセルと列を同じくするセルの集合。

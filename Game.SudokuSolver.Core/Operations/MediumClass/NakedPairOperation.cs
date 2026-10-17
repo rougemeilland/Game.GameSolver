@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class NakedPairOperation
         : SudokuBoardOperation
     {
-        private NakedPairOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("二国同盟", SudokuBoardDifficultyLevel.Medium, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedPairOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("二国同盟", SudokuBoardDifficultyLevel.Medium, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -114,14 +114,14 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 // この時点で、二国同盟によって否定されるセルの候補が存在する
 
                                 // 二国同盟に含まれるセルの位置と数字を求める
-                                var hilightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
-                                var hilightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
-                                var hilightedCellNotes =
-                                    hilightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
-                                    .Concat(hilightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
+                                var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
+                                var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
+                                var highlightedCellNotes =
+                                    highlightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
+                                    .Concat(highlightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
                                     .ToArray();
 #if DEBUG
-                                System.Diagnostics.Debug.Assert(hilightedCellNotes.Length >= 2);
+                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Length >= 2);
 #endif
 
                                 // 二国同盟によって否定されるセルの位置と数字の候補を求める
@@ -130,7 +130,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     .Concat(removedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
                                     .ToArray();
 #if DEBUG
-                                System.Diagnostics.Debug.Assert(hilightedCellNotes.Length > 0);
+                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Length > 0);
 #endif
 
                                 var houseName = houseNameGetter();
@@ -149,7 +149,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
                                 return
                                     new NakedPairOperation(
-                                        hilightedCellNotes,
+                                        highlightedCellNotes,
                                         removedCellNotes,
                                         relatedCellPositions,
                                         description);

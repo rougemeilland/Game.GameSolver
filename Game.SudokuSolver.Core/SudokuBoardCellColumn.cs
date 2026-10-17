@@ -3,7 +3,7 @@
     /// <summary>
     /// 数独の盤面のセルの列を示す列挙体です。
     /// </summary>
-    public enum SudokuBoardCellColumn
+    internal enum SudokuBoardCellColumn
     {
         /// <summary>
         /// 1 列目
@@ -13,7 +13,7 @@
         /// <summary>
         /// 最小値
         /// </summary>
-        MinValue = 0,
+        MinValue = One,
 
         /// <summary>
         /// 最大値

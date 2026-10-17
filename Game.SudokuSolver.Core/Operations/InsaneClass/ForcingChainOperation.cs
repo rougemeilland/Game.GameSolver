@@ -10,8 +10,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
     internal sealed class ForcingChainOperation
         : SudokuBoardOperation
     {
-        private ForcingChainOperation(SudokuBoardCell? determinedCell, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, string description)
-            : base("強制チェーン", SudokuBoardDifficultyLevel.Insane, determinedCell, ReadOnlyMemory<SudokuBoardCell>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+        private ForcingChainOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, string description)
+            : base("強制チェーン", SudokuBoardDifficultyLevel.Insane, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
         {
         }
 
@@ -43,15 +43,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                         & SudokuBoardCellGeometry.GetVisibleCellsBitSetByCellIndex(foundCellIndex)
                         & ~foundCellMask;
 
-                    var (determinedCellColumn, determinedCellRow, _) = SudokuBoardCellGeometry.GetColumnRowBlock(foundCellIndex);
                     var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
                     var determinedCellDigitText = cellDigit.ToCellDigitChar();
                     var description =
-                        $"{new SudokuBoardCellPosition(determinedCellColumn, determinedCellRow).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。" +
+                        $"{new SudokuBoardCellPosition(foundCellIndex).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。" +
                         $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     yield return
                         new ForcingChainOperation(
-                            new SudokuBoardCell(determinedCellColumn, determinedCellRow, cellDigit),
+                            new SudokuBoardCellPositionDigit(foundCellIndex, cellDigit),
                             removedCellNotes,
                             description);
                 }

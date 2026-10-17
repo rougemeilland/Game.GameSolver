@@ -17,12 +17,8 @@ namespace Game.GameSolver
         private readonly Dictionary<IGameBoardStateUniqueKey, int> _alreadyAppearedState;
 
         /// <summary>
-        /// コンストラクタです。
+        /// デフォルトコンストラクタです。
         /// </summary>
-        /// <param name="stateEqualityComparer">
-        /// 盤面の状態を同等かどうか判断する <see cref="IEqualityComparer{STATE_T}"/> です。
-        /// このオブジェクトは、既に探索済みの盤面の最短策を省略するために使用されます。
-        /// </param>
         protected GameSolverEngineGameSolverState()
         {
             _stateColelction = new Stack<STATE_T>();

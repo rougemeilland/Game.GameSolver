@@ -1,6 +1,6 @@
 ﻿namespace Game.SudokuSolver
 {
-    internal partial class SudokuBoardCellsSet
+    internal sealed partial class SudokuBoardCellsSet
     {
         private static readonly byte[][] _visibleCellsIndexes =
         [

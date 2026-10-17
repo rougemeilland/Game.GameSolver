@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class NakedTripleOperation
         : SudokuBoardOperation
     {
-        private NakedTripleOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("三国同盟", SudokuBoardDifficultyLevel.Medium, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedTripleOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("三国同盟", SudokuBoardDifficultyLevel.Medium, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -121,16 +121,16 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     // この時点で、三国同盟によって否定されるセルの数字の候補が存在する
 
                                     // 三国同盟に含まれるセルの位置と数字を求める
-                                    var hilightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
-                                    var hilightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
-                                    var hilightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(cellDigitC) & keyCellBitSet;
-                                    var hilightedCellNotes =
-                                        hilightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
-                                        .Concat(hilightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
-                                        .Concat(hilightedCellNoteBitSetC.EnumerateAsCellIndexes().ToCells(cellDigitC))
+                                    var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
+                                    var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
+                                    var highlightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(cellDigitC) & keyCellBitSet;
+                                    var highlightedCellNotes =
+                                        highlightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
+                                        .Concat(highlightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
+                                        .Concat(highlightedCellNoteBitSetC.EnumerateAsCellIndexes().ToCells(cellDigitC))
                                         .ToArray();
 #if DEBUG
-                                    System.Diagnostics.Debug.Assert(hilightedCellNotes.Length >= 3);
+                                    System.Diagnostics.Debug.Assert(highlightedCellNotes.Length >= 3);
 #endif
 
                                     // 三国同盟によって否定されるセルの位置と数字の候補を求める
@@ -161,7 +161,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                         $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
                                     return
                                         new NakedTripleOperation(
-                                            hilightedCellNotes,
+                                            highlightedCellNotes,
                                             removedCellNotes,
                                             relatedCellPositions,
                                             description);

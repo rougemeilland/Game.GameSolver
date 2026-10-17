@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.HardClass
     internal sealed class HiddenPairOperation
         : SudokuBoardOperation
     {
-        private HiddenPairOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("隠れ二国同盟", SudokuBoardDifficultyLevel.Hard, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private HiddenPairOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("隠れ二国同盟", SudokuBoardDifficultyLevel.Hard, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -99,7 +99,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 // この時点で、隠れ二国同盟によって否定される数字の数字の候補が存在する
 
                                 // 隠れ二国同盟によって否定されるセルの位置と数字の候補を求める
-                                var hilightedCellNote =
+                                var highlightedCellNote =
                                     (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex1)
                                     .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex2))
                                     .ToArray();
@@ -127,7 +127,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     $"したがって、二つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
                                 return
                                     new HiddenPairOperation(
-                                        hilightedCellNote,
+                                        highlightedCellNote,
                                         removedCellNotes,
                                         houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
                                         description);

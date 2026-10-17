@@ -9,8 +9,8 @@ namespace Game.SudokuSolver.Operations.HardClass
     internal sealed class NakedQuadOperation
         : SudokuBoardOperation
     {
-        private NakedQuadOperation(ReadOnlyMemory<SudokuBoardCell> hilightedCellNotes, ReadOnlyMemory<SudokuBoardCell> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("四国同盟", SudokuBoardDifficultyLevel.Hard, null, hilightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedQuadOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base("四国同盟", SudokuBoardDifficultyLevel.Hard, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -128,18 +128,18 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         // この時点で、四国同盟によって否定されるセルの数字の候補が存在する
 
                                         // 四国同盟に含まれるセルの位置と数字を求める
-                                        var hilightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
-                                        var hilightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
-                                        var hilightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(cellDigitC) & keyCellBitSet;
-                                        var hilightedCellNoteBitSetD = houseNoteMask & ws.GetNoteBitSet(cellDigitD) & keyCellBitSet;
-                                        var hilightedCellNotes =
-                                            hilightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
-                                            .Concat(hilightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
-                                            .Concat(hilightedCellNoteBitSetC.EnumerateAsCellIndexes().ToCells(cellDigitC))
-                                            .Concat(hilightedCellNoteBitSetD.EnumerateAsCellIndexes().ToCells(cellDigitD))
+                                        var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(cellDigitC) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetD = houseNoteMask & ws.GetNoteBitSet(cellDigitD) & keyCellBitSet;
+                                        var highlightedCellNotes =
+                                            highlightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
+                                            .Concat(highlightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
+                                            .Concat(highlightedCellNoteBitSetC.EnumerateAsCellIndexes().ToCells(cellDigitC))
+                                            .Concat(highlightedCellNoteBitSetD.EnumerateAsCellIndexes().ToCells(cellDigitD))
                                             .ToArray();
 #if DEBUG
-                                        System.Diagnostics.Debug.Assert(hilightedCellNotes.Length >= 4);
+                                        System.Diagnostics.Debug.Assert(highlightedCellNotes.Length >= 4);
 #endif
 
                                         // 四国同盟によって否定されるセルの位置と数字の候補を求める
@@ -173,7 +173,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                             $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
                                         return
                                             new NakedQuadOperation(
-                                                hilightedCellNotes,
+                                                highlightedCellNotes,
                                                 removedCellNotes,
                                                 relatedCellPositions,
                                                 description);

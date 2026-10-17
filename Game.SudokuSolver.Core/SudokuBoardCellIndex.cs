@@ -3,7 +3,7 @@
     /// <summary>
     /// 数独の盤面のセルの位置を示す列挙体です。
     /// </summary>
-    internal enum SudokuBoardCellIndex
+    public enum SudokuBoardCellIndex
     {
         /// <summary>
         /// 最初の値

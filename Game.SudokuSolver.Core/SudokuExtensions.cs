@@ -7,7 +7,7 @@ namespace Game.SudokuSolver
     /// <summary>
     /// 数独の拡張メソッドのクラスです。
     /// </summary>
-    internal static class SudokuExtensions
+    public static class SudokuExtensions
     {
         #region for char
 
@@ -21,7 +21,7 @@ namespace Game.SudokuSolver
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SudokuBoardCellDigit ToCellDigit(this char digitChar)
+        internal static SudokuBoardCellDigit ToCellDigit(this char digitChar)
         {
 #if DEBUG
             if (digitChar is < '1' or > '9')
@@ -45,7 +45,7 @@ namespace Game.SudokuSolver
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SudokuBoardCellIndex GetOneCellIndex(this UInt128 cellIndexBitSet)
+        internal static SudokuBoardCellIndex GetOneCellIndex(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
             ArgumentOutOfRangeException.ThrowIfLessThan(cellIndexBitSet, UInt128.One << 0);
@@ -66,7 +66,7 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の列挙子を返します。
         /// </returns>
-        public static IEnumerable<SudokuBoardCellIndex> EnumerateAsCellIndexes(this UInt128 cellIndexBitSet)
+        internal static IEnumerable<SudokuBoardCellIndex> EnumerateAsCellIndexes(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
             if ((cellIndexBitSet & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
@@ -95,7 +95,7 @@ namespace Game.SudokuSolver
         /// セルの列を示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToFriendlyString(this SudokuBoardCellColumn column)
+        internal static string ToFriendlyString(this SudokuBoardCellColumn column)
         {
 #if DEBUG
             if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
@@ -119,7 +119,7 @@ namespace Game.SudokuSolver
         /// セルの行を示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToFriendlyString(this SudokuBoardCellRow row)
+        internal static string ToFriendlyString(this SudokuBoardCellRow row)
         {
 #if DEBUG
             if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
@@ -143,7 +143,7 @@ namespace Game.SudokuSolver
         /// セルの行を示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToFriendlyString(this SudokuBoardCellBlock block)
+        internal static string ToFriendlyString(this SudokuBoardCellBlock block)
         {
 #if DEBUG
             if (block is < SudokuBoardCellBlock.MinValue or > SudokuBoardCellBlock.MaxValue)
@@ -180,7 +180,7 @@ namespace Game.SudokuSolver
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt128 ToCellIndexBitSet(this SudokuBoardCellIndex cellIndex)
+        internal static UInt128 ToCellIndexBitSet(this SudokuBoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
@@ -200,7 +200,7 @@ namespace Game.SudokuSolver
         /// セルの位置を示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToFriendlyString(this SudokuBoardCellIndex cellIndex)
+        internal static string ToFriendlyString(this SudokuBoardCellIndex cellIndex)
         {
             var (column, row, _) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex);
             return ToFriendlyString(column, row);
@@ -215,7 +215,7 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の列挙子を返します。
         /// </returns>
-        public static IEnumerable<SudokuBoardCellPosition> ToCellPositions(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
+        internal static IEnumerable<SudokuBoardCellPosition> ToCellPositions(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
         {
             foreach (var cellIndex in cellIndexes)
                 yield return new SudokuBoardCellPosition(cellIndex);
@@ -230,7 +230,7 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セルの位置を示す <see cref="string"/> オブジェクトの列挙子を返します。
         /// </returns>
-        public static IEnumerable<string> ToCellPositionTexts(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
+        internal static IEnumerable<string> ToCellPositionTexts(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
         {
             foreach (var cellIndex in cellIndexes)
                 yield return new SudokuBoardCellPosition(cellIndex).ToFriendlyString();
@@ -246,12 +246,12 @@ namespace Game.SudokuSolver
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
         /// </param>
         /// <returns>
-        /// セルの位置と数字を示す <see cref="SudokuBoardCell"/> 値の列挙子を返します。
+        /// セルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値の列挙子を返します。
         /// </returns>
-        public static IEnumerable<SudokuBoardCell> ToCells(this IEnumerable<SudokuBoardCellIndex> cellIndexes, SudokuBoardCellDigit cellDigit)
+        internal static IEnumerable<SudokuBoardCellPositionDigit> ToCells(this IEnumerable<SudokuBoardCellIndex> cellIndexes, SudokuBoardCellDigit cellDigit)
         {
             foreach (var cellIndex in cellIndexes)
-                yield return new SudokuBoardCell(cellIndex, cellDigit);
+                yield return new SudokuBoardCellPositionDigit(cellIndex, cellDigit);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セル番号の読みやすい文字列を示す <see cref="string"/> オブジェクトの列挙子を返します。
         /// </returns>
-        public static IEnumerable<string> ToFriendlyStrings(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
+        internal static IEnumerable<string> ToFriendlyStrings(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
         {
             foreach (var cellIndex in cellIndexes)
                 yield return cellIndex.ToFriendlyString();
@@ -284,7 +284,7 @@ namespace Game.SudokuSolver
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SudokuBoardCellNoteBitSet ToCellNoteBitSet(this SudokuBoardCellDigit cellDigit)
+        internal static SudokuBoardCellNoteBitSet ToCellNoteBitSet(this SudokuBoardCellDigit cellDigit)
         {
 #if DEBUG
             if (cellDigit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
@@ -326,10 +326,10 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セルの位置と数字を示す <see cref="SudokuBoardCellPosition"/> 値の列挙子を返します。
         /// </returns>
-        public static IEnumerable<SudokuBoardCell> ToCells(this IEnumerable<SudokuBoardCellDigit> cellDigits, SudokuBoardCellIndex cellIndex)
+        internal static IEnumerable<SudokuBoardCellPositionDigit> ToCells(this IEnumerable<SudokuBoardCellDigit> cellDigits, SudokuBoardCellIndex cellIndex)
         {
             foreach (var cellDigit in cellDigits)
-                yield return new SudokuBoardCell(cellIndex, cellDigit);
+                yield return new SudokuBoardCellPositionDigit(cellIndex, cellDigit);
         }
 
         #endregion
@@ -346,7 +346,7 @@ namespace Game.SudokuSolver
         /// ビット集合に含まれる数字が一つだけであるならば <see langword="true"/>、そうではないなら <see langword="false"/> を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsSingleBit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static bool IsSingleBit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
         {
             var value = (ushort)cellIndexBitSet;
 #if DEBUG
@@ -367,7 +367,7 @@ namespace Game.SudokuSolver
         /// ビット集合に含まれる数字の数を示す <see cref="int"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetPopCount(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static int GetPopCount(this SudokuBoardCellNoteBitSet cellIndexBitSet)
         {
             var value = (ushort)cellIndexBitSet;
 #if DEBUG
@@ -388,7 +388,7 @@ namespace Game.SudokuSolver
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SudokuBoardCellDigit GetOneCellNoteDigit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static SudokuBoardCellDigit GetOneCellNoteDigit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
         {
             var value = (ushort)cellIndexBitSet;
 #if DEBUG
@@ -408,7 +408,7 @@ namespace Game.SudokuSolver
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellDigit"/> 値の列挙子を返します。
         /// </returns>
-        public static IEnumerable<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static IEnumerable<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellIndexBitSet)
         {
             var value = (ushort)cellIndexBitSet;
 #if DEBUG
@@ -438,7 +438,7 @@ namespace Game.SudokuSolver
         /// セルの位置を示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToFriendlyString(this SudokuBoardCellPosition position)
+        internal static string ToFriendlyString(this SudokuBoardCellPosition position)
             => ToFriendlyString(position.Column, position.Row);
 
         #endregion

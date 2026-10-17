@@ -50,6 +50,7 @@ namespace Game.GameSolver
                 => other is not null
                     && GetType() == other.GetType()
                     && EqualsCore((CompositKey)other);
+
             public override bool Equals(object? other)
                 => other is not null
                     && GetType() == other.GetType()
@@ -79,25 +80,33 @@ namespace Game.GameSolver
         /// デフォルトコンストラクタです。
         /// </summary>
         protected GameBoardState()
-            : this(0, new GameBoardOperationCollection())
+            : this(0, new GameBoardOperationCollection(), null)
         {
         }
 
         /// <summary>
-        /// 元の <see cref="GameSolverState"/> オブジェクトをコピーするコンストラクタです。ただし <see cref="State"/> プロパティの値が 1 だけ加算されます。
+        /// <typeparamref name="STATE_T"/> オブジェクトをコピーするコンストラクタです。ただし <see cref="StepCount"/> プロパティの値が 1 だけ加算され、オペレーションのログにオペレーションが新たに追加されます。ます。
         /// </summary>
-        /// <param name="source">コピー元となる<see cref="GameSolverState"/> オブジェクトです。</param>
-        protected GameBoardState(STATE_T source)
-            : this(source.StepCount + 1, source._operationLog.Clone())
+        /// <param name="source">
+        /// コピー元となる <typeparamref name="STATE_T"/> オブジェクトです。
+        /// </param>
+        /// <param name="newOperation">
+        /// <see cref="OperationLog"/> に新たに追加される <typeparamref name="OPERATION_T"/> オブジェクトです。
+        /// </param>
+        protected GameBoardState(STATE_T source, OPERATION_T newOperation)
+            : this(source.StepCount + 1, source._operationLog.Clone(), newOperation)
         {
         }
 
-        private GameBoardState(int stepCount, GameBoardOperationCollection operationLog)
+        private GameBoardState(int stepCount, GameBoardOperationCollection operationLog, OPERATION_T? newOperation)
         {
             _status = new(CheckStatus);
             _uniqueKey = new Lazy<CompositKey>(() => new CompositKey(GenerateUniqueKeySource()));
             StepCount = stepCount;
             _operationLog = operationLog;
+            LatestOperation = newOperation;
+            if (newOperation is not null)
+                _operationLog.Add(newOperation);
         }
 
         /// <summary>
@@ -114,9 +123,17 @@ namespace Game.GameSolver
         public int StepCount { get; }
 
         /// <summary>
-        /// 盤面に対してこれまでに行われたオペレーションを示す <see cref="GameSolverOperation"/> オブジェクトのコレクションです。
+        /// 盤面に対してこれまでに行われたオペレーションを示す <typeparamref name="OPERATION_T"/> オブジェクトのコレクションです。
         /// </summary>
         public IGameBoardOperationCollection<OPERATION_T> OperationLog => _operationLog;
+
+        /// <summary>
+        /// 直近に行ったオペレーションを取得します。
+        /// </summary>
+        /// <value>
+        /// 初期盤面である場合には <see langword="null"/>、そうではない場合には直近に行ったオペレーションを示す <typeparamref name="OPERATION_T"/> オブジェクトです。
+        /// </value>
+        public OPERATION_T? LatestOperation { get; }
 
         internal IGameBoardStateUniqueKey UniqueKey => _uniqueKey.Value;
 
@@ -124,7 +141,7 @@ namespace Game.GameSolver
         /// 現在の盤面から次の盤面を可能な限り列挙します。
         /// </summary>
         /// <returns>
-        /// 次の盤面を表す <see cref="GameSolverState"/> オブジェクトの列挙子です。
+        /// 次の盤面を表す <typeparamref name="STATE_T"/> オブジェクトの列挙子です。
         /// </returns>
         public IEnumerable<STATE_T> EnumerateNextState()
         {
@@ -136,10 +153,10 @@ namespace Game.GameSolver
         /// 指定された盤面に指定されたオペレーションを適用し、新たな盤面を生成します。
         /// </summary>
         /// <param name="operation">
-        /// 適用するオペレーションを示す <see cref="OPERATION_T"/> オブジェクトです。
+        /// 適用するオペレーションを示す <typeparamref name="OPERATION_T"/> オブジェクトです。
         /// </param>
         /// <returns>
-        /// 生成された新たな盤面を示す <see cref="STATE_T"/> オブジェクトです。
+        /// 生成された新たな盤面を示す <typeparamref name="STATE_T"/> オブジェクトです。
         /// </returns>
         public STATE_T Trace(OPERATION_T operation) => GenerateNextState(operation);
 
@@ -158,7 +175,7 @@ namespace Game.GameSolver
         /// 盤面の状態を示す <see cref="uint"/> の配列です。
         /// </returns>
         /// <remarks>
-        /// <<para>
+        /// <para>
         /// このメソッドが返す配列のサイズ及び内容は実装依存です。
         /// </para>
         /// <para>
@@ -173,7 +190,7 @@ namespace Game.GameSolver
         /// 現在の盤面から採り得るオペレーションを全て列挙します。
         /// </summary>
         /// <returns>
-        /// <see cref="OPERATION_T"/> オブジェクトの列挙子です。
+        /// <typeparamref name="OPERATION_T"/> オブジェクトの列挙子です。
         /// </returns>
         protected abstract IEnumerable<OPERATION_T> EnumerateNextOperations();
 
@@ -181,10 +198,10 @@ namespace Game.GameSolver
         /// 指定されたオペレーションに従って現在の盤面から次の盤面を生成します。
         /// </summary>
         /// <param name="operation">
-        /// 適用するオペレーションを示す <see cref="OPERATION_T"/> オブジェクトです。
+        /// 適用するオペレーションを示す <typeparamref name="OPERATION_T"/> オブジェクトです。
         /// </param>
         /// <returns>
-        /// 生成された新たな盤面を示す <see cref="STATE_T"/> オブジェクトです。
+        /// 生成された新たな盤面を示す <typeparamref name="STATE_T"/> オブジェクトです。
         /// </returns>
         protected abstract STATE_T GenerateNextState(OPERATION_T operation);
     }
