@@ -25,6 +25,19 @@ namespace Game.GameSolver
                 _operations = [];
             }
 
+            public OPERATION_T this[int index]
+            {
+                get
+                {
+                    ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+                    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _operations.Count);
+
+                    return _operations[index];
+                }
+            }
+
+            public int Length => _operations.Count;
+
             public void Add(OPERATION_T operation) => _operations.Add(operation);
 
             public GameBoardOperationCollection Clone() => [.. this];
@@ -39,10 +52,10 @@ namespace Game.GameSolver
             private readonly uint[] _data;
             private readonly Lazy<int> _hashCode;
 
-            public CompositKey(uint[] data)
+            public CompositKey(ReadOnlySpan<uint> data)
             {
                 _data = new uint[data.Length];
-                data.CopyTo(_data, 0);
+                data.CopyTo(_data);
                 _hashCode = new Lazy<int>(GetHashCodeCore);
             }
 
@@ -73,14 +86,13 @@ namespace Game.GameSolver
         }
 
         private readonly GameBoardOperationCollection _operationLog;
-        private readonly Lazy<GameBoardStatus> _status;
         private readonly Lazy<CompositKey> _uniqueKey;
 
         /// <summary>
         /// デフォルトコンストラクタです。
         /// </summary>
         protected GameBoardState()
-            : this(0, new GameBoardOperationCollection(), null)
+            : this(GameBoardStatus.Initial, null, 0, new GameBoardOperationCollection(), null)
         {
         }
 
@@ -94,19 +106,26 @@ namespace Game.GameSolver
         /// <see cref="OperationLog"/> に新たに追加される <typeparamref name="OPERATION_T"/> オブジェクトです。
         /// </param>
         protected GameBoardState(STATE_T source, OPERATION_T newOperation)
-            : this(source.StepCount + 1, source._operationLog.Clone(), newOperation)
+            : this(newOperation.Status, source.InitialState ?? source, source.StepCount + 1, source._operationLog.Clone(), newOperation)
         {
         }
 
-        private GameBoardState(int stepCount, GameBoardOperationCollection operationLog, OPERATION_T? newOperation)
+        private GameBoardState(GameBoardStatus status, STATE_T? initialState, int stepCount, GameBoardOperationCollection operationLog, OPERATION_T? newOperation)
         {
-            _status = new(CheckStatus);
-            _uniqueKey = new Lazy<CompositKey>(() => new CompositKey(GenerateUniqueKeySource()));
+#if DEBUG
+            System.Diagnostics.Debug.Assert(this is STATE_T);
+#endif
+            Status = status;
+            InitialState = initialState;
+            _uniqueKey = new Lazy<CompositKey>(() => new CompositKey(GenerateUniqueKeySource().Span));
             StepCount = stepCount;
             _operationLog = operationLog;
             LatestOperation = newOperation;
             if (newOperation is not null)
                 _operationLog.Add(newOperation);
+#if DEBUG
+            System.Diagnostics.Debug.Assert(Status is GameBoardStatus.Initial or GameBoardStatus.Solving or GameBoardStatus.Success or GameBoardStatus.Failed);
+#endif
         }
 
         /// <summary>
@@ -115,7 +134,16 @@ namespace Game.GameSolver
         /// <value>
         /// 盤面の概要を示す <see cref="GameBoardStatus"/> 値です。
         /// </value>
-        public GameBoardStatus Status => _status.Value;
+        public GameBoardStatus Status { get; }
+
+        /// <summary>
+        /// 最初の盤面の状態を取得します。
+        /// </summary>
+        /// <value>
+        /// このオブジェクトが最初の盤面である場合は <see langword="null"/> です。
+        /// そうではない場合は、最初の盤面の概要を示す <typeparamref name="STATE_T"/> オブジェクトです。
+        /// </value>
+        public STATE_T? InitialState { get; }
 
         /// <summary>
         /// 盤面の探索深度です。初期状態は 0 です。
@@ -145,8 +173,20 @@ namespace Game.GameSolver
         /// </returns>
         public IEnumerable<STATE_T> EnumerateNextState()
         {
+#if DEBUG
+            var count = 0;
+#endif
             foreach (var operation in EnumerateNextOperations())
+            {
                 yield return GenerateNextState(operation);
+#if DEBUG
+                ++count;
+#endif
+            }
+#if DEBUG
+            if (count <= 0)
+                throw new ApplicationException("Empty operation collections was returned.");
+#endif
         }
 
         /// <summary>
@@ -159,14 +199,6 @@ namespace Game.GameSolver
         /// 生成された新たな盤面を示す <typeparamref name="STATE_T"/> オブジェクトです。
         /// </returns>
         public STATE_T Trace(OPERATION_T operation) => GenerateNextState(operation);
-
-        /// <summary>
-        /// 盤面の状態の概要を取得します。
-        /// </summary>
-        /// <returns>
-        /// 盤面の状態の概要を示す <see cref="GameBoardStatus"/> 値を返します。
-        /// </returns>
-        protected abstract GameBoardStatus CheckStatus();
 
         /// <summary>
         /// 盤面の状態をコンパクトにまとめた <see cref="uint"/> の配列を生成します。
@@ -184,7 +216,7 @@ namespace Game.GameSolver
         /// また、配列のサイズが可能な限り小さくなるようにパッキング方法を工夫してください。
         /// </para>
         /// </remarks>
-        internal protected abstract uint[] GenerateUniqueKeySource();
+        internal protected abstract ReadOnlyMemory<uint> GenerateUniqueKeySource();
 
         /// <summary>
         /// 現在の盤面から採り得るオペレーションを全て列挙します。
@@ -192,6 +224,17 @@ namespace Game.GameSolver
         /// <returns>
         /// <typeparamref name="OPERATION_T"/> オブジェクトの列挙子です。
         /// </returns>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>
+        /// <term>開発者へ</term>
+        /// <description>
+        /// このメソッドが返す列挙子は必ず一つ以上の要素を返さなければなりません。
+        /// もし、採り得るオペレーションが存在しない場合は、そういう状況を失敗として報告するオペレーションを返すようにしてください。
+        /// </description>
+        /// </item>
+        /// </list>
+        /// </remarks>
         protected abstract IEnumerable<OPERATION_T> EnumerateNextOperations();
 
         /// <summary>

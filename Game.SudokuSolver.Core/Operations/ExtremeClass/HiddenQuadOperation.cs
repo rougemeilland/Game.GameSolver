@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.ExtremeClass
 {
@@ -10,7 +11,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         : SudokuBoardOperation
     {
         private HiddenQuadOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("隠れ四国同盟", SudokuBoardDifficultyLevel.Extreme, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+            : base(GameBoardStatus.Solving, "隠れ四国同盟", SudokuBoardDifficultyLevel.Extreme, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -173,7 +174,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             for (var index = 0; index < RemovedCellNotes.Length; ++index)
             {
                 var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.Column, removedCellNote.Row, removedCellNote.Digit))
+                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
                     throw new ApplicationException();
             }
 

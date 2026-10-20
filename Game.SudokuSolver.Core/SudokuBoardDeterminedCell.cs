@@ -19,11 +19,11 @@ namespace Game.SudokuSolver
 
         private readonly CellStatus _status;
 
-        private SudokuBoardDeterminedCell(bool isHighlightedBackground, SudokuBoardCellDigit determinedDigit, CellStatus statis)
+        private SudokuBoardDeterminedCell(bool isHighlightedBackground, SudokuBoardCellDigit determinedDigit, CellStatus status)
             : base(isHighlightedBackground)
         {
             DeterminedDigit = determinedDigit;
-            _status = statis;
+            _status = status;
         }
 
         /// <summary>

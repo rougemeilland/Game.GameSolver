@@ -87,6 +87,8 @@ namespace Game.SudokuSolver.GUI.Models
             }
         }
 
+        public IReadOnlyCellNotesIndexer Notes => _notes;
+
         public bool IsHighlightedBackground
         {
             get => _isHighlightedBackground;
@@ -110,7 +112,5 @@ namespace Game.SudokuSolver.GUI.Models
                 RaisePropertyChangedEvent(nameof(ShowMode));
             }
         }
-
-        public IReadOnlyCellNotesIndexer Notes => _notes;
     }
 }

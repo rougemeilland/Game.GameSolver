@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Windows;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.GUI.Models
 {
@@ -40,12 +42,18 @@ namespace Game.SudokuSolver.GUI.Models
             public int Length => throw new NotImplementedException();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0032:自動プロパティを使用する", Justification = "<保留中>")]
         private readonly SudokuBoardCellModel[] _cells;
+        private bool _showOPeration;
+        private string _operationName;
+        private string _description;
+        private Visibility _operationVisibility;
+        private readonly bool _latestOperationIsNotNull;
 
-        public SudokuBoardModel(IReadOnlySudokuBoardCellCollection sourceCells)
+        public SudokuBoardModel(SudokuBoardState boardState)
         {
             const int TOTAL_CELL_NUMBER = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
+
+            var sourceCells = boardState.GetCells();
 #if DEBUG
             System.Diagnostics.Debug.Assert(sourceCells is not null && sourceCells.Length == TOTAL_CELL_NUMBER);
 #endif
@@ -53,10 +61,38 @@ namespace Game.SudokuSolver.GUI.Models
             Cells = new CellCollection(_cells);
             for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
                 _cells[cellIndex - SudokuBoardCellIndex.MinValue] = CreateCellModel(sourceCells[cellIndex]);
+            _showOPeration = false;
+            _operationName = string.Empty;
+            _description = string.Empty;
+            _operationVisibility = Visibility.Collapsed;
+            StepCount = boardState.StepCount;
+            var latestOperation = boardState.LatestOperation;
+            if (latestOperation is null || latestOperation.Status is GameBoardStatus.Success or GameBoardStatus.Failed)
+            {
+                _latestOperationIsNotNull = false;
+                ShowOPeration = false;
+            }
+            else
+            {
+                _latestOperationIsNotNull = true;
+                ShowOPeration = true;
+                OperationName = $"{latestOperation.Title} ({latestOperation.Difficulty.ToFriendlyString()})";
+                Description = latestOperation.Description;
+            }
 
             static SudokuBoardCellModel CreateCellModel(SudokuBoardCell sourceCell)
             {
-                if (sourceCell is SudokuBoardDeterminedCell determinedCell)
+                if (sourceCell is SudokuBoardNoNoteUndeterminedCell noNoteUndeterminedCell)
+                {
+                    return
+                        new SudokuBoardCellModel
+                        {
+                            IsHighlightedBackground = noNoteUndeterminedCell.IsHighlightedBackground,
+                            DeterminedDigit = "",
+                            ShowMode = SudokuBoardCellShowMode.NegativelyHighlighted,
+                        };
+                }
+                else if (sourceCell is SudokuBoardDeterminedCell determinedCell)
                 {
                     return
                         new SudokuBoardCellModel
@@ -102,6 +138,61 @@ namespace Game.SudokuSolver.GUI.Models
         }
 
         public IReadOnlyCellsIndexer Cells { get; }
-        public SudokuBoardCellModel[] Cells2 => _cells;
+
+        public bool ShowOPeration
+        {
+            get => _showOPeration;
+            set
+            {
+                if (value == _showOPeration)
+                    return;
+                _showOPeration = value;
+                RaisePropertyChangedEvent(nameof(ShowOPeration));
+                OperationVisibility =
+                    !ShowOPeration
+                    ? Visibility.Collapsed
+                    : _latestOperationIsNotNull
+                    ? Visibility.Visible
+                    : Visibility.Hidden;
+            }
+        }
+
+        public int StepCount { get; }
+
+        public string OperationName
+        {
+            get => _operationName;
+            private set
+            {
+                if (value == _operationName)
+                    return;
+                _operationName = value;
+                RaisePropertyChangedEvent(nameof(OperationName));
+            }
+        }
+
+        public string Description
+        {
+            get => _description;
+            private set
+            {
+                if (value == _description)
+                    return;
+                _description = value;
+                RaisePropertyChangedEvent(nameof(Description));
+            }
+        }
+
+        public Visibility OperationVisibility
+        {
+            get => _operationVisibility;
+            private set
+            {
+                if (value == _operationVisibility)
+                    return;
+                _operationVisibility = value;
+                RaisePropertyChangedEvent(nameof(OperationVisibility));
+            }
+        }
     }
 }

@@ -50,8 +50,6 @@ namespace Game.SudokuSolver
 #if DEBUG
             ArgumentOutOfRangeException.ThrowIfLessThan(cellIndexBitSet, UInt128.One << 0);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(cellIndexBitSet, UInt128.One << (SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1));
-            if (UInt128.IsPow2(cellIndexBitSet) == false)
-                throw new ArgumentException($"The \"{nameof(cellIndexBitSet)}\" argument must be a power of 2.");
 #endif
 
             return SudokuBoardCellIndex.FirstValue + (int)UInt128.TrailingZeroCount(cellIndexBitSet);
@@ -81,9 +79,25 @@ namespace Game.SudokuSolver
             }
         }
 
+#if DEBUG
+
+        internal static void PrintToDebugConsole(this UInt128 cellIndexBitSet, string title)
+        {
+            var mask = UInt128.One;
+            System.Diagnostics.Debug.WriteLine($"[CellIndexBitSet-{title}]");
+            for (var count = 0; count < 81; ++count)
+            {
+                System.Diagnostics.Debug.Write((cellIndexBitSet & mask) != 0 ? "*" : "_");
+                if ((count + 1) % 9 == 0)
+                    System.Diagnostics.Debug.WriteLine("");
+                mask <<= 1;
+            }
+        }
+#endif
+
         #endregion
 
-        #region for BoardCellColumn
+        #region for SudokuBoardCellColumn
 
         /// <summary>
         /// セルの列を示す <see cref="SudokuBoardCellColumn"/> 値を読みやすい文字列に変換します。
@@ -107,7 +121,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region for BoardCellRow
+        #region for SudokuBoardCellRow
 
         /// <summary>
         /// セルの行を示す <see cref="SudokuBoardCellRow"/> 値を読みやすい文字列に変換します。
@@ -131,7 +145,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region for BoardCellBlock
+        #region for SudokuBoardCellBlock
 
         /// <summary>
         /// セルのブロックを示す <see cref="SudokuBoardCellBlock"/> 値を読みやすい文字列に変換します。
@@ -167,7 +181,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region for BoardCellIndex
+        #region for SudokuBoardCellIndex
 
         /// <summary>
         /// 与えられたセルの位置に対応するビット集合を取得します。
@@ -271,7 +285,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region for BoardCellDigit
+        #region for SudokuBoardCellDigit
 
         /// <summary>
         /// 与えられたセルの数字に対応するからビット集合を取得します。
@@ -334,7 +348,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region for BoardCellNoteBitSet
+        #region for SudokuBoardCellNoteBitSet
 
         /// <summary>
         /// 与えられたセルの数字のビット集合に含まれる数字がひとつだけであるかどうかを調べます。
@@ -424,9 +438,34 @@ namespace Game.SudokuSolver
             }
         }
 
+#if DEBUG
+
+        internal static void PrintToDebugConsole(this SudokuBoardCellNoteBitSet cellNoteDigitBitSet, string title)
+        {
+            var mask = (SudokuBoardCellNoteBitSet)1;
+            System.Diagnostics.Debug.WriteLine($"[CellNoteDigitBitSet-{title}]");
+            System.Diagnostics.Debug.Write("  => [");
+            var first = true;
+            for (var count = 0; count < 9; ++count)
+            {
+                if ((cellNoteDigitBitSet & mask) != 0)
+                {
+                    if (!first)
+                        System.Diagnostics.Debug.Write(", ");
+                    System.Diagnostics.Debug.Write($"'{count + 1}'");
+                    first = false;
+                }
+
+                mask = (SudokuBoardCellNoteBitSet)((int)mask << 1);
+            }
+
+            System.Diagnostics.Debug.WriteLine("]");
+        }
+#endif
+
         #endregion
 
-        #region for BoardCellPosition
+        #region for SudokuBoardCellPosition
 
         /// <summary>
         /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値を読みやすい文字列に変換します。
@@ -440,6 +479,31 @@ namespace Game.SudokuSolver
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static string ToFriendlyString(this SudokuBoardCellPosition position)
             => ToFriendlyString(position.Column, position.Row);
+
+        #endregion
+
+        #region SudokuBoardDifficultyLevel
+
+        /// <summary>
+        /// 数独のオペレーションの難易度を読みやすい文字列に変換します。
+        /// </summary>
+        /// <param name="difficulty">
+        /// 数独のオペレーションの難易度を示す <see cref="SudokuBoardDifficultyLevel"/> 値です。
+        /// </param>
+        /// <returns>
+        /// 数独のオペレーションの難易度を示す <see cref="string"/> オブジェクトです。
+        /// </returns>
+        public static string ToFriendlyString(this SudokuBoardDifficultyLevel difficulty)
+            => difficulty switch
+                {
+                    SudokuBoardDifficultyLevel.Beginner => "入門",
+                    SudokuBoardDifficultyLevel.Easy => "初級",
+                    SudokuBoardDifficultyLevel.Medium => "中級",
+                    SudokuBoardDifficultyLevel.Hard => "上級",
+                    SudokuBoardDifficultyLevel.Extreme => "超上級",
+                    SudokuBoardDifficultyLevel.Insane => "究極",
+                    _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
+                };
 
         #endregion
 

@@ -21,14 +21,15 @@ namespace Game.SudokuSolver.GUI.Models
 
         public MainWindowModel()
         {
-            var state =
-                new SudokuBoardState(
-                    sourceArray
-                    .Select(n => n is >= 1 and <= 9 ? n.ToString(CultureInfo.InvariantCulture) : "")
+            var game = new SudokuGameBoard(
+                sourceArray
+                .Select(n => n is >= 1 and <= 9 ? n.ToString(CultureInfo.InvariantCulture) : "")
                 .ToArray());
-            Board = new SudokuBoardModel(state.GetCells());    
+            var solution = game.Solve().First();
+
+            SlideShow = new SudokuBoardSlideShowModel(solution.StateHistory.Select(state => new SudokuBoardModel(state) { ShowOPeration = true }));
         }
 
-        public SudokuBoardModel Board { get; }
+        public SudokuBoardSlideShowModel SlideShow { get; }
     }
 }

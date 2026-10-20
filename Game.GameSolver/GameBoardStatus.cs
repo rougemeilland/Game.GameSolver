@@ -11,6 +11,11 @@
         Unknown = 0,
 
         /// <summary>
+        /// 初期状態
+        /// </summary>
+        Initial,
+
+        /// <summary>
         /// 解決中
         /// </summary>
         Solving,

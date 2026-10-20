@@ -41,8 +41,7 @@ namespace Game.SudokuSolver.GUI.Controls
         }
 
         private static void InitializeUserControlByModel(SudokuBoardControl c, SudokuBoardModel model)
-        {
-        }
+            => c.Tag = model.StepCount;
 
         private static void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {

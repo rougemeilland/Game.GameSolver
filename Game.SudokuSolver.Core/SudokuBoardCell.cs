@@ -9,7 +9,8 @@
         /// コンストラクタです。
         /// </summary>
         /// <param name="isHighlightedBackground">
-        /// セルの背景を強調するかどうかの <see cref="bool"/> 値です。セルの背景を強調するならば <see langword="true"/>、そうではないならば <see langword="false"/> です。
+        /// セルの背景を強調するかどうかの <see cref="bool"/> 値です。
+        /// セルの背景を強調するならば <see langword="true"/>、そうではないならば <see langword="false"/> です。
         /// </param>
         protected SudokuBoardCell(bool isHighlightedBackground)
         {

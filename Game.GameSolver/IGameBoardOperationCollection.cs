@@ -7,7 +7,7 @@ namespace Game.GameSolver
     /// </summary>
     /// <typeparam name="OPERATION_T"></typeparam>
     public interface IGameBoardOperationCollection<OPERATION_T>
-        : IEnumerable<OPERATION_T>
+        : IEnumerable<OPERATION_T>, IReadOnlyVectorIndexer<OPERATION_T, int>
     {
     }
 }

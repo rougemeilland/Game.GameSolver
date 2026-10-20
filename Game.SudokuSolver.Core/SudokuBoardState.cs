@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using Game.GameSolver;
 using Game.SudokuSolver.Operations.BeginnerClass;
 using Game.SudokuSolver.Operations.EasyClass;
@@ -53,12 +52,33 @@ namespace Game.SudokuSolver
         /// 指定されたセルの数字のコレクションによって数独の盤面の状態を初期化します。
         /// </summary>
         /// <param name="initialCellDigits">
-        /// 数独の初期盤面のセルの数字の配列です。
+        /// <para>
+        /// 数独の初期盤面のセルの数字を示す <see cref="string"/> オブジェクトの配列です。
+        /// </para>
+        /// <para>
+        /// <paramref name="initialCellDigits"/> のサイズは 81 でなければなりません。
+        /// </para>
+        /// <para>
+        /// 数独の盤面のあるセルの位置が R 行 C 列である場合、それに対応する <paramref name="initialCellDigits"/> のインデックス値は R * 9 + C です。
+        /// </para>
+        /// <para>
+        /// 配列の要素は以下の何れかでなければなりません。
+        /// <list type="bullet">
+        /// <item>
+        /// <term>空文字列 (<see cref="string.Empty"/>)</term>
+        /// <description>その位置のセルの数字が不明であることを示します。</description>
+        /// </item>
+        /// <item>
+        /// <term>"1" から "9" までの数字の長さ 1 の文字列</term>
+        /// <description>その位置のセルはその数字に確定していることを示します。</description>
+        /// </item>
+        /// </list>
+        /// </para>
         /// </param>
         /// <exception cref="ArgumentException">
-        /// 配列のサイズが 81 ではありません。
+        /// <paramref name="initialCellDigits"/> のサイズが 81 ではありません。
         /// </exception>
-        public SudokuBoardState(ReadOnlySpan<string> initialCellDigits)
+        internal SudokuBoardState(ReadOnlySpan<string> initialCellDigits)
         {
             const int TOTAL_NUMBER_OF_CELLS = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
             if (initialCellDigits.Length != TOTAL_NUMBER_OF_CELLS)
@@ -90,32 +110,46 @@ namespace Game.SudokuSolver
         {
             var cellsBuffer = new SudokuBoardCell[81];
             var highlightedBackgroundCellsBitSet = UInt128.Zero;
+            var negativelyHighlightedCellBitSet = UInt128.Zero;
             if (LatestOperation is not null)
             {
                 var relatedPositions = LatestOperation.RelatedCellPositions.Span;
-                for (var index = 0; index < LatestOperation.RelatedCellPositions.Length; ++index)
+                for (var index = 0; index < relatedPositions.Length; ++index)
                 {
                     var relatedPosition = relatedPositions[index];
-                    highlightedBackgroundCellsBitSet |= SudokuBoardCellGeometry.GetCellIndex(relatedPosition.Column, relatedPosition.Row).ToCellIndexBitSet();
+                    highlightedBackgroundCellsBitSet |= relatedPosition.CellIndex.ToCellIndexBitSet();
+                }
+
+                var notNoteCellPositions = LatestOperation.NoNoteCells.Span;
+                for (var index = 0; index < notNoteCellPositions.Length; ++index)
+                {
+                    var notNoteCellPosition = notNoteCellPositions[index];
+                    negativelyHighlightedCellBitSet |= notNoteCellPosition.CellIndex.ToCellIndexBitSet();
                 }
             }
 
             for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
             {
-                var isHighlightedBackground = (highlightedBackgroundCellsBitSet & cellIndex.ToCellIndexBitSet()) != 0;
-                if (_cells.IsDetermined(cellIndex))
+                var cellIndexBitSet = cellIndex.ToCellIndexBitSet();
+                var isHighlightedBackground = (highlightedBackgroundCellsBitSet & cellIndexBitSet) != 0;
+                var isNegativelyHighlighted = (negativelyHighlightedCellBitSet & cellIndexBitSet) != 0;
+                if (isNegativelyHighlighted)
+                {
+                    cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] = SudokuBoardNoNoteUndeterminedCell.CreateCell(isHighlightedBackground);
+                }
+                else if (_cells.IsDetermined(cellIndex))
                 {
                     var latestDeterminedCell = LatestOperation?.DeterminedCell;
                     var latestDeterminedCellIndex =
                         latestDeterminedCell is not null
                         ? (SudokuBoardCellIndex?)latestDeterminedCell.Value.CellIndex
                         : null;
-                    if (latestDeterminedCellIndex is not null)
+                    if (latestDeterminedCellIndex is not null && latestDeterminedCellIndex.Value == cellIndex)
                     {
                         cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
                             SudokuBoardDeterminedCell.CreatePositivelyHighlightedCell(isHighlightedBackground, _cells.GetDeterminedCellDigit(cellIndex));
                     }
-                    else if ((_isInitialDigitsBitSet & cellIndex.ToCellIndexBitSet()) != 0)
+                    else if ((_isInitialDigitsBitSet & cellIndexBitSet) != 0)
                     {
                         cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
                             SudokuBoardDeterminedCell.CreateInitialCell(isHighlightedBackground, _cells.GetDeterminedCellDigit(cellIndex));
@@ -159,18 +193,14 @@ namespace Game.SudokuSolver
         }
 
         /// <inheritdoc/>
-        protected override GameBoardStatus CheckStatus()
+        protected override ReadOnlyMemory<uint> GenerateUniqueKeySource()
         {
-            if (_cells.CheckIfSuccess())
-                return GameBoardStatus.Success;
-            else if (_cells.CheckIfFailed())
-                return GameBoardStatus.Failed;
-            else
-                return GameBoardStatus.Solving;
+            var cellsKey = _cells.Pack().AsSpan();
+            var buffer = new uint[cellsKey.Length +1];
+            buffer[0] = (uint)Status;
+            cellsKey.CopyTo(buffer.AsSpan(1));
+            return buffer;
         }
-
-        /// <inheritdoc/>
-        protected override uint[] GenerateUniqueKeySource() => _cells.Pack();
 
         /// <inheritdoc/>
         protected override IEnumerable<SudokuBoardOperation> EnumerateNextOperations()
@@ -179,9 +209,18 @@ namespace Game.SudokuSolver
 
             #region BeginnerClass
 
-            var operation = (SudokuBoardOperation?)FullHouseOperation.MatchPattern(workspace);
+            var operation = (SudokuBoardOperation?)CompleteOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+
+            operation = NoNoteOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return new[] { operation };
+
+            operation = FullHouseOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return new[] { operation };
+
             #endregion
 
             #region EasyClass

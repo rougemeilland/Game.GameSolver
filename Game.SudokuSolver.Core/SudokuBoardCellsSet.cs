@@ -9,11 +9,12 @@ namespace Game.SudokuSolver
     /// </summary>
     internal sealed partial class SudokuBoardCellsSet
     {
+        private const int _CELL_COUNT = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
         private const ushort _IS_DETERMINED = 1 << 9;
         private const ushort _ALL_NOTE_BIT_MASK = (1 << 9) - 1;
         private const ushort _ALL_BIT_MASK = _IS_DETERMINED | _ALL_NOTE_BIT_MASK;
 
-        private readonly ushort[] _cells = new ushort[SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1];
+        private readonly ushort[] _cells = new ushort[_CELL_COUNT];
 
         public SudokuBoardCellsSet(ReadOnlySpan<string> cellDigits)
         {
@@ -58,8 +59,8 @@ namespace Game.SudokuSolver
         private SudokuBoardCellsSet(ushort[] cells)
         {
             ArgumentNullException.ThrowIfNull(cells);
-            if (cells.Length != 9)
-                throw new ArgumentException("The size of the cell array must be 81.", nameof(cells));
+            if (cells.Length != _CELL_COUNT)
+                throw new ArgumentException($"The size of the cell array must be {_CELL_COUNT}.", nameof(cells));
 
 #if DEBUG
             var returned = true;
@@ -102,31 +103,6 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定されたセルの数字が確定されているかどうかを調べます。
-        /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列です。列は 0 から 8 までの整数です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行です。行は 0 から 8 までの整数です。
-        /// </param>
-        /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public bool IsDetermined(SudokuBoardCellColumn column, SudokuBoardCellRow row)
-        {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-#endif
-
-            return (_cells[SudokuBoardCellGeometry.GetCellIndex(column, row) - SudokuBoardCellIndex.FirstValue] & _IS_DETERMINED) != 0;
-        }
-
-        /// <summary>
         /// 数字が確定している指定されたセルの値を取得します。
         /// </summary>
         /// <param name="cellIndex">
@@ -143,32 +119,7 @@ namespace Game.SudokuSolver
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
             System.Diagnostics.Debug.Assert(IsDetermined(cellIndex));
 #endif
-            return (SudokuBoardCellDigit)(_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
-        }
-
-        /// <summary>
-        /// 数字が確定している指定されたセルの値を取得します。
-        /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <value>
-        /// 指定されたセルの値を示す <see cref="SudokuBoardCellDigit"/> 値を返します。
-        /// </value>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public SudokuBoardCellDigit GetDeterminedCellDigit(SudokuBoardCellColumn column, SudokuBoardCellRow row)
-        {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-            System.Diagnostics.Debug.Assert(IsDetermined(column, row));
-#endif
-            return (SudokuBoardCellDigit)(_cells[SudokuBoardCellGeometry.GetCellIndex(column, row) - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
+            return SudokuBoardCellDigit.One + (_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
         }
 
         /// <summary>
@@ -192,28 +143,21 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 数字が確定していない指定されたセルの数字の候補を取得します。
+        /// 盤面に数字の候補が存在しないセルの位置を取得します。
         /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <value>
-        /// 指定されたセルの数字の候補の集合をを示す <see cref="SudokuBoardCellNoteBitSet"/> 値を返します。
-        /// </value>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public SudokuBoardCellNoteBitSet GetNoteBitSet(SudokuBoardCellColumn column, SudokuBoardCellRow row)
+        /// <returns>
+        /// 数字の候補が存在しないセルの位置のビット集合である <see cref="UInt128"/> 値を返します。
+        /// </returns>
+        public UInt128 GetNoNoteCellIndexBitSet()
         {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-            System.Diagnostics.Debug.Assert(IsDetermined(column, row) == false);
-#endif
-            return (SudokuBoardCellNoteBitSet)(_cells[SudokuBoardCellGeometry.GetCellIndex(column, row) - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
+            var result = UInt128.Zero;
+            for (var index = 0; index < _cells.Length; ++index)
+            {
+                if (_cells[index] == 0)
+                    result |= (SudokuBoardCellIndex.FirstValue + index).ToCellIndexBitSet();
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -266,59 +210,6 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定されたセルを指定された数字で確定します。
-        /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <param name="digit">
-        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
-        /// </param>
-        /// <returns>
-        /// セルの数字の確定に成功した場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
-        /// </returns>
-        /// <remarks>
-        /// <para>
-        /// 以下のような場合に確定に失敗します。
-        /// <list type="bullet">
-        /// <item>指定されたセルの数字が既に確定している場合</item>
-        /// <item>指定されたセルの何れかのハウスに同じ数字で確定しているセルが存在する場合</item>
-        /// </list>
-        /// </para>
-        /// </remarks>
-        public bool DetermineCell(SudokuBoardCellColumn column, SudokuBoardCellRow row, SudokuBoardCellDigit digit)
-        {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-            if (digit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(digit));
-            var returned = true;
-            try
-            {
-#endif
-                return DetermineCellCore(SudokuBoardCellGeometry.GetCellIndex(column, row), digit);
-#if DEBUG
-            }
-            catch (Exception)
-            {
-                returned = false;
-                throw;
-            }
-            finally
-            {
-                if (returned)
-                    ValidateInternalState();
-            }
-#endif
-        }
-
-        /// <summary>
         /// 指定されたセルの数字の候補から指定された数字を削除します。
         /// </summary>
         /// <param name="cellIndex">
@@ -354,88 +245,15 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定されたセルの数字の候補から指定された数字を削除します。
-        /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <param name="digit">
-        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
-        /// </param>
-        /// <returns>
-        /// 数字の候補の削除に成功した場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
-        /// <para>
-        /// 以下のような場合に数字の候補の削除に失敗します。
-        /// <list type="bullet">
-        /// <item>
-        /// 確定済みのセルから数字の候補の削除を試みた場合
-        /// </item>
-        /// <item>
-        /// 候補にない数字の削除を試みた場合
-        /// </item>
-        /// </list>
-        /// </para>
-        /// </returns>
-        public bool RemoveNote(SudokuBoardCellColumn column, SudokuBoardCellRow row, SudokuBoardCellDigit digit)
-        {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-            if (digit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(digit));
-#endif
-
-            return RemoveNoteCore(SudokuBoardCellGeometry.GetCellIndex(column, row), digit);
-        }
-
-        /// <summary>
-        /// 盤面が完了しているかどうかを調べます。
-        /// </summary>
-        /// <returns>
-        /// 盤面が完了していれば <see langword="true"/>、そうではないのなら <see langword="false"/> を返します。
-        /// </returns>
-        public bool CheckIfSuccess()
-        {
-            for (var index = 0; index < _cells.Length; ++index)
-            {
-                if ((_cells[index] & _IS_DETERMINED) == 0)
-                    return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// 盤面が失敗しているかどうかを調べます。
-        /// </summary>
-        /// <returns>
-        /// 盤面が失敗していれば <see langword="true"/>、そうではないのなら <see langword="false"/> を返します。
-        /// </returns>
-        /// <remarks>
-        /// 確定しておらずかつ数字の候補が一つもないセルが一つでも存在する場合、その盤面は失敗とみなされます。
-        /// </remarks>
-        public bool CheckIfFailed()
-        {
-            for (var index = 0; index < _cells.Length; ++index)
-            {
-                if (_cells[index] == 0)
-                    return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// 盤面の状態を 32bbit 配列にパックします。
         /// </summary>
         /// <returns>
         /// 盤面の状態がパックされた <see cref="uint"/> の配列です。
         /// </returns>
+        /// <remarks>
+        /// 配列中の有効なビットの長さは 810 ビット (10 * 81) です。
+        /// これを <see cref="uint"/> にパックするため、パック先の配列のサイズは 26 で、最後の要素は 22 ビットだけ余ります。
+        /// </remarks>
         public uint[] Pack()
         {
             var packedData = PackCore(_cells);
@@ -534,7 +352,7 @@ namespace Game.SudokuSolver
                     shiftCount -= DESTINATION_BIT_LENGTH;
                     ++destinationIndex;
                     if (shiftCount > 0)
-                        buffer[destinationIndex] = (uint)(source[sourceIndex] >> (SOURCE_BIT_LENGTH - shiftCount));
+                        buffer[destinationIndex] |= (uint)(source[sourceIndex] >> (SOURCE_BIT_LENGTH - shiftCount));
                 }
             }
 
@@ -545,19 +363,20 @@ namespace Game.SudokuSolver
         {
             const int SOURCE_BIT_LENGTH = 32;
             const int DESTINATION_BIT_LENGTH = 10;
-            var buffer = new ushort[81];
+            const ushort DESTINATION_BIT_MASK = (1 << DESTINATION_BIT_LENGTH) - 1;
+            var buffer = new ushort[_CELL_COUNT];
             var sourceIndex = 0;
             var shiftCount = 0;
             for (var destinationIndex = 0; destinationIndex < buffer.Length; ++destinationIndex)
             {
-                buffer[destinationIndex] |= (ushort)(source[destinationIndex] >> shiftCount);
+                buffer[destinationIndex] |= (ushort)((source[sourceIndex] >> shiftCount) & DESTINATION_BIT_MASK);
                 shiftCount += DESTINATION_BIT_LENGTH;
                 if (shiftCount >= SOURCE_BIT_LENGTH)
                 {
                     shiftCount -= SOURCE_BIT_LENGTH;
                     ++sourceIndex;
                     if (shiftCount > 0)
-                        buffer[sourceIndex] = (ushort)(source[destinationIndex] >> (SOURCE_BIT_LENGTH - shiftCount));
+                        buffer[destinationIndex] |= (ushort)((source[sourceIndex] << (DESTINATION_BIT_LENGTH - shiftCount)) & DESTINATION_BIT_MASK);
                 }
             }
 
@@ -577,7 +396,7 @@ namespace Game.SudokuSolver
                 var digit = _cells[index];
                 if ((digit & _IS_DETERMINED) != 0)
                 {
-                    System.Diagnostics.Debug.Assert((digit &~_IS_DETERMINED) is >= 0 and < 9);
+                    System.Diagnostics.Debug.Assert((digit & ~_IS_DETERMINED) is >= 0 and < 9);
                 }
             }
 

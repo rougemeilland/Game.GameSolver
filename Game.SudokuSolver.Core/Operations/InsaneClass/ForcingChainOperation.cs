@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.InsaneClass
 {
@@ -11,7 +12,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         : SudokuBoardOperation
     {
         private ForcingChainOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, string description)
-            : base("強制チェーン", SudokuBoardDifficultyLevel.Insane, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+            : base(GameBoardStatus.Solving, "強制チェーン", SudokuBoardDifficultyLevel.Insane, determinedCell, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
         {
         }
 
@@ -64,7 +65,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             var newCellSet = cells.Clone();
 
-            if (!newCellSet.DetermineCell(DeterminedCell.Value.Column, DeterminedCell.Value.Row, DeterminedCell.Value.Digit))
+            if (!newCellSet.DetermineCell(DeterminedCell.Value.CellIndex, DeterminedCell.Value.Digit))
                 throw new ApplicationException();
 
             return newCellSet;

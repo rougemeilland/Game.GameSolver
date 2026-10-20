@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.EasyClass
 {
@@ -10,7 +11,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
         : SudokuBoardOperation
     {
         private NakedSingleOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, string description)
-            : base("一択セル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+            : base(GameBoardStatus.Solving, "一択セル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
         {
         }
 
@@ -60,7 +61,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
 
             var newCellSet = cells.Clone();
 
-            if (!newCellSet.DetermineCell(DeterminedCell.Value.Column, DeterminedCell.Value.Row, DeterminedCell.Value.Digit))
+            if (!newCellSet.DetermineCell(DeterminedCell.Value.CellIndex, DeterminedCell.Value.Digit))
                 throw new ApplicationException();
 
             return newCellSet;

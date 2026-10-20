@@ -33,6 +33,15 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
+        /// 盤面が完了しているかどうか調べます。
+        /// </summary>
+        /// <returns>
+        /// 盤面が完了しているならば <see langword="true"/>、そうではないならば <see langword="false"/> を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public bool IsCompleted() => DeterminedCellBitSet == AllCellIndexBitSet;
+
+        /// <summary>
         /// 確定済みのセルのビット集合を取得します。
         /// </summary>
         /// <value>
@@ -58,19 +67,17 @@ namespace Game.SudokuSolver
         public bool IsDetermined(SudokuBoardCellIndex cellIndex) => _cellsSource.IsDetermined(cellIndex);
 
         /// <summary>
-        /// 指定されたセルの数字が確定されているかどうかを調べます。
+        /// 数字が確定している指定されたセルの値を取得します。
         /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
+        /// <param name="cellIndex">
+        /// 指定されたセルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
         /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <returns>
-        /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
-        /// </returns>
+        /// <value>
+        /// 指定されたセルの値を示す <see cref="SudokuBoardCellDigit"/> 値を返します。
+        /// </value>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public bool IsDetermined(SudokuBoardCellColumn column, SudokuBoardCellRow row) => _cellsSource.IsDetermined(column, row);
+        public SudokuBoardCellDigit GetDeterminedCellDigit(SudokuBoardCellIndex cellIndex)
+            => _cellsSource.GetDeterminedCellDigit(cellIndex);
 
         /// <summary>
         /// 未確定のセルに対して、指定された数字の候補のビット集合を取得します。
@@ -104,19 +111,12 @@ namespace Game.SudokuSolver
         public SudokuBoardCellNoteBitSet GetNoteBitSet(SudokuBoardCellIndex cellIndex) => _cellsSource.GetNoteBitSet(cellIndex);
 
         /// <summary>
-        /// 数字が確定していない指定されたセルの数字の候補を取得します。
+        /// 盤面に数字の候補が存在しないセルの位置を取得します。
         /// </summary>
-        /// <param name="column">
-        /// 指定されたセルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// 指定されたセルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <value>
-        /// 指定されたセルの数字の候補を示す <see cref="SudokuBoardCellNoteBitSet"/> 値を返します。
-        /// この値は 9 ビットのビット列で、0 ビットが 数字 1、8 ビットが 数字 9 を意味し、各ビットが 1 の場合に対応する数字が候補に含まれます。
-        /// </value>
+        /// <returns>
+        /// 数字の候補が存在しないセルの位置のビット集合である <see cref="UInt128"/> 値を返します。
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SudokuBoardCellNoteBitSet GetNoteBitSet(SudokuBoardCellColumn column, SudokuBoardCellRow row) => _cellsSource.GetNoteBitSet(column, row);
+        public UInt128 GetNoNoteCellIndexBitSet() => _cellsSource.GetNoNoteCellIndexBitSet();
     }
 }

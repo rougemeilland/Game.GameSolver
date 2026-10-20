@@ -12,6 +12,9 @@ namespace Game.SudokuSolver
         /// <summary>
         /// コンストラクタです。
         /// </summary>
+        /// <param name="status">
+        /// 定石を適用した結果の盤面の状態を示す <see cref="GameBoardStatus"/> 値です。
+        /// </param>
         /// <param name="title">
         /// 定石の名前を示す <see cref="string"/> オブジェクトです。
         /// </param>
@@ -20,6 +23,9 @@ namespace Game.SudokuSolver
         /// </param>
         /// <param name="determinedCell">
         /// 定石を適用した結果数字が確定したセルが存在する場合はそのセルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値、そうではない場合は <see langword="null"/> です。
+        /// </param>
+        /// <param name="noNoteCells">
+        /// 定石を適用した結果数字の候補が存在しなくなったセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の配列です。
         /// </param>
         /// <param name="highlightedCellNotes">
         /// 定石のキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
@@ -33,7 +39,8 @@ namespace Game.SudokuSolver
         /// <param name="description">
         /// 定石の解説のテキストを示す <see cref="string"/>オブジェクトです。
         /// </param>
-        protected SudokuBoardOperation(string title, SudokuBoardDifficultyLevel difficulty, SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+        protected SudokuBoardOperation(GameBoardStatus status, string title, SudokuBoardDifficultyLevel difficulty, SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPosition> noNoteCells, ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+            : base(status)
         {
 #if DEBUG
             {
@@ -55,6 +62,7 @@ namespace Game.SudokuSolver
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
+            NoNoteCells = noNoteCells;
             HighlightedCellNotes = highlightedCellNotes;
             RemovedCellNotes = removedCellNotes;
             RelatedCellPositions = relatedCellPositions;
@@ -84,6 +92,14 @@ namespace Game.SudokuSolver
         /// <remarks>
         /// </remarks>
         public SudokuBoardCellPositionDigit? DeterminedCell { get; }
+
+        /// <summary>
+        /// オペレーションを適用した結果数字の候補がなくなるセルのコレクションを取得します。
+        /// </summary>
+        /// <value>
+        /// オペレーションを適用した結果数字の候補がなくなるセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値のコレクションです。
+        /// </value>
+        public ReadOnlyMemory<SudokuBoardCellPosition> NoNoteCells { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。

@@ -12,7 +12,7 @@
             <Style TargetType="Grid">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IsHighlightedBackground}" Value="true">
-                        <Setter Property="Background" Value="LightCyan"/>
+                        <Setter Property="Background" Value="Cyan"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding IsHighlightedBackground}" Value="false">
                         <Setter Property="Background" Value="Transparent"/>

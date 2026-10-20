@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.MediumClass
 {
@@ -10,7 +11,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
         : SudokuBoardOperation
     {
         private BoxLineReductionOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base("ボックスラインリダクション", SudokuBoardDifficultyLevel.Medium, null, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+            : base(GameBoardStatus.Solving, "ボックスラインリダクション", SudokuBoardDifficultyLevel.Medium, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
         {
         }
 
@@ -99,7 +100,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             for (var index = 0; index < RemovedCellNotes.Length; ++index)
             {
                 var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.Column, removedCellNote.Row, removedCellNote.Digit))
+                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
                     throw new ApplicationException();
             }
 
