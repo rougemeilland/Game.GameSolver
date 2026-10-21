@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Game.GameSolver
 {
     /// <summary>
-    /// ゲームの結果を保持するクラスです。
+    /// ゲームの解答のクラスです。
     /// </summary>
     /// <typeparam name="STATE_T">ゲームの盤面の状態を示すクラスです。</typeparam>
     /// <typeparam name="OPERATION_T">ゲームの盤面に対するオペレーションを示すクラスです。</typeparam>

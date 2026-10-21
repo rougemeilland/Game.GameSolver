@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class PointingOperation
         : SudokuBoardOperation
     {
-        private PointingOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "ポインティング", SudokuBoardDifficultyLevel.Medium, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private PointingOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "ポインティング",
+                  SudokuBoardDifficultyLevel.Medium,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -65,11 +79,11 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
             return null;
 
-            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 rowBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
+            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
-                var highlightedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & rowBitMask;
-                var removedCellNoteBitSet = cellNoteBitSet & ~blockHouseBitMask & rowBitMask;
-                if (highlightedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~rowBitMask) == 0 && removedCellNoteBitSet != 0)
+                var highlightedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
+                var removedCellNoteBitSet = cellNoteBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
+                if (highlightedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && removedCellNoteBitSet != 0)
                 {
                     var cellDigitChar = cellDigit.ToCellDigitChar();
                     var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToCellPositions())})";
@@ -81,7 +95,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         new PointingOperation(
                             highlightedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
                             removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
-                            (blockHouseBitMask | rowBitMask).EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                            blockHouseBitMask,
+                            columnOrRowHouseBitMask,
                             description);
                 }
 

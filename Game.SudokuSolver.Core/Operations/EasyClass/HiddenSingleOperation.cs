@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.EasyClass
     internal sealed class HiddenSingleOperation
         : SudokuBoardOperation
     {
-        private HiddenSingleOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "隠れシングル", SudokuBoardDifficultyLevel.Easy, determinedCell, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, relatedCellPositions, description)
+        private HiddenSingleOperation(
+            SudokuBoardCellPositionDigit? determinedCell,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "隠れシングル",
+                  SudokuBoardDifficultyLevel.Easy,
+                  determinedCell,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -74,16 +88,11 @@ namespace Game.SudokuSolver.Operations.EasyClass
                 if (UInt128.PopCount(foundBitSet) != 1)
                     return null;
                 var determinedCellIndex = foundBitSet.GetOneCellIndex();
-
-                // 未確定であり、指定された数字を候補に含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                var removedCellsNoteBitSet =
-                    ~ws.DeterminedCellBitSet
-                    & cellNoteBitSet
-                    & SudokuBoardCellGeometry.GetVisibleCellsBitSetByCellIndex(determinedCellIndex)
-                    & ~foundBitSet;
-
-                var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
-                var relatedCellPositions = houseBitMask.EnumerateAsCellIndexes().ToCellPositions().ToArray();
+                var removedCellNotes =
+                    ws.GetCellIndexBitSetForRemovedNoteDigit(determinedCellIndex, cellDigit)
+                    .EnumerateAsCellIndexes()
+                    .ToCells(cellDigit)
+                    .ToArray();
                 var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
                 var determinedCellPosiionText = determinedCellIndex.ToFriendlyString();
                 var determinedCellDigitText = cellDigit.ToCellDigitChar();
@@ -106,11 +115,15 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };
 
+#if DEBUG
+                System.Diagnostics.Debug.Assert(!ws.IsDetermined(determinedCellIndex));
+#endif
                 return
                     new HiddenSingleOperation(
                         new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
                         removedCellNotes,
-                        relatedCellPositions,
+                        houseBitMask,
+                        removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex) : UInt128.Zero,
                         description);
             }
         }

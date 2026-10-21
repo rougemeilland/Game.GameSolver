@@ -7,7 +7,7 @@ using Game.GameSolver;
 namespace Game.SudokuSolver
 {
     /// <summary>
-    /// 数独の盤面の解答とその解法を保持するクラスです。
+    /// 数独の解答のクラスです。
     /// </summary>
     public class SudokuSolution
     {

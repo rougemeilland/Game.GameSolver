@@ -8,18 +8,6 @@
     xmlns:local="clr-namespace:Game.SudokuSolver.GUI.Controls" xmlns:models="clr-namespace:Game.SudokuSolver.GUI.Models" d:DataContext="{d:DesignInstance Type=models:SudokuBoardCellModel}"
     mc:Ignorable="d">
     <Grid x:Name="CellContainer" x:FieldModifier="private">
-        <Grid.Style>
-            <Style TargetType="Grid">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsHighlightedBackground}" Value="true">
-                        <Setter Property="Background" Value="Cyan"/>
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding IsHighlightedBackground}" Value="false">
-                        <Setter Property="Background" Value="Transparent"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Grid.Style>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>

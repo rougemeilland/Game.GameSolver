@@ -11,8 +11,21 @@ namespace Game.SudokuSolver.Operations.InsaneClass
     internal sealed class ForcingChainOperation
         : SudokuBoardOperation
     {
-        private ForcingChainOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, string description)
-            : base(GameBoardStatus.Solving, "強制チェーン", SudokuBoardDifficultyLevel.Insane, determinedCell, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+        private ForcingChainOperation(
+            SudokuBoardCellPositionDigit? determinedCell,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "強制チェーン",
+                  SudokuBoardDifficultyLevel.Insane,
+                  determinedCell,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  removedCellNotes,
+                  UInt128.Zero,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -34,25 +47,25 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var foundCellMask = foundCellIndex.ToCellIndexBitSet();
             for (var cellDigit = SudokuBoardCellDigit.MinValue; cellDigit <= SudokuBoardCellDigit.MaxValue; ++cellDigit)
             {
-                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
-                if ((cellNoteBitSet & foundCellMask) != 0)
+                if ((ws.GetNoteBitSet(cellDigit) & foundCellMask) != 0)
                 {
-                    // 未確定であり、指定された数字を候補に含み、かつ確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                    var removedCellsNoteBitSet =
-                        ~ws.DeterminedCellBitSet
-                        & cellNoteBitSet
-                        & SudokuBoardCellGeometry.GetVisibleCellsBitSetByCellIndex(foundCellIndex)
-                        & ~foundCellMask;
-
-                    var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
+                    var removedCellNotes =
+                        ws.GetCellIndexBitSetForRemovedNoteDigit(foundCellIndex, cellDigit)
+                        .EnumerateAsCellIndexes()
+                        .ToCells(cellDigit)
+                        .ToArray();
                     var determinedCellDigitText = cellDigit.ToCellDigitChar();
                     var description =
                         $"{new SudokuBoardCellPosition(foundCellIndex).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。\n" +
                         $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(!ws.IsDetermined(foundCellIndex));
+#endif
                     yield return
                         new ForcingChainOperation(
                             new SudokuBoardCellPositionDigit(foundCellIndex, cellDigit),
                             removedCellNotes,
+                            removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(foundCellIndex) : UInt128.Zero,
                             description);
                 }
             }

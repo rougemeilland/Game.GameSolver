@@ -10,8 +10,21 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
     internal sealed class HiddenQuadOperation
         : SudokuBoardOperation
     {
-        private HiddenQuadOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "隠れ四国同盟", SudokuBoardDifficultyLevel.Extreme, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private HiddenQuadOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "隠れ四国同盟",
+                  SudokuBoardDifficultyLevel.Extreme,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  UInt128.Zero,
+                  description)
         {
         }
 
@@ -150,7 +163,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             new HiddenQuadOperation(
                                                 highlightedCellNote,
                                                 removedCellNotes,
-                                                houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                                                houseMask,
                                                 description);
                                     }
                                 }

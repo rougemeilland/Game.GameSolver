@@ -37,8 +37,8 @@ namespace Game.SudokuSolver
             public int Length => _notes.Length;
         }
 
-        private SudokuBoardNotDeterminedCell(bool isHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
-            : base(isHighlightedBackground)
+        private SudokuBoardNotDeterminedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
+            : base(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground)
         {
             var notes = new SudokuBoardCellNote[SudokuBoardCellDigit.MaxValue - SudokuBoardCellDigit.MinValue + 1];
             for (var cellNoteDigit = SudokuBoardCellDigit.MinValue; cellNoteDigit <= SudokuBoardCellDigit.MaxValue; ++cellNoteDigit)
@@ -65,7 +65,7 @@ namespace Game.SudokuSolver
         /// </value>
         public IReadOnlySudokuBoardCellNoteCollection Notes { get; }
 
-        internal static SudokuBoardNotDeterminedCell Create(bool isHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
-            => new(isHighlightedBackground, enabledCellNoteBitSet, positivelyHilightedCellNoteBitSet, negativelyHilightedCellNoteBitSet);
+        internal static SudokuBoardNotDeterminedCell Create(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
+            => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, enabledCellNoteBitSet, positivelyHilightedCellNoteBitSet, negativelyHilightedCellNoteBitSet);
     }
 }

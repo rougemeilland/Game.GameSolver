@@ -24,22 +24,31 @@ namespace Game.SudokuSolver
         /// <param name="determinedCell">
         /// 定石を適用した結果数字が確定したセルが存在する場合はそのセルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値、そうではない場合は <see langword="null"/> です。
         /// </param>
-        /// <param name="noNoteCells">
-        /// 定石を適用した結果数字の候補が存在しなくなったセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の配列です。
-        /// </param>
         /// <param name="highlightedCellNotes">
         /// 定石のキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
         /// </param>
         /// <param name="removedCellNotes">
         /// 定石を適用した結果により否定される数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
         /// </param>
-        /// <param name="relatedCellPositions">
-        /// 定石の適用範囲のセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の配列です。
+        /// <param name="positivelyRelatedCellIndexBitSet">
+        /// 定石の適用において肯定的な意味を持つセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="negativelyRelatedCellIndexBitSet">
+        /// 定石の適用において否定的な意味を持つセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="description">
         /// 定石の解説のテキストを示す <see cref="string"/>オブジェクトです。
         /// </param>
-        protected SudokuBoardOperation(GameBoardStatus status, string title, SudokuBoardDifficultyLevel difficulty, SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPosition> noNoteCells, ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
+        protected SudokuBoardOperation(
+            GameBoardStatus status,
+            string title,
+            SudokuBoardDifficultyLevel difficulty,
+            SudokuBoardCellPositionDigit? determinedCell,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
             : base(status)
         {
 #if DEBUG
@@ -62,10 +71,10 @@ namespace Game.SudokuSolver
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
-            NoNoteCells = noNoteCells;
             HighlightedCellNotes = highlightedCellNotes;
             RemovedCellNotes = removedCellNotes;
-            RelatedCellPositions = relatedCellPositions;
+            PositivelyRelatedCellIndexBitSet = positivelyRelatedCellIndexBitSet;
+            NegativelyRelatedCellIndexBitSet = negativelyRelatedCellIndexBitSet;
             Description = description;
         }
 
@@ -94,14 +103,6 @@ namespace Game.SudokuSolver
         public SudokuBoardCellPositionDigit? DeterminedCell { get; }
 
         /// <summary>
-        /// オペレーションを適用した結果数字の候補がなくなるセルのコレクションを取得します。
-        /// </summary>
-        /// <value>
-        /// オペレーションを適用した結果数字の候補がなくなるセルの位置を示す <see cref="SudokuBoardCellPosition"/> 値のコレクションです。
-        /// </value>
-        public ReadOnlyMemory<SudokuBoardCellPosition> NoNoteCells { get; }
-
-        /// <summary>
         /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
         /// </summary>
         /// <value>
@@ -128,17 +129,30 @@ namespace Game.SudokuSolver
         public ReadOnlyMemory<SudokuBoardCellPositionDigit> RemovedCellNotes { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ関連セルのコレクションを取得します。
+        /// オペレーションの説明に肯定的に役立つ関連セルの位置のビット集合を取得します。
         /// </summary>
         /// <value>
-        /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値のコレクションです。
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </value>
         /// <remarks>
         /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みの説明に役立つ範囲 (行、列、ブロック、任意のセルからの歌詞範囲、など) を意味します。
+        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなるセルの位置などを意味します。
         /// </para>
         /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPosition> RelatedCellPositions { get; }
+        public UInt128 PositivelyRelatedCellIndexBitSet { get; }
+
+        /// <summary>
+        /// オペレーションの説明に否定的に役立つ関連セルの位置のビット集合を取得します。
+        /// </summary>
+        /// <value>
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </value>
+        /// <remarks>
+        /// <para>
+        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みの結果、否定される数字の候補のセルの位置などを意味します。
+        /// </para>
+        /// </remarks>
+        public UInt128 NegativelyRelatedCellIndexBitSet { get; }
 
         /// <summary>
         /// オペレーションの動作内容を示す文字列を取得します。

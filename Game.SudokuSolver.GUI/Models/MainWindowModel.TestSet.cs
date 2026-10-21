@@ -1,37 +1,48 @@
 ﻿using System.Globalization;
 using System.Linq;
+using System;
 
 namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
-        internal static readonly int[] sourceArray_Beginner =
-        [
-            0, 1, 9, 0, 6, 2, 0, 5, 3,
-            5, 4, 7, 0, 3, 8, 6, 2, 9,
-            0, 3, 0, 9, 7, 5, 4, 1, 8,
-            0, 8, 5, 3, 9, 0, 2, 0, 1,
-            0, 2, 1, 0, 8, 4, 0, 7, 0,
-            7, 0, 4, 2, 0, 6, 3, 8, 0,
-            4, 0, 2, 8, 5, 9, 0, 3, 7,
-            1, 7, 8, 0, 4, 3, 5, 9, 2,
-            9, 5, 0, 0, 2, 1, 8, 6, 4,
-        ];
+        private const string sourceArray_Beginner =
+            "019062053" +
+            "547038629" +
+            "030975418" +
+            "085390201" +
+            "021084070" +
+            "704206380" +
+            "402859037" +
+            "178043592" +
+            "950021864";
 
-        internal static readonly int[] sourceArray_Fails =
-        [
-            0, 0, 0, 0, 0, 0, 1, 0, 0,
-            0, 0, 0, 0, 0, 0, 2, 0, 0,
-            0, 0, 0, 0, 0, 0, 3, 0, 0,
-            1, 2, 3, 4, 5, 6, 0, 8, 9,
-            0, 0, 0, 0, 0, 0, 5, 0, 0,
-            0, 0, 0, 0, 0, 0, 6, 0, 0,
-            0, 0, 0, 0, 0, 0, 7, 0, 0,
-            0, 0, 0, 0, 0, 0, 8, 0, 0,
-            0, 0, 0, 0, 0, 0, 9, 0, 0,
-        ];
+        private const string sourceArray_Fails =
+            "000000100" +
+            "000000200" +
+            "000000300" +
+            "123456089" +
+            "000000500" +
+            "000000600" +
+            "000000700" +
+            "000000800" +
+            "000000900";
+
+        private const string sourceArray_Fullhouse1 =
+            "170906500" +
+            "059170060" +
+            "046050179" +
+            "630090715" +
+            "010307986" +
+            "798561000" +
+            "080709640" +
+            "907630851" +
+            "060005097";
 
         private static string[] CreateInitialBoard()
-            => [.. sourceArray_Beginner.Select(n => n is >= 1 and <= 9 ? n.ToString(CultureInfo.InvariantCulture) : "")];
+            => [..
+                sourceArray_Fullhouse1
+                .Select(c => c is < '0' or > '9' ? throw new ApplicationException() : c == '0' ? string.Empty : c.ToString())
+            ];
     }
 }

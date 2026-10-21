@@ -160,35 +160,6 @@ namespace Game.SudokuSolver
         /// <summary>
         /// 指定されたセルが属する全てのハウスのビットマスクを取得します。
         /// </summary>
-        /// <param name="column">
-        /// セルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
-        /// </param>
-        /// <param name="row">
-        /// セルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
-        /// </param>
-        /// <returns>
-        /// 指定されたセルが属する全てのハウスのビットマスクを示す <see cref="UInt128"/> 値です。
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetVisibleCellsBitSet(SudokuBoardCellColumn column, SudokuBoardCellRow row)
-        {
-#if DEBUG
-            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(column));
-            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(row));
-#endif
-
-            var cellIndex = _cellIndexByRowColumn[((row - SudokuBoardCellRow.One) << 4) | (column - SudokuBoardCellColumn.One)];
-#if DEBUG
-            System.Diagnostics.Debug.Assert(cellIndex is >= SudokuBoardCellIndex.MinValue and <= SudokuBoardCellIndex.MaxValue);
-#endif
-            return _visibleCellsBitSetsByCellIndex[cellIndex - SudokuBoardCellIndex.FirstValue];
-        }
-
-        /// <summary>
-        /// 指定されたセルが属する全てのハウスのビットマスクを取得します。
-        /// </summary>
         /// <param name="cellIndex">
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
         /// </param>
@@ -196,7 +167,7 @@ namespace Game.SudokuSolver
         /// 指定されたセルが属する全てのハウスのビットマスクを示す <see cref="UInt128"/> 値です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static UInt128 GetVisibleCellsBitSetByCellIndex(SudokuBoardCellIndex cellIndex)
+        public static UInt128 GetVisibleCellsBitSet(SudokuBoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)

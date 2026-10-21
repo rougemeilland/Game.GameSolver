@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
     internal sealed class FullHouseOperation
         : SudokuBoardOperation
     {
-        private FullHouseOperation(SudokuBoardCellPositionDigit? determinedCell, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "フルハウス", SudokuBoardDifficultyLevel.Beginner, determinedCell, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, removedCellNotes, relatedCellPositions, description)
+        private FullHouseOperation(
+            SudokuBoardCellPositionDigit? determinedCell,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "フルハウス",
+                  SudokuBoardDifficultyLevel.Beginner,
+                  determinedCell,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -71,14 +85,11 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
 #endif
 
                 var foundCellDigit = FindMissingCellDigit(ws, determinedCellBitSetByHouse);
-
-                // 未確定であり、確定されたセルから見え、かつ確定されたセル自身を除く、セルの集合
-                var removedCellNoteBitSet =
-                    ~ws.DeterminedCellBitSet
-                    & ~foundCellSingleBitSet
-                    & SudokuBoardCellGeometry.GetVisibleCellsBitSetByCellIndex(undeterminedCellIndex);
-
-                var removedCellNotes = removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(foundCellDigit).ToArray();
+                var removedCellNotes =
+                    ws.GetCellIndexBitSetForRemovedNoteDigit(undeterminedCellIndex, foundCellDigit)
+                    .EnumerateAsCellIndexes()
+                    .ToCells(foundCellDigit)
+                    .ToArray();
                 var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(undeterminedCellIndex);
                 var determinedCellPositionText = new SudokuBoardCellPosition(undeterminedCellIndex).ToFriendlyString();
                 var determinedCellDigitText = foundCellDigit.ToCellDigitChar();
@@ -103,7 +114,8 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     new FullHouseOperation(
                         new SudokuBoardCellPositionDigit(undeterminedCellIndex, foundCellDigit),
                         removedCellNotes,
-                        houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                        houseMask,
+                        removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex) : UInt128.Zero,
                         description);
 
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)

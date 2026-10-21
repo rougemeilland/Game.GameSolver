@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.HardClass
     internal sealed class NakedQuadOperation
         : SudokuBoardOperation
     {
-        private NakedQuadOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "四国同盟", SudokuBoardDifficultyLevel.Hard, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedQuadOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "四国同盟",
+                  SudokuBoardDifficultyLevel.Hard,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -176,7 +190,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                                             new NakedQuadOperation(
                                                 highlightedCellNotes,
                                                 removedCellNotes,
-                                                relatedCellPositions,
+                                                cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet(),
+                                                houseMask,
                                                 description);
                                     }
                                 }

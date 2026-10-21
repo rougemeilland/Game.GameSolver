@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Game.GameSolver;
 
 namespace Game.SudokuSolver
@@ -46,18 +42,16 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 与えられた盤面の数独の解を探します。
+        /// 数独の盤面の解を求めます。
         /// </summary>
+        /// <param name="maxSolutionCount">
+        /// 求める解答の数の最大値です。
+        /// </param>
         /// <returns>
-        /// <para>
-        /// 見つかった数独の解を示す <see cref="SudokuSolution"/> オブジェクトを返します。
-        /// </para>
-        /// <para>
-        /// <see cref="SudokuSolution"/> オブジェクトの <see cref="SudokuSolution.Status"/> プロパティは必ず確認してください。
-        /// </para>
+        /// 数独の解を示す <see cref="SudokuSolutionCollection"/> オブジェクトを返します。
         /// </returns>
-        public IEnumerable<SudokuSolution> Solve()
-            => SolveCore().Select(solution => new SudokuSolution(solution));
+        public SudokuSolutionCollection Solve(int maxSolutionCount = 100)
+            => new(SolveCore(maxSolutionCount));
 
         private static Lazy<SudokuBoardState> CreateInitialState(ReadOnlySpan<string> initialCellDigits)
         {

@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class NakedTripleOperation
         : SudokuBoardOperation
     {
-        private NakedTripleOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "三国同盟", SudokuBoardDifficultyLevel.Medium, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedTripleOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "三国同盟",
+                  SudokuBoardDifficultyLevel.Medium,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -164,7 +178,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                         new NakedTripleOperation(
                                             highlightedCellNotes,
                                             removedCellNotes,
-                                            relatedCellPositions,
+                                            cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet(),
+                                            houseMask,
                                             description);
                                 }
                             }

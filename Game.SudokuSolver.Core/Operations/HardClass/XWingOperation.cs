@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.HardClass
     internal sealed class XWingOperation
         : SudokuBoardOperation
     {
-        private XWingOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "X-ウィング", SudokuBoardDifficultyLevel.Hard, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private XWingOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "X-ウィング",
+                  SudokuBoardDifficultyLevel.Hard,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -132,7 +146,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     new XWingOperation(
                                         highlightedCellNote,
                                         removedCellNotes,
-                                        houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray(),
+                                        houseMask,
+                                        houseMask,
                                         description);
                             }
                         }

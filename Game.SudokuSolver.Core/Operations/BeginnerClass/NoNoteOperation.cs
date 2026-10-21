@@ -10,8 +10,19 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
     internal sealed class NoNoteOperation
         : SudokuBoardOperation
     {
-        private NoNoteOperation(ReadOnlyMemory<SudokuBoardCellPosition> noNoteCells, string description)
-            : base(GameBoardStatus.Failed, "数字の候補が存在しない", SudokuBoardDifficultyLevel.Beginner, null, noNoteCells, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+        private NoNoteOperation(
+            UInt128 noNoteCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Failed,
+                  "数字の候補が存在しない",
+                  SudokuBoardDifficultyLevel.Beginner,
+                  null,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  UInt128.Zero,
+                  noNoteCellIndexBitSet,
+                  description)
         {
         }
 
@@ -30,7 +41,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             var description =
                 $"{cellPositionListText}のセルの数字の候補が存在しないため、" +
                 $"解答は存在しません。";
-            return new NoNoteOperation(cellPositionList, description);
+            return new NoNoteOperation(notNoteCellIndexBitSet, description);
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

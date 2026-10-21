@@ -10,7 +10,16 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
         : SudokuBoardOperation
     {
         private CompleteOperation(string description)
-            : base(GameBoardStatus.Success, "完了", SudokuBoardDifficultyLevel.Beginner, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, description)
+            : base(
+                  GameBoardStatus.Success,
+                  "完了",
+                  SudokuBoardDifficultyLevel.Beginner,
+                  null,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  UInt128.Zero,
+                  UInt128.Zero,
+                  description)
         {
         }
 

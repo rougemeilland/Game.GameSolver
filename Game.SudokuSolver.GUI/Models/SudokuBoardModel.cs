@@ -95,22 +95,13 @@ namespace Game.SudokuSolver.GUI.Models
 
             static SudokuBoardCellModel CreateCellModel(SudokuBoardCell sourceCell)
             {
-                if (sourceCell is SudokuBoardNoNoteUndeterminedCell noNoteUndeterminedCell)
+                if (sourceCell is SudokuBoardDeterminedCell determinedCell)
                 {
                     return
                         new SudokuBoardCellModel
                         {
-                            IsHighlightedBackground = noNoteUndeterminedCell.IsHighlightedBackground,
-                            DeterminedDigit = "",
-                            ShowMode = SudokuBoardCellShowMode.NegativelyHighlighted,
-                        };
-                }
-                else if (sourceCell is SudokuBoardDeterminedCell determinedCell)
-                {
-                    return
-                        new SudokuBoardCellModel
-                        {
-                            IsHighlightedBackground = determinedCell.IsHighlightedBackground,
+                            IsPositivelyHighlightedBackground = determinedCell.IsPositivelyHighlightedBackground,
+                            IsNegativelyHighlightedBackground = determinedCell.IsNegativelyHighlightedBackground,
                             DeterminedDigit = determinedCell.DeterminedDigit.ToCellDigitChar().ToString(),
                             ShowMode =
                                 determinedCell.IsPositivelyHighlighted
@@ -124,7 +115,8 @@ namespace Game.SudokuSolver.GUI.Models
                 {
                     var model = new SudokuBoardCellModel
                     {
-                        IsHighlightedBackground = notDeterminedCell.IsHighlightedBackground,
+                        IsPositivelyHighlightedBackground = notDeterminedCell.IsPositivelyHighlightedBackground,
+                        IsNegativelyHighlightedBackground = notDeterminedCell.IsNegativelyHighlightedBackground,
                         DeterminedDigit = "",
                         ShowMode = SudokuBoardCellShowMode.NotDetermined
                     };

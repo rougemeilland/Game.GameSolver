@@ -19,8 +19,8 @@ namespace Game.SudokuSolver
 
         private readonly CellStatus _status;
 
-        private SudokuBoardDeterminedCell(bool isHighlightedBackground, SudokuBoardCellDigit determinedDigit, CellStatus status)
-            : base(isHighlightedBackground)
+        private SudokuBoardDeterminedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit determinedDigit, CellStatus status)
+            : base(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground)
         {
             DeterminedDigit = determinedDigit;
             _status = status;
@@ -52,8 +52,8 @@ namespace Game.SudokuSolver
         /// </value>
         public bool IsPositivelyHighlighted => (_status & CellStatus.PositiveHighlight) != CellStatus.None;
 
-        internal static SudokuBoardDeterminedCell CreateInitialCell(bool isHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isHighlightedBackground, cellDigit, CellStatus.InitialSet);
-        internal static SudokuBoardDeterminedCell CreateUpdatedCell(bool isHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isHighlightedBackground, cellDigit, CellStatus.None);
-        internal static SudokuBoardDeterminedCell CreatePositivelyHighlightedCell(bool isHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isHighlightedBackground, cellDigit, CellStatus.PositiveHighlight);
+        internal static SudokuBoardDeterminedCell CreateInitialCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.InitialSet);
+        internal static SudokuBoardDeterminedCell CreateUpdatedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.None);
+        internal static SudokuBoardDeterminedCell CreatePositivelyHighlightedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.PositiveHighlight);
     }
 }

@@ -10,8 +10,22 @@ namespace Game.SudokuSolver.Operations.MediumClass
     internal sealed class NakedPairOperation
         : SudokuBoardOperation
     {
-        private NakedPairOperation(ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes, ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes, ReadOnlyMemory<SudokuBoardCellPosition> relatedCellPositions, string description)
-            : base(GameBoardStatus.Solving, "二国同盟", SudokuBoardDifficultyLevel.Medium, null, ReadOnlyMemory<SudokuBoardCellPosition>.Empty, highlightedCellNotes, removedCellNotes, relatedCellPositions, description)
+        private NakedPairOperation(
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
+            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 negativelyRelatedCellIndexBitSet,
+            string description)
+            : base(
+                  GameBoardStatus.Solving,
+                  "二国同盟",
+                  SudokuBoardDifficultyLevel.Medium,
+                  null,
+                  highlightedCellNotes,
+                  removedCellNotes,
+                  positivelyRelatedCellIndexBitSet,
+                  negativelyRelatedCellIndexBitSet,
+                  description)
         {
         }
 
@@ -152,7 +166,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     new NakedPairOperation(
                                         highlightedCellNotes,
                                         removedCellNotes,
-                                        relatedCellPositions,
+                                        cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet(),
+                                        houseMask,
                                         description);
                             }
                         }

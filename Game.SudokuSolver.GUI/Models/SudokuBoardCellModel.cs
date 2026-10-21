@@ -46,7 +46,8 @@ namespace Game.SudokuSolver.GUI.Models
 
         private readonly CellNoteCollection _notes;
         private string _determinedDigit;
-        private bool _isHighlightedBackground;
+        private bool _isPositivelyHighlightedBackground;
+        private bool _isNegativelyHighlightedBackground;
         private SudokuBoardCellShowMode _showMode;
 
         public SudokuBoardCellModel()
@@ -89,15 +90,27 @@ namespace Game.SudokuSolver.GUI.Models
 
         public IReadOnlyCellNotesIndexer Notes => _notes;
 
-        public bool IsHighlightedBackground
+        public bool IsPositivelyHighlightedBackground
         {
-            get => _isHighlightedBackground;
+            get => _isPositivelyHighlightedBackground;
             set
             {
-                if (value == _isHighlightedBackground)
+                if (_isPositivelyHighlightedBackground == value)
                     return;
-                _isHighlightedBackground = value;
-                RaisePropertyChangedEvent(nameof(IsHighlightedBackground));
+                _isPositivelyHighlightedBackground = value;
+                RaisePropertyChangedEvent(nameof(IsPositivelyHighlightedBackground));
+            }
+        }
+
+        public bool IsNegativelyHighlightedBackground
+        {
+            get => _isNegativelyHighlightedBackground;
+            set
+            {
+                if (value == _isNegativelyHighlightedBackground)
+                    return;
+                _isNegativelyHighlightedBackground = value;
+                RaisePropertyChangedEvent(nameof(IsNegativelyHighlightedBackground));
             }
         }
 

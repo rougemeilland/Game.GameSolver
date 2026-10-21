@@ -58,7 +58,6 @@ namespace Game.GameSolver
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        private const int _MAXIMUM_SOLUTION_COLLECTION_COUNT = 100;
         private readonly Lazy<STATE_T> _initialState;
         private readonly Stack<STATE_T> _stateColelction;
         private readonly Dictionary<IGameBoardStateUniqueKey, int> _alreadyAppearedState;
@@ -79,27 +78,25 @@ namespace Game.GameSolver
         /// <summary>
         /// ゲームの解答とその解法を列挙します。
         /// </summary>
+        /// <param name="maxSolutionCount">
+        /// 求める解答の数の最大値です。
+        /// </param>
         /// <returns>
         /// ゲームの解答とその解法を示す <see cref="GameSolution{STATE_T, OPERATION_T}"/> の列挙子です。
         /// </returns>
-        protected IEnumerable<GameSolution<STATE_T, OPERATION_T>> SolveCore()
+        protected GameSolutionCollection<STATE_T, OPERATION_T> SolveCore(int maxSolutionCount)
         {
             var initialState = _initialState.Value;
-            foreach (var solution in Solve(initialState))
-            {
-#if DEBUG
-                System.Diagnostics.Debug.Assert(solution.Status is GameBoardStatus.Initial or GameBoardStatus.Success or GameBoardStatus.Failed);
-#endif
-                yield return new GameSolution<STATE_T, OPERATION_T>(initialState, solution);
-            }
+            var solutions = Solve(initialState, maxSolutionCount).Select(state => new GameSolution<STATE_T, OPERATION_T>(initialState, state)).ToArray();
+            return new GameSolutionCollection<STATE_T, OPERATION_T>(solutions.Length, int.Min(solutions.Length, maxSolutionCount), solutions);
         }
 
-        private MinimumStepSolutionCollection Solve(STATE_T initialState)
+        private MinimumStepSolutionCollection Solve(STATE_T initialState, int maxSolutionCount)
         {
             _stateColelction.Clear();
             _alreadyAppearedState.Clear();
-            var resultOfSuccess = new MinimumStepSolutionCollection(_MAXIMUM_SOLUTION_COLLECTION_COUNT);
-            var resultOfFailed = new MinimumStepSolutionCollection(_MAXIMUM_SOLUTION_COLLECTION_COUNT);
+            var resultOfSuccess = new MinimumStepSolutionCollection(maxSolutionCount);
+            var resultOfFailed = new MinimumStepSolutionCollection(maxSolutionCount);
             _stateColelction.Push(initialState);
             _alreadyAppearedState[initialState.UniqueKey] = initialState.StepCount;
             while (_stateColelction.Count > 0)
