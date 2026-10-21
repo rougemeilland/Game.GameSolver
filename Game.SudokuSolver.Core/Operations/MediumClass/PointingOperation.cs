@@ -75,7 +75,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                     var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToCellPositions())})";
                     var description
                         = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれているので、" +
-                        $"必ずこれらのセルの何れかが '{cellDigitChar}' となります。" +
+                        $"必ずこれらのセルの何れかが '{cellDigitChar}' となります。\n" +
                         $"そのため、{columnOrRowHouseText}にある他のセル {removedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を削除します。";
                     return
                         new PointingOperation(

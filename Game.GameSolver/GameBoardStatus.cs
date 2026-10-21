@@ -16,17 +16,17 @@
         Initial,
 
         /// <summary>
-        /// 解決中
+        /// 解答作業中
         /// </summary>
         Solving,
 
         /// <summary>
-        /// 解決に成功した
+        /// 解答が完了した
         /// </summary>
         Success,
 
         /// <summary>
-        /// 解決に失敗した
+        /// 解答が存在しない
         /// </summary>
         Failed,
     }

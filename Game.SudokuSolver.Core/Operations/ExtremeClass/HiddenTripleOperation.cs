@@ -133,7 +133,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}, {cellPositionText3}";
                                     var description =
                                         $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の三つしかないので、" +
-                                        $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。" +
+                                        $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
                                         $"したがって、三つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
                                     return
                                         new HiddenTripleOperation(

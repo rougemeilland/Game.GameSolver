@@ -126,7 +126,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}";
                                 var description =
                                     $"{houseName}において、二つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の二つしかないので、" +
-                                    $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。" +
+                                    $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
                                     $"したがって、二つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
                                 return
                                     new XWingOperation(

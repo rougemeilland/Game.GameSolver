@@ -11,6 +11,6 @@
     Title="MainWindow"
     SizeToContent="WidthAndHeight">
     <Grid>
-        <localControl:SudokuBoardSlideShowControl DataContext="{Binding SlideShow}"/>
+        <localControl:SudokuSolutionControl DataContext="{Binding SlideShow}"/>
     </Grid>
 </Window>

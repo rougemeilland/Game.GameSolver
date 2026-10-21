@@ -86,16 +86,16 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     house switch
                     {
                         SudokuBoardHouseType.Row =>
-                            $"{determinedCellRow.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字を '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellRow.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         SudokuBoardHouseType.Column =>
-                            $"{determinedCellColumn.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字を '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellColumn.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         SudokuBoardHouseType.Block =>
-                            $"{determinedCellBlock.ToFriendlyString()}のブロックのセルのうち{determinedCellPositionText}以外のセルが確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字を '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellBlock.ToFriendlyString()}のブロックのセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         _ => throw new ApplicationException(),
                     };

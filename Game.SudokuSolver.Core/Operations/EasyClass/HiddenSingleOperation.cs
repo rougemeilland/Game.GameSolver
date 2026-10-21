@@ -93,15 +93,15 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     {
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         SudokuBoardHouseType.Block =>
                             $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。" +
+                            $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };

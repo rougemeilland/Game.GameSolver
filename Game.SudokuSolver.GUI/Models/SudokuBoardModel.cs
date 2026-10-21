@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.AccessControl;
 using System.Windows;
 using Game.GameSolver;
 
@@ -45,6 +46,7 @@ namespace Game.SudokuSolver.GUI.Models
         private readonly SudokuBoardCellModel[] _cells;
         private bool _showOPeration;
         private string _operationName;
+        private Visibility _operationNameVisibility;
         private string _description;
         private Visibility _operationVisibility;
         private readonly bool _latestOperationIsNotNull;
@@ -63,20 +65,31 @@ namespace Game.SudokuSolver.GUI.Models
                 _cells[cellIndex - SudokuBoardCellIndex.MinValue] = CreateCellModel(sourceCells[cellIndex]);
             _showOPeration = false;
             _operationName = string.Empty;
+            _operationNameVisibility = Visibility.Hidden;
             _description = string.Empty;
             _operationVisibility = Visibility.Collapsed;
             StepCount = boardState.StepCount;
             var latestOperation = boardState.LatestOperation;
-            if (latestOperation is null || latestOperation.Status is GameBoardStatus.Success or GameBoardStatus.Failed)
+            if (latestOperation is null || latestOperation.Status == GameBoardStatus.Success)
             {
                 _latestOperationIsNotNull = false;
+                OperationNameVisibility = Visibility.Visible;
                 ShowOPeration = false;
+            }
+            else if (latestOperation.Status == GameBoardStatus.Failed)
+            {
+                _latestOperationIsNotNull = true;
+                ShowOPeration = true;
+                OperationName = string.Empty;
+                OperationNameVisibility = Visibility.Collapsed;
+                Description = latestOperation.Description;
             }
             else
             {
                 _latestOperationIsNotNull = true;
                 ShowOPeration = true;
                 OperationName = $"{latestOperation.Title} ({latestOperation.Difficulty.ToFriendlyString()})";
+                OperationNameVisibility = Visibility.Visible;
                 Description = latestOperation.Description;
             }
 
@@ -168,6 +181,18 @@ namespace Game.SudokuSolver.GUI.Models
                     return;
                 _operationName = value;
                 RaisePropertyChangedEvent(nameof(OperationName));
+            }
+        }
+
+        public Visibility OperationNameVisibility
+        {
+            get => _operationNameVisibility;
+            private set
+            {
+                if (value == _operationNameVisibility)
+                    return;
+                _operationNameVisibility = value;
+                RaisePropertyChangedEvent(nameof(OperationNameVisibility));
             }
         }
 

@@ -10,23 +10,23 @@ namespace Game.SudokuSolver.GUI.Controls
     /// <summary>
     /// SudokuBoardSlideShowControl1.xaml の相互作用ロジック
     /// </summary>
-    internal sealed partial class SudokuBoardSlideShowControl
+    internal sealed partial class SudokuSolutionControl
         : UserControl
     {
-        public SudokuBoardSlideShowControl()
+        public SudokuSolutionControl()
         {
             InitializeComponent();
 
             InitializeUserControl(this, DataContext);
         }
 
-        private static void InitializeUserControl(SudokuBoardSlideShowControl c, object oldDataContext)
+        private static void InitializeUserControl(SudokuSolutionControl c, object oldDataContext)
         {
             c.DataContextChanged -= DataContextChangedEventHandler;
             c.DataContextChanged += DataContextChangedEventHandler;
-            if (oldDataContext is SudokuBoardSlideShowModel oldModel)
+            if (oldDataContext is SudokuBoardSolutionModel oldModel)
                 oldModel.PropertyChanged -= c.PropertyChangedEventHandler;
-            if (c.DataContext is SudokuBoardSlideShowModel model)
+            if (c.DataContext is SudokuBoardSolutionModel model)
             {
                 InitializeUserControlByModel(c, model);
                 model.PropertyChanged += c.PropertyChangedEventHandler;
@@ -40,7 +40,7 @@ namespace Game.SudokuSolver.GUI.Controls
             }
         }
 
-        private static void RefreshBoardList(SudokuBoardSlideShowControl c, SudokuBoardSlideShowModel model)
+        private static void RefreshBoardList(SudokuSolutionControl c, SudokuBoardSolutionModel model)
         {
             while (c.BoardListPanel.Children.Count > 0)
             {
@@ -123,7 +123,7 @@ namespace Game.SudokuSolver.GUI.Controls
             }
         }
 
-        private static void InitializeUserControlByModel(SudokuBoardSlideShowControl c, SudokuBoardSlideShowModel model)
+        private static void InitializeUserControlByModel(SudokuSolutionControl c, SudokuBoardSolutionModel model)
         {
             c.BoardListPanel.Children.Clear();
             RefreshBoardList(c, model);
@@ -131,13 +131,13 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private static void DataContextChangedEventHandler(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (sender is SudokuBoardSlideShowControl c)
+            if (sender is SudokuSolutionControl c)
                 InitializeUserControl(c, e.OldValue);
         }
 
         private void PropertyChangedEventHandler(object? sender, PropertyChangedEventArgs e)
         {
-            if (DataContext is SudokuBoardSlideShowModel model)
+            if (DataContext is SudokuBoardSolutionModel model)
             {
                 switch (e.PropertyName)
                 {
@@ -152,7 +152,7 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private void KeyDownEventHandler(object sender, KeyEventArgs e)
         {
-            if (DataContext is SudokuBoardSlideShowModel model)
+            if (DataContext is SudokuBoardSolutionModel model)
             {
                 switch (e.Key)
                 {
@@ -172,7 +172,7 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private void NextButtonClickedEventHandler(object sender, RoutedEventArgs e)
         {
-            if (DataContext is SudokuBoardSlideShowModel model)
+            if (DataContext is SudokuBoardSolutionModel model)
             {
                 if (!model.IsLastStep)
                     ++model.CurrentStepCount;
@@ -181,7 +181,7 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private void PreviousButtonEventHandler(object sender, RoutedEventArgs e)
         {
-            if (DataContext is SudokuBoardSlideShowModel model)
+            if (DataContext is SudokuBoardSolutionModel model)
             {
                 if (!model.IsFirstStep)
                     --model.CurrentStepCount;

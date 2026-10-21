@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using Game.SudokuSolver;
+using Game.GameSolver;
 
 namespace Game.SudokuSolver.GUI.Models
 {
-    internal sealed class SudokuBoardSlideShowModel
+    internal sealed class SudokuBoardSolutionModel
         : Model
     {
         private sealed class SudokuBoardModelCollection
@@ -13,9 +16,9 @@ namespace Game.SudokuSolver.GUI.Models
         {
             private readonly SudokuBoardModel[] _source;
 
-            public SudokuBoardModelCollection(ReadOnlyMemory<SudokuBoardModel> source)
+            public SudokuBoardModelCollection(IEnumerable<SudokuBoardModel> source)
             {
-                _source = source.ToArray();
+                _source = [.. source];
             }
 
             public SudokuBoardModel this[int index]
@@ -33,21 +36,44 @@ namespace Game.SudokuSolver.GUI.Models
         }
 
         private int _currentStepCount = -1;
-        private string _currentStepTitle = "";
+        private string _currentStepTitle = string.Empty;
         private bool _isFirstStep;
         private bool _isLastStep;
         private Visibility _previousStepButtonVisibility;
         private Visibility _nextStepButtonVisibility;
+        private bool _isSuccess;
+        private string _solutionDifficulty = string.Empty;
 
-        public SudokuBoardSlideShowModel(IEnumerable<SudokuBoardModel> models)
-            : this(models.ToArray().AsMemory())
+        public SudokuBoardSolutionModel(SudokuSolution solution)
         {
+            BoardModels = new SudokuBoardModelCollection(solution.History.Select(state => new SudokuBoardModel(state)));
+            CurrentStepCount = 0;
+            IsSuccess = solution.Status == GameBoardStatus.Success;
+            SolutionDifficulty = solution.Difficulty.ToFriendlyString();
         }
 
-        public SudokuBoardSlideShowModel(ReadOnlyMemory<SudokuBoardModel> boardModels)
+        public bool IsSuccess
         {
-            BoardModels = new SudokuBoardModelCollection(boardModels);
-            CurrentStepCount = 0;
+            get => _isSuccess;
+            private set
+            {
+                if (value == _isSuccess)
+                    return;
+                _isSuccess = value;
+                RaisePropertyChangedEvent(nameof(IsSuccess));
+            }
+        }
+
+        public string SolutionDifficulty
+        {
+            get => _solutionDifficulty;
+            private set
+            {
+                if (value == _solutionDifficulty)
+                    return;
+                _solutionDifficulty = value;
+                RaisePropertyChangedEvent(nameof(IsSuccess));
+            }
         }
 
         public IReadOnlySudokuBoardModelsIndexer BoardModels { get; }
@@ -82,7 +108,7 @@ namespace Game.SudokuSolver.GUI.Models
                 }
                 else
                 {
-                    CurrentStepTitle = $"{_currentStepCount} 手順目";
+                    CurrentStepTitle = $"{_currentStepCount} / {BoardModels.Length - 2} 手順目";
                     IsFirstStep = false;
                     IsLastStep = false;
                     PreviousStepButtonVisibility = Visibility.Visible;

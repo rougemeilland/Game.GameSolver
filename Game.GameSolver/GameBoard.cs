@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.GameSolver
 {
     /// <summary>
-    /// ゲームを解決するジェネリック抽象クラスです。
+    /// ゲームの盤面の抽象クラスです。
     /// </summary>
     /// <typeparam name="STATE_T">ゲームの盤面を示すクラスです。</typeparam>
     /// <typeparam name="OPERATION_T">ゲームの盤面に対するオペレーションを示すクラスです。</typeparam>
@@ -77,10 +77,10 @@ namespace Game.GameSolver
         }
 
         /// <summary>
-        /// ゲームを解決します。
+        /// ゲームの解答とその解法を列挙します。
         /// </summary>
         /// <returns>
-        /// 解決したゲームの結果を示す <see cref="GameSolution{STATE_T, OPERATION_T}"/> の列挙子です。
+        /// ゲームの解答とその解法を示す <see cref="GameSolution{STATE_T, OPERATION_T}"/> の列挙子です。
         /// </returns>
         protected IEnumerable<GameSolution<STATE_T, OPERATION_T>> SolveCore()
         {

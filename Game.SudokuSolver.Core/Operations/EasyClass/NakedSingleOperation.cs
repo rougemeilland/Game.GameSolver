@@ -41,7 +41,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     var determinedCellDigitText = cellDigit.ToCellDigitChar();
                     var description =
                         $"{determinedCellPositionText}のセルの数字の候補は '{determinedCellDigitText}' しかないため、" +
-                        $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。" +
+                        $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。\n" +
                         $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     return
                         new NakedSingleOperation(

@@ -24,7 +24,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             // (敢えて述べるなら)
             // ある未確定セル C とある数字 D に対して、
             // C の数字の候補に D が含まれている場合
-            // => C の数字は仮に D と仮定して盤面の解決を試み、もし失敗した場合は C の数字は D ではないと判明する。
+            // => C の数字は仮に D と仮定して盤面の解答を試み、もし失敗した場合は C の数字は D ではないと判明する。
 
             var undterminedBitSet = ~ws.DeterminedCellBitSet & SudokuBoardWorkspace.AllCellIndexBitSet;
 #if DEBUG
@@ -47,7 +47,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                     var removedCellNotes = removedCellsNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray();
                     var determinedCellDigitText = cellDigit.ToCellDigitChar();
                     var description =
-                        $"{new SudokuBoardCellPosition(foundCellIndex).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。" +
+                        $"{new SudokuBoardCellPosition(foundCellIndex).ToFriendlyString()}のセルの数字を '{determinedCellDigitText}' と仮定します。\n" +
                         $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
                     yield return
                         new ForcingChainOperation(

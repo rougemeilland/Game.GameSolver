@@ -169,7 +169,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         var removedCellPositionsText = string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                         var description =
                                             $"{houseName}において、{keyCellPositionsText} の四つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                            $"これら四つのセルの数字は必ずこれら四つの数字の何れかです。" +
+                                            $"これら四つのセルの数字は必ずこれら四つの数字の何れかです。\n" +
                                             $"したがって、{houseName}の他のセルは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
                                             $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
                                         return

@@ -29,7 +29,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             var cellPositionListText = string.Join(", ", cellPositionList.Select(cellPosition => cellPosition.ToFriendlyString()));
             var description =
                 $"{cellPositionListText}のセルの数字の候補が存在しないため、" +
-                $"盤面の解決は失敗します。";
+                $"解答は存在しません。";
             return new NoNoteOperation(cellPositionList, description);
         }
 

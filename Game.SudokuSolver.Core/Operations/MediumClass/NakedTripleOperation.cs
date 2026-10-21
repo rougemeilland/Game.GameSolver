@@ -157,7 +157,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     var removedCellPositionsText = string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                     var description =
                                         $"{houseName}において、{keyCellPositionsText} の三つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                        $"これら三つのセルの数字は必ずこれら三つの数字の何れかです。" +
+                                        $"これら三つのセルの数字は必ずこれら三つの数字の何れかです。\n" +
                                         $"したがって、{houseName}の他のセルは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
                                         $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
                                     return
