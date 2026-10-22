@@ -55,7 +55,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。\n" +
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
 #if DEBUG
-                        System.Diagnostics.Debug.Assert(!ws.IsDetermined(cellIndex));
+                        System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif
                         return
                             new NakedSingleOperation(

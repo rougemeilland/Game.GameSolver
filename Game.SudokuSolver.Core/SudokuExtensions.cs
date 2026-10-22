@@ -482,7 +482,7 @@ namespace Game.SudokuSolver
 
         #endregion
 
-        #region SudokuBoardDifficultyLevel
+        #region for SudokuBoardDifficultyLevel
 
         /// <summary>
         /// 数独のオペレーションの難易度を読みやすい文字列に変換します。
@@ -496,14 +496,53 @@ namespace Game.SudokuSolver
         public static string ToFriendlyString(this SudokuBoardDifficultyLevel difficulty)
             => difficulty switch
                 {
-                    SudokuBoardDifficultyLevel.Beginner => "入門",
-                    SudokuBoardDifficultyLevel.Easy => "初級",
-                    SudokuBoardDifficultyLevel.Medium => "中級",
-                    SudokuBoardDifficultyLevel.Hard => "上級",
-                    SudokuBoardDifficultyLevel.Extreme => "超上級",
-                    SudokuBoardDifficultyLevel.Insane => "究極",
+                    SudokuBoardDifficultyLevel.Beginner => "★ 入門",
+                    SudokuBoardDifficultyLevel.Easy => "★★ 初級",
+                    SudokuBoardDifficultyLevel.Medium => "★★★ 中級",
+                    SudokuBoardDifficultyLevel.Hard => "★★★★ 上級",
+                    SudokuBoardDifficultyLevel.Extreme => "★★★★★ 超上級",
+                    SudokuBoardDifficultyLevel.Insane => "★★★★★★ 究極",
                     _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
                 };
+
+        #endregion
+
+        #region Linq
+
+        /// <summary>
+        /// 二つのコレクションのうち最初のコレクションが空である場合だけ二つ目のコレクションを返す列挙子を返します。
+        /// </summary>
+        /// <typeparam name="ELEMENT_T">
+        /// コレクションの要素の型です。
+        /// </typeparam>
+        /// <param name="source">
+        /// 最初のコレクションの列挙子です。
+        /// </param>
+        /// <param name="otherSource">
+        /// 二番目のコレクションの列挙子です。
+        /// </param>
+        /// <returns></returns>
+        internal static IEnumerable<ELEMENT_T> IfNoneThenConcat<ELEMENT_T>(this IEnumerable<ELEMENT_T> source, IEnumerable<ELEMENT_T> otherSource)
+        {
+            var doBreak = false;
+            using (var enumerator = source.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    yield return enumerator.Current;
+                    doBreak = true;
+                }
+            }
+
+            if (doBreak)
+                yield break;
+
+            using (var enumerator = otherSource.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                    yield return enumerator.Current;
+            }
+        }
 
         #endregion
 

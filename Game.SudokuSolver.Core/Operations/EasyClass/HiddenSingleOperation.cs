@@ -60,7 +60,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             ws,
                             SudokuBoardHouseType.Column,
                             SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
-                            cellDigit + 1,
+                            cellDigit,
                             cellNoteBitSet);
                     if (operation is not null)
                         return operation;
@@ -73,7 +73,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             ws,
                             SudokuBoardHouseType.Row,
                             SudokuBoardCellGeometry.GetRowCellsBitSet(row),
-                            cellDigit + 1,
+                            cellDigit,
                             cellNoteBitSet);
                     if (operation is not null)
                         return operation;
@@ -116,7 +116,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     };
 
 #if DEBUG
-                System.Diagnostics.Debug.Assert(!ws.IsDetermined(determinedCellIndex));
+                if (!ws.CanCetermineCell(determinedCellIndex, cellDigit))
+                    throw new ApplicationException();
+                System.Diagnostics.Debug.Assert(ws.CanCetermineCell(determinedCellIndex, cellDigit));
 #endif
                 return
                     new HiddenSingleOperation(

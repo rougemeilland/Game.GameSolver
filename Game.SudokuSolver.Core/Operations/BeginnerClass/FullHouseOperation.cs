@@ -83,8 +83,8 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
 #if DEBUG
                 System.Diagnostics.Debug.Assert(undeterminedCellIndex is >= SudokuBoardCellIndex.MinValue and <= SudokuBoardCellIndex.MaxValue);
 #endif
-
                 var foundCellDigit = FindMissingCellDigit(ws, determinedCellBitSetByHouse);
+
                 var removedCellNotes =
                     ws.GetCellIndexBitSetForRemovedNoteDigit(undeterminedCellIndex, foundCellDigit)
                     .EnumerateAsCellIndexes()
@@ -110,6 +110,9 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                             $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
                         _ => throw new ApplicationException(),
                     };
+#if DEBUG
+                System.Diagnostics.Debug.Assert(ws.CanCetermineCell(undeterminedCellIndex, foundCellDigit));
+#endif
                 return
                     new FullHouseOperation(
                         new SudokuBoardCellPositionDigit(undeterminedCellIndex, foundCellDigit),

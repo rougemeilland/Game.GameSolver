@@ -212,6 +212,7 @@ namespace Game.SudokuSolver
             operation = NakedSingleOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+
             operation = HiddenSingleOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
@@ -223,12 +224,15 @@ namespace Game.SudokuSolver
             operation = PointingOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+
             operation = BoxLineReductionOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+
             operation = NakedPairOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
+
             operation = NakedTripleOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
@@ -245,10 +249,11 @@ namespace Game.SudokuSolver
             if (operation is not null)
                 return new[] { operation };
 
+#if false // 未実装
             operation = XWingOperation.MatchPattern(workspace);
             if (operation is not null)
                 return new[] { operation };
-
+#endif
             #endregion
 
             #region ExtremeClass
@@ -265,10 +270,13 @@ namespace Game.SudokuSolver
 
             #region InsaneClass
 
-            return ForcingChainOperation.MatchPattern(workspace);
+            // ForcingChain が一つでも要素を返していれば、BruteForce は呼び出さない
+
+            return
+                ForcingChainOperation.MatchPattern(workspace)
+                .IfNoneThenConcat(BruteForceOperation.MatchPattern(workspace));
 
             #endregion
-
         }
 
         /// <inheritdoc/>

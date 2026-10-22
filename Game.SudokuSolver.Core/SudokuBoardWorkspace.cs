@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver
@@ -64,7 +65,15 @@ namespace Game.SudokuSolver
         /// 指定されたセルの数字が確定されていれば <see langword="true"/>、そうではないのなら <see langword="false"/> です。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public bool IsDetermined(SudokuBoardCellIndex cellIndex) => _cellsSource.IsDetermined(cellIndex);
+        public bool IsDetermined(SudokuBoardCellIndex cellIndex)
+        {
+
+            var resut = (DeterminedCellBitSet & cellIndex.ToCellIndexBitSet()) != 0;
+#if DEBUG
+            System.Diagnostics.Debug.Assert(resut == _cellsSource.IsDetermined(cellIndex));
+#endif
+            return resut;
+        }
 
         /// <summary>
         /// 数字が確定している指定されたセルの数字を取得します。
@@ -145,5 +154,57 @@ namespace Game.SudokuSolver
                 & GetNoteBitSet(cellNoteDigit)
                 & SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex)
                 & ~cellIndex.ToCellIndexBitSet();
+
+        /// <summary>
+        /// 指定されたセルを指定された数字で確定可能かどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndex">
+        /// 指定されたセルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
+        /// </param>
+        /// <param name="cellDigit">
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の確定が可能である場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
+        /// </returns>
+        /// <remarks>
+        /// <para>
+        /// 以下のような場合は確定不可能です。
+        /// <list type="bullet">
+        /// <item>指定されたセルの数字が既に確定している場合</item>
+        /// <item>指定されたセルの何れかのハウスに同じ数字で確定しているセルが存在する場合</item>
+        /// </list>
+        /// </para>
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool CanCetermineCell(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellDigit)
+            => _cellsSource.CanCetermineCell(cellIndex, cellDigit);
+
+        /// <summary>
+        /// 現在の盤面の配置をデバッグコンソールに出力します。
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void PrintToDebugConsole()
+        {
+#if DEBUG
+            for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
+            {
+                if ((row - SudokuBoardCellRow.One) % 3 == 0)
+                    System.Diagnostics.Debug.WriteLine("+---+---+---+");
+                for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
+                {
+                    if ((column - SudokuBoardCellColumn.One) % 3 == 0)
+                        System.Diagnostics.Debug.Write("|");
+                    var cellIndex = SudokuBoardCellGeometry.GetCellIndex(column, row);
+                    System.Diagnostics.Debug.Write(IsDetermined(cellIndex) ? GetDeterminedCellDigit(cellIndex).ToCellDigitChar() : ' ');
+                }
+
+                System.Diagnostics.Debug.WriteLine("|");
+            }
+
+            System.Diagnostics.Debug.WriteLine("+---+---+---+");
+            System.Diagnostics.Debug.WriteLine("");
+#endif
+        }
     }
 }

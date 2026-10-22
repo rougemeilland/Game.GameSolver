@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Linq;
 using Game.GameSolver;
 
@@ -86,7 +87,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 if (highlightedCellNoteBitSet != 0 && (cellNoteBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && removedCellNoteBitSet != 0)
                 {
                     var cellDigitChar = cellDigit.ToCellDigitChar();
-                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToCellPositions())})";
+                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                     var description
                         = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれているので、" +
                         $"必ずこれらのセルの何れかが '{cellDigitChar}' となります。\n" +

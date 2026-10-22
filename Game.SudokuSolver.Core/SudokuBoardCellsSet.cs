@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Game.SudokuSolver
 {
@@ -158,6 +159,52 @@ namespace Game.SudokuSolver
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 指定されたセルを指定された数字で確定可能かどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndex">
+        /// 指定されたセルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
+        /// </param>
+        /// <param name="cellDigit">
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の確定が可能である場合は <see langword="true"/>、そうではない場合は <see langword="false"/> を返します。
+        /// </returns>
+        /// <remarks>
+        /// <para>
+        /// 以下のような場合は確定不可能です。
+        /// <list type="bullet">
+        /// <item>指定されたセルの数字が既に確定している場合</item>
+        /// <item>指定されたセルの何れかのハウスに同じ数字で確定しているセルが存在する場合</item>
+        /// </list>
+        /// </para>
+        /// </remarks>
+        public bool CanCetermineCell(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellDigit)
+        {
+#if DEBUG
+            if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(cellIndex));
+            if (cellDigit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(cellDigit));
+#endif
+
+            if ((_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & _IS_DETERMINED) != 0)
+                return false;
+            var determinedCellElement = (ushort)(_IS_DETERMINED | (ushort)cellDigit);
+            var otherCellsIndexes = _visibleCellsIndexes[cellIndex - SudokuBoardCellIndex.FirstValue];
+            for (var index = 0; index < otherCellsIndexes.Length; ++index)
+            {
+                if ((_cells[otherCellsIndexes[index]] & _IS_DETERMINED) != 0)
+                {
+                    if (_cells[otherCellsIndexes[index]] == determinedCellElement)
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
