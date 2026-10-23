@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -29,7 +30,7 @@ namespace Game.SudokuSolver.Operations.HardClass
         {
         }
 
-        public static NakedQuadOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるハウス H と ある四つの数字 D1, D2, D3, D4 と H 内にある四つのセル C1, C2, C3, C4 に対して、
@@ -46,7 +47,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{block.ToFriendlyString()}のブロック",
                         SudokuBoardCellGeometry.GetCellIndexes(block).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 行ハウスの検索
@@ -59,7 +60,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{row.ToFriendlyString()}の行",
                         SudokuBoardCellGeometry.GetCellIndexes(row).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 列ハウスの検索
@@ -72,10 +73,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{column.ToFriendlyString()}の列",
                         SudokuBoardCellGeometry.GetCellIndexes(column).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
-
-            return null;
 
             static NakedQuadOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
             {

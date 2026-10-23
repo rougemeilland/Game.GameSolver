@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -29,7 +30,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
         {
         }
 
-        public static HiddenSingleOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるハウス H と H 内のセル C とある数字 D に対して、
@@ -50,7 +51,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             cellDigit,
                             cellNoteBitSet);
                     if (operation is not null)
-                        return operation;
+                        yield return operation;
                 }
 
                 for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
@@ -63,7 +64,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             cellDigit,
                             cellNoteBitSet);
                     if (operation is not null)
-                        return operation;
+                        yield return operation;
                 }
 
                 for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
@@ -76,11 +77,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             cellDigit,
                             cellNoteBitSet);
                     if (operation is not null)
-                        return operation;
+                        yield return operation;
                 }
             }
-
-            return null;
 
             static HiddenSingleOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, SudokuBoardHouseType house, UInt128 houseBitMask, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {

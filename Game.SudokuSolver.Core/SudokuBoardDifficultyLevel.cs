@@ -6,9 +6,19 @@
     public enum SudokuBoardDifficultyLevel
     {
         /// <summary>
+        /// 不明 (内部制御のみに使用)
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// 基本 (内部制御のみに使用)
+        /// </summary>
+        Basic,
+
+        /// <summary>
         /// 入門
         /// </summary>
-        Beginner = 0,
+        Beginner,
 
         /// <summary>
         /// 初級
@@ -34,5 +44,10 @@
         /// 究極
         /// </summary>
         Insane,
+
+        /// <summary>
+        /// 規格外
+        /// </summary>
+        Nonstandard = int.MaxValue,
     }
 }

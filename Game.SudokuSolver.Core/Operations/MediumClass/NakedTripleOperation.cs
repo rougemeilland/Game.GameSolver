@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -29,7 +30,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
         {
         }
 
-        public static NakedTripleOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるハウス H と ある三つの数字 D1, D2, D3 と H 内にある三つのセル C1, C2, C3 に対して、
@@ -46,7 +47,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         () => $"{block.ToFriendlyString()}のブロック",
                         SudokuBoardCellGeometry.GetCellIndexes(block).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 行ハウスの検索
@@ -59,7 +60,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         () => $"{row.ToFriendlyString()}の行",
                         SudokuBoardCellGeometry.GetCellIndexes(row).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 列ハウスの検索
@@ -72,10 +73,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         () => $"{column.ToFriendlyString()}の列",
                         SudokuBoardCellGeometry.GetCellIndexes(column).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
-
-            return null;
 
             static NakedTripleOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
             {

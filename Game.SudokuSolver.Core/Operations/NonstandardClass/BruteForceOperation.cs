@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
-namespace Game.SudokuSolver.Operations.InsaneClass
+namespace Game.SudokuSolver.Operations.NonstandardClass
 {
     /// <summary>
     /// 総当たりパターンのオペレーションのクラスです。
@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             : base(
                   GameBoardStatus.Solving,
                   "総当たり",
-                  SudokuBoardDifficultyLevel.Insane,
+                  SudokuBoardDifficultyLevel.Nonstandard,
                   determinedCell,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
@@ -28,7 +28,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         {
         }
 
-        public static IEnumerable<BruteForceOperation> MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // ある C に対して、
@@ -55,9 +55,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                     .ToCells(cellNoteDigit)
                     .ToArray();
                 var determinedCellPosiionText = cellIndex.ToFriendlyString();
+                var undeterminedCellDigitTexts = string.Join(", ", ws.GetNoteBitSet(cellIndex).EnumerateAsCellDigits().Select(noteOnCell => $"'{noteOnCell.ToCellDigitChar()}'"));
                 var determinedCellDigitText = cellNoteDigit.ToCellDigitChar();
                 var description =
-                    $"{determinedCellPosiionText}のセルの数字の候補 '{determinedCellDigitText}' を仮に確定します。";
+                    $"適用できる定石がないため、{determinedCellPosiionText}のセルの数字の候補 {undeterminedCellDigitTexts} のうち、" +
+                    $"'{determinedCellDigitText}' を仮に確定します。";
 #if DEBUG
                 System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellNoteDigit));
 #endif

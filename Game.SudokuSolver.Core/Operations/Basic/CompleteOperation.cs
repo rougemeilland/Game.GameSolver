@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Game.GameSolver;
 
-namespace Game.SudokuSolver.Operations.BeginnerClass
+namespace Game.SudokuSolver.Operations.Basic
 {
     /// <summary>
     /// 数独の盤面が完了するパターン(成功)のオペレーションのクラスです。
@@ -13,7 +14,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             : base(
                   GameBoardStatus.Success,
                   "完了",
-                  SudokuBoardDifficultyLevel.Beginner,
+                  SudokuBoardDifficultyLevel.Basic,
                   null,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
@@ -23,7 +24,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
         {
         }
 
-        public static CompleteOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static SudokuBoardOperation? MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // すべてのセルにおいて、セルの数字が確定している。

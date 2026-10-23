@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -29,7 +30,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
         {
         }
 
-        public static FullHouseOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるハウス H において、あるセル C を除きすべてのセルが確定している場合
@@ -43,7 +44,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         SudokuBoardHouseType.Block,
                         SudokuBoardCellGeometry.GetBlockCellsBitSet(block));
                 if (operation is not null)
-                    return operation;
+                    yield return operation;
             }
 
             for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
@@ -54,7 +55,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         SudokuBoardHouseType.Column,
                         SudokuBoardCellGeometry.GetColumnCellsBitSet(column));
                 if (operation is not null)
-                    return operation;
+                    yield return operation;
             }
 
             for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
@@ -64,10 +65,8 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         ws, SudokuBoardHouseType.Row,
                         SudokuBoardCellGeometry.GetRowCellsBitSet(row));
                 if (operation is not null)
-                    return operation;
+                    yield return operation;
             }
-
-            return null;
 
             static FullHouseOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, SudokuBoardHouseType house, UInt128 houseMask)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -30,7 +31,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
         {
         }
 
-        public static PointingOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるブロック B とある行または列 CorR とある数字 D に対して、
@@ -57,7 +58,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 cellDigit,
                                 cellNoteBitSet);
                         if (operation is not null)
-                            return operation;
+                            yield return operation;
                     }
 
                     // 列ハウスの検索
@@ -73,12 +74,10 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 cellDigit,
                                 cellNoteBitSet);
                         if (operation is not null)
-                            return operation;
+                            yield return operation;
                     }
                 }
             }
-
-            return null;
 
             static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {

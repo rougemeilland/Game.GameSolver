@@ -8,16 +8,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
     /// <summary>
     /// 強制チェーンパターンのオペレーションのクラスです。
     /// </summary>
-    /// <remarks>
-    /// 強制チェーンが必要となる数独の問題の解答は必ずしも最短手順とはならないことに注意してください。
-    /// その理由は、強制チェーンは必要となるコンピュータリソースが多くまた実行中の選択肢も膨大であるため、全てを試行しようとすると膨大な時間がかかるからです。
-    /// そのため、本実装では、強制チェーンの選択肢を効果が高そうなものだけに絞っています。
-    /// </remarks>
     internal sealed class ForcingChainOperation
         : SudokuBoardOperation
     {
-        private const int _MAXIMUM_RESULT_COUNT = 5;
-
         private ForcingChainOperation(
             ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
             UInt128 positivelyRelatedCellIndexBitSet,
@@ -57,8 +50,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                 .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), removedCellNoteCount: (int)UInt128.PopCount(ws.GetNoteBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
                 .OrderBy(item => item.cellNoteCount)
                 .ThenByDescending(item => item.removedCellNoteCount)
-                .Take(_MAXIMUM_RESULT_COUNT)
-                .OrderBy(item => item.cellIndex)
+                .ThenBy(item => item.cellIndex)
                 .ThenBy(item => item.cellNoteDigit)
 #if DEBUG
                 .Select(item =>
@@ -106,6 +98,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                             $"{removedCellNotePosiionText}のセルの数字が '{removedCellNoteDigitText}' であることはあり得ません。\n" +
                             $"したがって、{removedCellNotePosiionText}のセルの数字の候補から '{removedCellNoteDigitText}' を削除します。";
                         yield return new ForcingChainOperation(removedCellNotes, cellIndex.ToCellIndexBitSet(), description);
+
+                        // コンピュータリソースとパフォーマンスの観点から、強制チェーンは最初のひとつの要素を返して打ち切る。
+                        yield break;
                     }
                 }
             }

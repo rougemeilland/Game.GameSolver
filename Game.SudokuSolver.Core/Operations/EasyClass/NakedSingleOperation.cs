@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -28,7 +29,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
         {
         }
 
-        public static NakedSingleOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // あるセル C とある数字 D に対して、
@@ -57,7 +58,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif
-                        return
+                        yield return
                             new NakedSingleOperation(
                                 new SudokuBoardCellPositionDigit(cellIndex, cellDigit),
                                 removedCellNotes,
@@ -66,8 +67,6 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     }
                 }
             }
-
-            return null;
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

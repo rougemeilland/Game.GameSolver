@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.GameSolver;
+using Game.SudokuSolver.Operations.Basic;
 using Game.SudokuSolver.Operations.BeginnerClass;
 using Game.SudokuSolver.Operations.EasyClass;
 using Game.SudokuSolver.Operations.ExtremeClass;
 using Game.SudokuSolver.Operations.HardClass;
 using Game.SudokuSolver.Operations.InsaneClass;
 using Game.SudokuSolver.Operations.MediumClass;
+using Game.SudokuSolver.Operations.NonstandardClass;
 
 namespace Game.SudokuSolver
 {
@@ -191,92 +194,84 @@ namespace Game.SudokuSolver
         {
             var workspace = new SudokuBoardWorkspace(_cells);
 
+            var operation =
+                CompleteOperation.MatchPattern(workspace)
+                ?? NoNoteOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return [operation];
+
             #region BeginnerClass
 
-            var operation = (SudokuBoardOperation?)CompleteOperation.MatchPattern(workspace);
+            operation =
+                FullHouseOperation.MatchPattern(workspace)
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
             if (operation is not null)
-                return new[] { operation };
-
-            operation = NoNoteOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
-
-            operation = FullHouseOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
+                return [operation];
 
             #endregion
 
             #region EasyClass
 
-            operation = NakedSingleOperation.MatchPattern(workspace);
+            operation =
+                NakedSingleOperation.MatchPattern(workspace)
+                .Concat(HiddenSingleOperation.MatchPattern(workspace))
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
             if (operation is not null)
-                return new[] { operation };
-
-            operation = HiddenSingleOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
+                return [operation];
 
             #endregion
 
             #region MediumClass
 
-            operation = PointingOperation.MatchPattern(workspace);
+            operation =
+                PointingOperation.MatchPattern(workspace)
+                .Concat(BoxLineReductionOperation.MatchPattern(workspace))
+                .Concat(NakedPairOperation.MatchPattern(workspace))
+                .Concat(NakedTripleOperation.MatchPattern(workspace))
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
             if (operation is not null)
-                return new[] { operation };
-
-            operation = BoxLineReductionOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
-
-            operation = NakedPairOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
-
-            operation = NakedTripleOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
+                return [operation];
 
             #endregion
 
             #region HardClass
 
-            operation = NakedQuadOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
-
-            operation = HiddenPairOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
-
+            operation =
+                NakedQuadOperation.MatchPattern(workspace)
+                .Concat(HiddenPairOperation.MatchPattern(workspace))
 #if false // 未実装
-            operation = XWingOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
+                .Concat(XWingOperation.MatchPattern(workspace))
 #endif
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
+            if (operation is not null)
+                return [operation];
+
             #endregion
 
             #region ExtremeClass
 
-            operation = HiddenTripleOperation.MatchPattern(workspace);
+            operation =
+                HiddenTripleOperation.MatchPattern(workspace)
+                .Concat(HiddenQuadOperation.MatchPattern(workspace))
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
             if (operation is not null)
-                return new[] { operation };
-
-            operation = HiddenQuadOperation.MatchPattern(workspace);
-            if (operation is not null)
-                return new[] { operation };
+                return [operation];
 
             #endregion
 
             #region InsaneClass
 
-            // ForcingChain が一つでも要素を返していれば、BruteForce は呼び出さない
-
-            return
+            operation =
                 ForcingChainOperation.MatchPattern(workspace)
-                .IfNoneThenConcat(BruteForceOperation.MatchPattern(workspace));
+                .MaxBy(operation => operation.RemovedCellNotes.Length);
+            if (operation is not null)
+                return [operation];
 
             #endregion
+
+            return operation is not null
+                ? Enumerable.Empty<SudokuBoardOperation>().Append(operation)
+                : BruteForceOperation.MatchPattern(workspace);
         }
 
         /// <inheritdoc/>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -29,7 +30,7 @@ namespace Game.SudokuSolver.Operations.HardClass
         {
         }
 
-        public static XWingOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
             // TODO: X-ウィングの実装
 
@@ -48,7 +49,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{block.ToFriendlyString()}のブロック",
                         SudokuBoardCellGeometry.GetCellIndexes(block).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 行ハウスの検索
@@ -61,7 +62,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{row.ToFriendlyString()}の行",
                         SudokuBoardCellGeometry.GetCellIndexes(row).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
 
             // 列ハウスの検索
@@ -74,10 +75,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                         () => $"{column.ToFriendlyString()}の列",
                         SudokuBoardCellGeometry.GetCellIndexes(column).Span);
                 if (operation is not null)
-                    return null;
+                    yield return operation;
             }
-
-            return null;
 
             static XWingOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
             {

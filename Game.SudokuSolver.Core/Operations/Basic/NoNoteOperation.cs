@@ -2,7 +2,7 @@
 using System.Linq;
 using Game.GameSolver;
 
-namespace Game.SudokuSolver.Operations.BeginnerClass
+namespace Game.SudokuSolver.Operations.Basic
 {
     /// <summary>
     /// 数字の候補が存在しないセルが存在するパターン(失敗)のオペレーションのクラスです。
@@ -16,7 +16,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             : base(
                   GameBoardStatus.Failed,
                   "数字の候補が存在しない",
-                  SudokuBoardDifficultyLevel.Beginner,
+                  SudokuBoardDifficultyLevel.Basic,
                   null,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
@@ -26,7 +26,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
         {
         }
 
-        public static NoNoteOperation? MatchPattern(SudokuBoardWorkspace ws)
+        public static SudokuBoardOperation? MatchPattern(SudokuBoardWorkspace ws)
         {
             // 【論拠】
             // ある任意のセルにおいて、数字の候補が存在しない場合

@@ -502,6 +502,7 @@ namespace Game.SudokuSolver
                     SudokuBoardDifficultyLevel.Hard => "★★★★ 上級",
                     SudokuBoardDifficultyLevel.Extreme => "★★★★★ 超上級",
                     SudokuBoardDifficultyLevel.Insane => "★★★★★★ 究極",
+                    SudokuBoardDifficultyLevel.Nonstandard => "(規格外)",
                     _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
                 };
 
@@ -515,32 +516,28 @@ namespace Game.SudokuSolver
         /// <typeparam name="ELEMENT_T">
         /// コレクションの要素の型です。
         /// </typeparam>
-        /// <param name="source">
+        /// <param name="first">
         /// 最初のコレクションの列挙子です。
         /// </param>
-        /// <param name="otherSource">
+        /// <param name="second">
         /// 二番目のコレクションの列挙子です。
         /// </param>
         /// <returns></returns>
-        internal static IEnumerable<ELEMENT_T> IfNoneThenConcat<ELEMENT_T>(this IEnumerable<ELEMENT_T> source, IEnumerable<ELEMENT_T> otherSource)
+        internal static IEnumerable<ELEMENT_T> ConcatIfNone<ELEMENT_T>(this IEnumerable<ELEMENT_T> first, IEnumerable<ELEMENT_T> second)
         {
-            var doBreak = false;
-            using (var enumerator = source.GetEnumerator())
+            using (var enumerator1 = first.GetEnumerator())
             {
-                while (enumerator.MoveNext())
+                if (enumerator1.MoveNext())
                 {
-                    yield return enumerator.Current;
-                    doBreak = true;
+                    yield return enumerator1.Current;
+                    while (enumerator1.MoveNext())
+                        yield return enumerator1.Current;
                 }
-            }
-
-            if (doBreak)
-                yield break;
-
-            using (var enumerator = otherSource.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                    yield return enumerator.Current;
+                else
+                {
+                    foreach (var item in second)
+                        yield return item;
+                }
             }
         }
 
