@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
@@ -24,8 +23,10 @@ namespace Game.SudokuSolver.Operations.MediumClass
                   SudokuBoardDifficultyLevel.Medium,
                   null,
                   highlightedCellNotes,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
                   positivelyRelatedCellIndexBitSet,
+                  UInt128.Zero,
                   negativelyRelatedCellIndexBitSet,
                   description)
         {

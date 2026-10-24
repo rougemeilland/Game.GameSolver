@@ -42,28 +42,33 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private static void InitializeUserControlByModel(SudokuBoardCellNoteControl c, SudokuBoardCellNoteModel model)
         {
-            switch (model.ShowMode)
+            switch (model.ForegroundEffect)
             {
-                case SudokuBoardCellNoteShowMode.Hidden:
+                case SudokuBoardCellNoteEffect.Hidden:
                     c.CellNoteContainer.Visibility = Visibility.Hidden;
                     break;
-                case SudokuBoardCellNoteShowMode.Normal:
+                case SudokuBoardCellNoteEffect.Normal:
                     c.CellNoteContainer.Visibility = Visibility.Visible;
                     c.CellNoteDigitTextBlock.Foreground = Brushes.Black;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Transparent;
                     break;
-                case SudokuBoardCellNoteShowMode.PositivelyHighlighted:
+                case SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted:
                     c.CellNoteContainer.Visibility = Visibility.Visible;
                     c.CellNoteDigitTextBlock.Foreground = Brushes.White;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Green;
                     break;
-                case SudokuBoardCellNoteShowMode.NegativelyHighlighted:
+                case SudokuBoardCellNoteEffect.SecondaryPositivelyHilighted:
+                    c.CellNoteContainer.Visibility = Visibility.Visible;
+                    c.CellNoteDigitTextBlock.Foreground = Brushes.Black;
+                    c.CellNoteBackgroundRectangle.Fill = Brushes.Pink;
+                    break;
+                case SudokuBoardCellNoteEffect.NegativelyHighlighted:
                     c.CellNoteContainer.Visibility = Visibility.Visible;
                     c.CellNoteDigitTextBlock.Foreground = Brushes.White;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Red;
                     break;
                 default:
-                    break;
+                    throw new ApplicationException();
             }
         }
 
@@ -79,7 +84,7 @@ namespace Game.SudokuSolver.GUI.Controls
             {
                 switch (e.PropertyName)
                 {
-                    case nameof(model.ShowMode):
+                    case nameof(model.ForegroundEffect):
                         InitializeUserControlByModel(c, model);
                         break;
                     default:

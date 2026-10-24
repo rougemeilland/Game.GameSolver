@@ -37,21 +37,30 @@ namespace Game.SudokuSolver
             public int Length => _notes.Length;
         }
 
-        private SudokuBoardNotDeterminedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
-            : base(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground)
+        internal SudokuBoardNotDeterminedCell(
+            SudokuBoardCellBackgroundEffect backgroundEffect,
+            SudokuBoardCellNoteBitSet enabledCellNoteBitSet,
+            SudokuBoardCellNoteBitSet primaryPositivelyHilightedCellNoteBitSet,
+            SudokuBoardCellNoteBitSet secondaryPositivelyHilightedCellNoteBitSet,
+            SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
+            : base(backgroundEffect)
         {
             var notes = new SudokuBoardCellNote[SudokuBoardCellDigit.MaxValue - SudokuBoardCellDigit.MinValue + 1];
             for (var cellNoteDigit = SudokuBoardCellDigit.MinValue; cellNoteDigit <= SudokuBoardCellDigit.MaxValue; ++cellNoteDigit)
             {
                 var cellNoteBitSet = cellNoteDigit.ToCellNoteBitSet();
-                notes[cellNoteDigit -
-                    SudokuBoardCellDigit.MinValue] = (positivelyHilightedCellNoteBitSet & cellNoteBitSet) != 0
-                    ? SudokuBoardCellNote.CreatePositivelyHighlightedNote()
+                var effect =
+                    (primaryPositivelyHilightedCellNoteBitSet & cellNoteBitSet) != SudokuBoardCellNoteBitSet.None
+                    ? SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted
+                    : (secondaryPositivelyHilightedCellNoteBitSet & cellNoteBitSet) != SudokuBoardCellNoteBitSet.None
+                    ? SudokuBoardCellNoteEffect.SecondaryPositivelyHilighted
                     : (negativelyHilightedCellNoteBitSet & cellNoteBitSet) != 0
-                    ? SudokuBoardCellNote.CreateNegativelyHighlightedNote()
+                    ? SudokuBoardCellNoteEffect.NegativelyHighlighted
                     : (enabledCellNoteBitSet & cellNoteBitSet) != 0
-                    ? SudokuBoardCellNote.CreateVisibleNote()
-                    : SudokuBoardCellNote.CreateHiddenNote();
+                    ? SudokuBoardCellNoteEffect.Normal
+                    : SudokuBoardCellNoteEffect.Hidden;
+
+                notes[cellNoteDigit - SudokuBoardCellDigit.MinValue] = new SudokuBoardCellNote(effect);
             }
 
             Notes = new CellNoteCollection(notes);
@@ -64,8 +73,5 @@ namespace Game.SudokuSolver
         /// セルの数字の候補のコレクションにアクセスするための <see cref="IReadOnlySudokuBoardCellNoteCollection"/> インターフェースです。
         /// </value>
         public IReadOnlySudokuBoardCellNoteCollection Notes { get; }
-
-        internal static SudokuBoardNotDeterminedCell Create(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellNoteBitSet enabledCellNoteBitSet, SudokuBoardCellNoteBitSet positivelyHilightedCellNoteBitSet, SudokuBoardCellNoteBitSet negativelyHilightedCellNoteBitSet)
-            => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, enabledCellNoteBitSet, positivelyHilightedCellNoteBitSet, negativelyHilightedCellNoteBitSet);
     }
 }

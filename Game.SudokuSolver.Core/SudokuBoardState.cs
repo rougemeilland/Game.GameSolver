@@ -112,19 +112,27 @@ namespace Game.SudokuSolver
         public IReadOnlySudokuBoardCellCollection GetCells()
         {
             var cellsBuffer = new SudokuBoardCell[81];
-            var positivelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
+            var strongPositivelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
+            var weakPositivelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
             var negativelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
             if (LatestOperation is not null)
             {
-                positivelyHighlightedBackgroundCellsBitSet = LatestOperation.PositivelyRelatedCellIndexBitSet;
+                strongPositivelyHighlightedBackgroundCellsBitSet = LatestOperation.StrongPositivelyRelatedCellIndexBitSet;
+                weakPositivelyHighlightedBackgroundCellsBitSet = LatestOperation.WeakPositivelyRelatedCellIndexBitSet;
                 negativelyHighlightedBackgroundCellsBitSet = LatestOperation.NegativelyRelatedCellIndexBitSet;
             }
 
             for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
             {
                 var cellIndexBitSet = cellIndex.ToCellIndexBitSet();
-                var isPositivelyHighlightedBackground = (positivelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0;
-                var isNegativelyHighlightedBackground = (negativelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0;
+                var backgroundEffect =
+                    (strongPositivelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
+                    ? SudokuBoardCellBackgroundEffect.StrongPotisivelyHighlighted
+                    : (weakPositivelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
+                    ? SudokuBoardCellBackgroundEffect.WeakPositivelyHighlighted
+                    : (negativelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
+                    ? SudokuBoardCellBackgroundEffect.NegativelyHighlighted
+                    : SudokuBoardCellBackgroundEffect.Normal;
                 if (_cells.IsDetermined(cellIndex))
                 {
                     var latestDeterminedCell = LatestOperation?.DeterminedCell;
@@ -132,34 +140,36 @@ namespace Game.SudokuSolver
                         latestDeterminedCell is not null
                         ? (SudokuBoardCellIndex?)latestDeterminedCell.Value.CellIndex
                         : null;
-                    if (latestDeterminedCellIndex is not null && latestDeterminedCellIndex.Value == cellIndex)
-                    {
-                        cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
-                            SudokuBoardDeterminedCell.CreatePositivelyHighlightedCell(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, _cells.GetDeterminedCellDigit(cellIndex));
-                    }
-                    else if ((_isInitialDigitsBitSet & cellIndexBitSet) != 0)
-                    {
-                        cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
-                            SudokuBoardDeterminedCell.CreateInitialCell(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, _cells.GetDeterminedCellDigit(cellIndex));
-                    }
-                    else
-                    {
-                        cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
-                            SudokuBoardDeterminedCell.CreateUpdatedCell(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, _cells.GetDeterminedCellDigit(cellIndex));
-                    }
+                    var foregroundEffect =
+                        latestDeterminedCellIndex is not null && latestDeterminedCellIndex.Value == cellIndex
+                        ? SudokuBoardCellForegroundEffect.PositivelyHighlighted
+                        : (_isInitialDigitsBitSet & cellIndexBitSet) != 0
+                        ? SudokuBoardCellForegroundEffect.Normal
+                        : SudokuBoardCellForegroundEffect.Updated;
+
+                    cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
+                        new SudokuBoardDeterminedCell(backgroundEffect, _cells.GetDeterminedCellDigit(cellIndex), foregroundEffect);
                 }
                 else
                 {
                     var enabledCellNoteBitSet = _cells.GetNoteBitSet(cellIndex);
-                    var positivelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
+                    var primaryPositivelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
+                    var secondaryPositivelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
                     var negativelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
                     if (LatestOperation is not null)
                     {
-                        for (var index = 0; index < LatestOperation.HighlightedCellNotes.Length; ++index)
+                        for (var index = 0; index < LatestOperation.PrimaryHighlightedCellNotes.Length; ++index)
                         {
-                            var cellNote = LatestOperation.HighlightedCellNotes.Span[index];
+                            var cellNote = LatestOperation.PrimaryHighlightedCellNotes.Span[index];
                             if (cellNote.CellIndex == cellIndex)
-                                positivelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
+                                primaryPositivelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
+                        }
+
+                        for (var index = 0; index < LatestOperation.SecondaryHighlightedCellNotes.Length; ++index)
+                        {
+                            var cellNote = LatestOperation.SecondaryHighlightedCellNotes.Span[index];
+                            if (cellNote.CellIndex == cellIndex)
+                                secondaryPositivelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
                         }
 
                         for (var index = 0; index < LatestOperation.RemovedCellNotes.Length; ++index)
@@ -171,7 +181,12 @@ namespace Game.SudokuSolver
                     }
 
                     cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
-                        SudokuBoardNotDeterminedCell.Create(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, enabledCellNoteBitSet, positivelyHighlightedCellNoteBitSet, negativelyHighlightedCellNoteBitSet);
+                        new SudokuBoardNotDeterminedCell(
+                            backgroundEffect,
+                            enabledCellNoteBitSet,
+                            primaryPositivelyHighlightedCellNoteBitSet,
+                            secondaryPositivelyHighlightedCellNoteBitSet,
+                            negativelyHighlightedCellNoteBitSet);
                 }
             }
 

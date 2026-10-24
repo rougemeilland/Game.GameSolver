@@ -21,8 +21,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                   SudokuBoardDifficultyLevel.Insane,
                   null,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
                   positivelyRelatedCellIndexBitSet,
+                  UInt128.Zero,
                   UInt128.Zero,
                   description)
         {

@@ -21,7 +21,9 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                   SudokuBoardDifficultyLevel.Nonstandard,
                   determinedCell,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
+                  UInt128.Zero,
                   UInt128.Zero,
                   UInt128.Zero,
                   description)

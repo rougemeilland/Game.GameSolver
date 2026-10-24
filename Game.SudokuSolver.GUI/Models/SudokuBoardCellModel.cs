@@ -1,5 +1,4 @@
 ﻿using System;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.GUI.Models
 {
@@ -46,14 +45,13 @@ namespace Game.SudokuSolver.GUI.Models
 
         private readonly CellNoteCollection _notes;
         private string _determinedDigit;
-        private bool _isPositivelyHighlightedBackground;
-        private bool _isNegativelyHighlightedBackground;
-        private SudokuBoardCellShowMode _showMode;
+        private SudokuBoardCellBackgroundEffect _backgroundEffect;
+        private SudokuBoardCellForegroundEffect _foregroundEffect;
 
         public SudokuBoardCellModel()
         {
             _determinedDigit = "";
-            ShowMode = SudokuBoardCellShowMode.NotDetermined;
+            ForegroundEffect = SudokuBoardCellForegroundEffect.NotDetermined;
             _notes =
                 new CellNoteCollection(
                 [
@@ -71,7 +69,7 @@ namespace Game.SudokuSolver.GUI.Models
 
         public string DeterminedDigit
         {
-            get => ShowMode == SudokuBoardCellShowMode.NotDetermined ? "" : _determinedDigit;
+            get => ForegroundEffect == SudokuBoardCellForegroundEffect.NotDetermined ? "" : _determinedDigit;
             set
             {
                 if (value is null || value.Length != 1 || value[0] is < '1' or > '9')
@@ -90,39 +88,27 @@ namespace Game.SudokuSolver.GUI.Models
 
         public IReadOnlyCellNotesIndexer Notes => _notes;
 
-        public bool IsPositivelyHighlightedBackground
+        public SudokuBoardCellBackgroundEffect BackgroundEffect
         {
-            get => _isPositivelyHighlightedBackground;
+            get => _backgroundEffect;
             set
             {
-                if (_isPositivelyHighlightedBackground == value)
+                if (_backgroundEffect == value)
                     return;
-                _isPositivelyHighlightedBackground = value;
-                RaisePropertyChangedEvent(nameof(IsPositivelyHighlightedBackground));
+                _backgroundEffect = value;
+                RaisePropertyChangedEvent(nameof(BackgroundEffect));
             }
         }
 
-        public bool IsNegativelyHighlightedBackground
+        public SudokuBoardCellForegroundEffect ForegroundEffect
         {
-            get => _isNegativelyHighlightedBackground;
+            get => _foregroundEffect;
             set
             {
-                if (value == _isNegativelyHighlightedBackground)
+                if (value == _foregroundEffect)
                     return;
-                _isNegativelyHighlightedBackground = value;
-                RaisePropertyChangedEvent(nameof(IsNegativelyHighlightedBackground));
-            }
-        }
-
-        public SudokuBoardCellShowMode ShowMode
-        {
-            get => _showMode;
-            set
-            {
-                if (value == _showMode)
-                    return;
-                _showMode = value;
-                RaisePropertyChangedEvent(nameof(ShowMode));
+                _foregroundEffect = value;
+                RaisePropertyChangedEvent(nameof(ForegroundEffect));
             }
         }
     }

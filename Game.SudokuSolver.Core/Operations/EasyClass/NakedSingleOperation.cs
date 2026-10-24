@@ -22,7 +22,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
+                  UInt128.Zero,
                   UInt128.Zero,
                   negativelyRelatedCellIndexBitSet,
                   description)

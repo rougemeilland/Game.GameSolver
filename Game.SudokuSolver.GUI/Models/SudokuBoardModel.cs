@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.AccessControl;
 using System.Windows;
 using Game.GameSolver;
 
@@ -100,39 +99,29 @@ namespace Game.SudokuSolver.GUI.Models
                     return
                         new SudokuBoardCellModel
                         {
-                            IsPositivelyHighlightedBackground = determinedCell.IsPositivelyHighlightedBackground,
-                            IsNegativelyHighlightedBackground = determinedCell.IsNegativelyHighlightedBackground,
+                            BackgroundEffect = determinedCell.BackgroundEffect,
                             DeterminedDigit = determinedCell.DeterminedDigit.ToCellDigitChar().ToString(),
-                            ShowMode =
-                                determinedCell.IsPositivelyHighlighted
-                                ? SudokuBoardCellShowMode.PositivelyHighlighted
-                                : determinedCell.IsInitialSet
-                                ? SudokuBoardCellShowMode.Normal
-                                : SudokuBoardCellShowMode.Updated
+                            ForegroundEffect =
+                                determinedCell.ForegroundEffect switch
+                                {
+                                    SudokuBoardCellForegroundEffect.Normal => SudokuBoardCellForegroundEffect.Normal,
+                                    SudokuBoardCellForegroundEffect.PositivelyHighlighted => SudokuBoardCellForegroundEffect.PositivelyHighlighted,
+                                    SudokuBoardCellForegroundEffect.NegativelyHighlighted => SudokuBoardCellForegroundEffect.NegativelyHighlighted,
+                                    SudokuBoardCellForegroundEffect.Updated => SudokuBoardCellForegroundEffect.Updated,
+                                    _ => throw new ApplicationException(),
+                                },
                         };
                 }
                 else if (sourceCell is SudokuBoardNotDeterminedCell notDeterminedCell)
                 {
                     var model = new SudokuBoardCellModel
                     {
-                        IsPositivelyHighlightedBackground = notDeterminedCell.IsPositivelyHighlightedBackground,
-                        IsNegativelyHighlightedBackground = notDeterminedCell.IsNegativelyHighlightedBackground,
+                        BackgroundEffect = notDeterminedCell.BackgroundEffect,
                         DeterminedDigit = "",
-                        ShowMode = SudokuBoardCellShowMode.NotDetermined
+                        ForegroundEffect = SudokuBoardCellForegroundEffect.NotDetermined
                     };
                     for (var cellNoteDidit = SudokuBoardCellDigit.MinValue; cellNoteDidit <= SudokuBoardCellDigit.MaxValue; ++cellNoteDidit)
-                    {
-                        var sourceCellNote = notDeterminedCell.Notes[cellNoteDidit];
-                        model.Notes[cellNoteDidit].ShowMode =
-                            sourceCellNote.IsPositivelyHighlighted
-                            ? SudokuBoardCellNoteShowMode.PositivelyHighlighted
-                            : sourceCellNote.IsNegativelyHighlighted
-                            ? SudokuBoardCellNoteShowMode.NegativelyHighlighted
-                            : sourceCellNote.IsEnabled
-                            ? SudokuBoardCellNoteShowMode.Normal
-                            : SudokuBoardCellNoteShowMode.Hidden;
-                    }
-
+                        model.Notes[cellNoteDidit].ForegroundEffect = notDeterminedCell.Notes[cellNoteDidit].Effect;
                     return model;
                 }
                 else

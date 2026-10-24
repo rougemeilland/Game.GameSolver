@@ -3,24 +3,24 @@
     internal sealed class SudokuBoardCellNoteModel
         : Model
     {
-        private SudokuBoardCellNoteShowMode _showMode;
+        private SudokuBoardCellNoteEffect _foregroundEffect;
         private string _cellNoteDidit;
 
         public SudokuBoardCellNoteModel()
         {
-            ShowMode = SudokuBoardCellNoteShowMode.Hidden;
+            ForegroundEffect = SudokuBoardCellNoteEffect.Hidden;
             _cellNoteDidit = string.Empty;
         }
 
-        public SudokuBoardCellNoteShowMode ShowMode
+        public SudokuBoardCellNoteEffect ForegroundEffect
         {
-            get => _showMode;
+            get => _foregroundEffect;
             set
             {
-                if (value == _showMode)
+                if (value == _foregroundEffect)
                     return;
-                _showMode = value;
-                RaisePropertyChangedEvent(nameof(ShowMode));
+                _foregroundEffect = value;
+                RaisePropertyChangedEvent(nameof(ForegroundEffect));
             }
         }
 

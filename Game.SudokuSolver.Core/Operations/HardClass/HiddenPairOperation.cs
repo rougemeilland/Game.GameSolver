@@ -22,8 +22,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                   SudokuBoardDifficultyLevel.Hard,
                   null,
                   highlightedCellNotes,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
                   positivelyRelatedCellIndexBitSet,
+                  UInt128.Zero,
                   UInt128.Zero,
                   description)
         {

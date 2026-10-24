@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
-using System;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Game.SudokuSolver.GUI.Models;
@@ -42,45 +42,49 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private static void InitializeUserControlByModel(SudokuBoardCellControl c, SudokuBoardCellModel model)
         {
-            if (model.IsPositivelyHighlightedBackground)
-                c.CellContainer.Background = Brushes.Cyan;
-            else if (model.IsNegativelyHighlightedBackground)
-                c.CellContainer.Background = Brushes.LightPink;
-            else
-                c.CellContainer.Background = Brushes.Transparent;
-            switch (model.ShowMode)
+            c.CellContainer.Background =
+                model.BackgroundEffect switch
                 {
-                    case SudokuBoardCellShowMode.NotDetermined:
-                        c.CellNotesContainer.Visibility = Visibility.Visible;
-                        c.CellDeterminedDigitContainer.Visibility = Visibility.Hidden;
-                        break;
-                    case SudokuBoardCellShowMode.Normal:
-                        c.CellNotesContainer.Visibility = Visibility.Hidden;
-                        c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
-                        c.CellDeterminedDigitTextBlock.Foreground = Brushes.Black;
-                        c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Transparent;
-                        break;
-                    case SudokuBoardCellShowMode.Updated:
-                        c.CellNotesContainer.Visibility = Visibility.Hidden;
-                        c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
-                        c.CellDeterminedDigitTextBlock.Foreground = Brushes.Blue;
-                        c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Transparent;
-                        break;
-                    case SudokuBoardCellShowMode.PositivelyHighlighted:
-                        c.CellNotesContainer.Visibility = Visibility.Hidden;
-                        c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
-                        c.CellDeterminedDigitTextBlock.Foreground = Brushes.White;
-                        c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Green;
-                        break;
-                    case SudokuBoardCellShowMode.NegativelyHighlighted:
-                        c.CellNotesContainer.Visibility = Visibility.Hidden;
-                        c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
-                        c.CellDeterminedDigitTextBlock.Foreground = Brushes.White;
-                        c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Red;
-                        break;
-                    default:
-                        break;
-                }
+                    SudokuBoardCellBackgroundEffect.Normal => Brushes.Transparent,
+                    SudokuBoardCellBackgroundEffect.StrongPotisivelyHighlighted => Brushes.LightGreen,
+                    SudokuBoardCellBackgroundEffect.WeakPositivelyHighlighted => Brushes.LightCyan,
+                    SudokuBoardCellBackgroundEffect.NegativelyHighlighted => Brushes.LightPink,
+                    _ => throw new ApplicationException(),
+                };
+
+            switch (model.ForegroundEffect)
+            {
+                case SudokuBoardCellForegroundEffect.NotDetermined:
+                    c.CellNotesContainer.Visibility = Visibility.Visible;
+                    c.CellDeterminedDigitContainer.Visibility = Visibility.Hidden;
+                    break;
+                case SudokuBoardCellForegroundEffect.Normal:
+                    c.CellNotesContainer.Visibility = Visibility.Hidden;
+                    c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
+                    c.CellDeterminedDigitTextBlock.Foreground = Brushes.Black;
+                    c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Transparent;
+                    break;
+                case SudokuBoardCellForegroundEffect.Updated:
+                    c.CellNotesContainer.Visibility = Visibility.Hidden;
+                    c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
+                    c.CellDeterminedDigitTextBlock.Foreground = Brushes.Blue;
+                    c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Transparent;
+                    break;
+                case SudokuBoardCellForegroundEffect.PositivelyHighlighted:
+                    c.CellNotesContainer.Visibility = Visibility.Hidden;
+                    c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
+                    c.CellDeterminedDigitTextBlock.Foreground = Brushes.White;
+                    c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Green;
+                    break;
+                case SudokuBoardCellForegroundEffect.NegativelyHighlighted:
+                    c.CellNotesContainer.Visibility = Visibility.Hidden;
+                    c.CellDeterminedDigitContainer.Visibility = Visibility.Visible;
+                    c.CellDeterminedDigitTextBlock.Foreground = Brushes.White;
+                    c.CellDeterminedDigitBackgroundRectangle.Fill = Brushes.Red;
+                    break;
+                default:
+                    throw new ApplicationException();
+            }
         }
 
         private static void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -95,7 +99,7 @@ namespace Game.SudokuSolver.GUI.Controls
             {
                 switch (e.PropertyName)
                 {
-                    case nameof(model.ShowMode):
+                    case nameof(model.ForegroundEffect):
                         InitializeUserControl(c, model);
                         break;
                     default:

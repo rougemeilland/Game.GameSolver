@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Game.SudokuSolver
+﻿namespace Game.SudokuSolver
 {
     /// <summary>
     /// 数独の盤面の数字が確定されたセルのクラスです。
@@ -8,22 +6,11 @@ namespace Game.SudokuSolver
     public class SudokuBoardDeterminedCell
         : SudokuBoardCell
     {
-        [Flags]
-        private enum CellStatus
-            : byte
-        {
-            None = 0,
-            InitialSet = 1 << 0,
-            PositiveHighlight = 1 << 1,
-        }
-
-        private readonly CellStatus _status;
-
-        private SudokuBoardDeterminedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit determinedDigit, CellStatus status)
-            : base(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground)
+        internal SudokuBoardDeterminedCell(SudokuBoardCellBackgroundEffect backgroundEffect, SudokuBoardCellDigit determinedDigit, SudokuBoardCellForegroundEffect foregroundEffect)
+            : base(backgroundEffect)
         {
             DeterminedDigit = determinedDigit;
-            _status = status;
+            ForegroundEffect = foregroundEffect;
         }
 
         /// <summary>
@@ -41,19 +28,6 @@ namespace Game.SudokuSolver
         /// 最初の盤面から確定していたかどうかを示す <see cref="bool"/> 値です。
         /// 最初の盤面から確定していたならば <see langword="true"/>、そうではないならば <see langword="false"/> です。
         /// </value>
-        public bool IsInitialSet => (_status & CellStatus.InitialSet) != CellStatus.None;
-
-        /// <summary>
-        /// 強調表示されるべきかどうかを取得します。
-        /// </summary>
-        /// <value>
-        /// 強調表示されるべきかどうかを示す  <see cref="bool"/> 値です。
-        /// 強調表示されるべきであれば <see langword="true"/>、そうではないならば <see langword="false"/> です。
-        /// </value>
-        public bool IsPositivelyHighlighted => (_status & CellStatus.PositiveHighlight) != CellStatus.None;
-
-        internal static SudokuBoardDeterminedCell CreateInitialCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.InitialSet);
-        internal static SudokuBoardDeterminedCell CreateUpdatedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.None);
-        internal static SudokuBoardDeterminedCell CreatePositivelyHighlightedCell(bool isPositivelyHighlightedBackground, bool isNegativelyHighlightedBackground, SudokuBoardCellDigit cellDigit) => new(isPositivelyHighlightedBackground, isNegativelyHighlightedBackground, cellDigit, CellStatus.PositiveHighlight);
+        public SudokuBoardCellForegroundEffect ForegroundEffect { get; }
     }
 }

@@ -23,8 +23,10 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                   SudokuBoardDifficultyLevel.Beginner,
                   determinedCell,
                   ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
+                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
                   removedCellNotes,
                   positivelyRelatedCellIndexBitSet,
+                  UInt128.Zero,
                   negativelyRelatedCellIndexBitSet,
                   description)
         {

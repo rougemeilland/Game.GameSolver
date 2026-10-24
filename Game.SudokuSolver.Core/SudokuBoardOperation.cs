@@ -24,14 +24,20 @@ namespace Game.SudokuSolver
         /// <param name="determinedCell">
         /// 定石を適用した結果数字が確定したセルが存在する場合はそのセルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値、そうではない場合は <see langword="null"/> です。
         /// </param>
-        /// <param name="highlightedCellNotes">
+        /// <param name="primaryHighlightedCellNotes">
         /// 定石のキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
+        /// </param>
+        /// <param name="secondaryHighlightedCellNotes">
+        /// 定石の補助的なキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
         /// </param>
         /// <param name="removedCellNotes">
         /// 定石を適用した結果により否定される数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
         /// </param>
-        /// <param name="positivelyRelatedCellIndexBitSet">
-        /// 定石の適用において肯定的な意味を持つセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// <param name="strongPpositivelyRelatedCellIndexBitSet">
+        /// 定石の適用において肯定的な意味を持つ (特に強リンクの) セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="weakPpositivelyRelatedCellIndexBitSet">
+        /// 定石の適用において肯定的な意味を持つ (特に弱リンクの) セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="negativelyRelatedCellIndexBitSet">
         /// 定石の適用において否定的な意味を持つセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
@@ -44,9 +50,11 @@ namespace Game.SudokuSolver
             string title,
             SudokuBoardDifficultyLevel difficulty,
             SudokuBoardCellPositionDigit? determinedCell,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> primaryHighlightedCellNotes,
+            ReadOnlyMemory<SudokuBoardCellPositionDigit> secondaryHighlightedCellNotes,
             ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
+            UInt128 strongPpositivelyRelatedCellIndexBitSet,
+            UInt128 weakPpositivelyRelatedCellIndexBitSet,
             UInt128 negativelyRelatedCellIndexBitSet,
             string description)
             : base(status)
@@ -54,10 +62,21 @@ namespace Game.SudokuSolver
 #if DEBUG
             {
 
-                // HighlightedCellNotes と RemovedCellNotes に同じ要素が含まれていてはならない
-                for (var index1 = 0; index1 < highlightedCellNotes.Length; ++index1)
+                // primaryHighlightedCellNotes あるいは secondaryHighlightedCellNotes と removedCellNotes に同じ要素が含まれていてはならない
+                for (var index1 = 0; index1 < primaryHighlightedCellNotes.Length; ++index1)
                 {
-                    var highlitedCellNote = highlightedCellNotes.Span[index1];
+                    var highlitedCellNote = primaryHighlightedCellNotes.Span[index1];
+                    for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
+                    {
+                        var removedCellNote = removedCellNotes.Span[index2];
+                        if (highlitedCellNote == removedCellNote)
+                            throw new ApplicationException();
+                    }
+                }
+
+                for (var index1 = 0; index1 < secondaryHighlightedCellNotes.Length; ++index1)
+                {
+                    var highlitedCellNote = secondaryHighlightedCellNotes.Span[index1];
                     for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
                     {
                         var removedCellNote = removedCellNotes.Span[index2];
@@ -71,9 +90,11 @@ namespace Game.SudokuSolver
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
-            HighlightedCellNotes = highlightedCellNotes;
+            PrimaryHighlightedCellNotes = primaryHighlightedCellNotes;
+            SecondaryHighlightedCellNotes = secondaryHighlightedCellNotes;
             RemovedCellNotes = removedCellNotes;
-            PositivelyRelatedCellIndexBitSet = positivelyRelatedCellIndexBitSet;
+            StrongPositivelyRelatedCellIndexBitSet = strongPpositivelyRelatedCellIndexBitSet;
+            WeakPositivelyRelatedCellIndexBitSet = weakPpositivelyRelatedCellIndexBitSet;
             NegativelyRelatedCellIndexBitSet = negativelyRelatedCellIndexBitSet;
             Description = description;
         }
@@ -113,7 +134,20 @@ namespace Game.SudokuSolver
         /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
         /// </para>
         /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPositionDigit> HighlightedCellNotes { get; }
+        public ReadOnlyMemory<SudokuBoardCellPositionDigit> PrimaryHighlightedCellNotes { get; }
+
+        /// <summary>
+        /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
+        /// </summary>
+        /// <value>
+        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
+        /// </value>
+        /// <remarks>
+        /// <para>
+        /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
+        /// </para>
+        /// </remarks>
+        public ReadOnlyMemory<SudokuBoardCellPositionDigit> SecondaryHighlightedCellNotes { get; }
 
         /// <summary>
         /// オペレーションの説明に役立つ否定的なセルの数字の候補のコレクションを取得します。
@@ -129,17 +163,30 @@ namespace Game.SudokuSolver
         public ReadOnlyMemory<SudokuBoardCellPositionDigit> RemovedCellNotes { get; }
 
         /// <summary>
-        /// オペレーションの説明に肯定的に役立つ関連セルの位置のビット集合を取得します。
+        /// オペレーションの説明に強く肯定的に役立つ関連セルの位置のビット集合を取得します。
         /// </summary>
         /// <value>
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </value>
         /// <remarks>
         /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなるセルの位置などを意味します。
+        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなる (特に強リンクの) セルの位置などを意味します。
         /// </para>
         /// </remarks>
-        public UInt128 PositivelyRelatedCellIndexBitSet { get; }
+        public UInt128 StrongPositivelyRelatedCellIndexBitSet { get; }
+
+        /// <summary>
+        /// オペレーションの説明に弱く肯定的に役立つ関連セルの位置のビット集合を取得します。
+        /// </summary>
+        /// <value>
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </value>
+        /// <remarks>
+        /// <para>
+        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなる (特に弱リンクの) セルの位置などを意味します。
+        /// </para>
+        /// </remarks>
+        public UInt128 WeakPositivelyRelatedCellIndexBitSet { get; }
 
         /// <summary>
         /// オペレーションの説明に否定的に役立つ関連セルの位置のビット集合を取得します。
