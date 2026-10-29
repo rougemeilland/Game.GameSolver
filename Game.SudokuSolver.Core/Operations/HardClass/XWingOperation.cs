@@ -103,10 +103,10 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         cellNoteBitSet,
                                         rowHouse12,
                                         rowHouse34,
-                                        $"{row12.ToFriendlyString()}の行ハウス",
-                                        $"{column1.ToFriendlyString()}の列ハウス",
-                                        $"{column2.ToFriendlyString()}の列ハウス",
-                                        $"{row34.ToFriendlyString()}の行ハウス",
+                                        () => $"{row12.ToFriendlyString()}の行ハウス",
+                                        () => $"{column1.ToFriendlyString()}の列ハウス",
+                                        () => $"{column2.ToFriendlyString()}の列ハウス",
+                                        () => $"{row34.ToFriendlyString()}の行ハウス",
                                         cellIndex1,
                                         cellIndex2,
                                         cellIndex3,
@@ -169,10 +169,10 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         cellNoteBitSet,
                                         columnHouse12,
                                         columnHouse34,
-                                        $"{column12.ToFriendlyString()}の列ハウス",
-                                        $"{row1.ToFriendlyString()}の行ハウス",
-                                        $"{row2.ToFriendlyString()}の行ハウス",
-                                        $"{column34.ToFriendlyString()}の列ハウス",
+                                        () => $"{column12.ToFriendlyString()}の列ハウス",
+                                        () => $"{row1.ToFriendlyString()}の行ハウス",
+                                        () => $"{row2.ToFriendlyString()}の行ハウス",
+                                        () => $"{column34.ToFriendlyString()}の列ハウス",
                                         cellIndex1,
                                         cellIndex2,
                                         cellIndex3,
@@ -192,10 +192,10 @@ namespace Game.SudokuSolver.Operations.HardClass
                 UInt128 cellNoteBitSet,
                 UInt128 houseMask12,
                 UInt128 houseMask34,
-                string houseName12,
-                string houseName13,
-                string houseName24,
-                string houseName34,
+                Func<string> houseName12Getter,
+                Func<string> houseName13Getter,
+                Func<string> houseName24Getter,
+                Func<string> houseName34Getter,
                 SudokuBoardCellIndex cellIndex1,
                 SudokuBoardCellIndex cellIndex2,
                 SudokuBoardCellIndex cellIndex3,
@@ -219,7 +219,11 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 // X-Wing により排除されるセルの数字の候補が存在する。
 
-                var digitText = $"'{digit.ToCellDigitChar()}'";
+                var houseName12 = houseName12Getter();
+                var houseName13 = houseName13Getter();
+                var houseName24 = houseName24Getter();
+                var houseName34 = houseName34Getter();
+                var digitText = digit.ToCellDigitText();
                 var cell1PositionText = cellIndex1.ToFriendlyString();
                 var cell2PositionText = cellIndex2.ToFriendlyString();
                 var cell3PositionText = cellIndex3.ToFriendlyString();

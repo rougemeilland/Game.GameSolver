@@ -89,35 +89,36 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 if (UInt128.PopCount(houseNoteMask) < 3)
                     return null;
 
+                Span<SudokuBoardCellDigit> keyCellDigitBuffer = stackalloc SudokuBoardCellDigit[9];
                 for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 1; ++keyIndex1)
                 {
-                    var cellIndex1 = keyCellIIndexes[keyIndex1];
-                    var cellDigitBitSet1 = ws.GetNoteBitSet(cellIndex1);
+                    var keyCellIndex1 = keyCellIIndexes[keyIndex1];
+                    var keyCellDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length; ++keyIndex2)
                     {
-                        var cellIndex2 = keyCellIIndexes[keyIndex2];
-                        var cellDigitBitSet2 = ws.GetNoteBitSet(cellIndex2);
+                        var keyCellIndex2 = keyCellIIndexes[keyIndex2];
+                        var keyCellDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
 
-                        var cellDigitBitSet = cellDigitBitSet1 | cellDigitBitSet2;
-                        if (cellDigitBitSet.GetPopCount() == 2)
+                        var keyCellDigitBitSet = keyCellDigitBitSet1 | keyCellDigitBitSet2;
+                        if (keyCellDigitBitSet.GetPopCount() == 2)
                         {
-                            // この時点で、cellIndex1 と cellIndex2 が示す二つのセルの数字の候補の和集合の大きさが 2 である、つまり二国同盟が成立している。
+                            // この時点で、keyCellIndex1 と keyCellIndex2 が示す二つのセルの数字の候補の和集合の大きさが 2 である、つまり二国同盟が成立している。
                             // ただし、二国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                             // 二国同盟に含まれるセルの数字を求める
-                            var foundCellDigits = cellDigitBitSet.EnumerateAsCellDigits().ToArray();
+                            var foundCellDigits = keyCellDigitBitSet.EnumerateAsCellDigits(keyCellDigitBuffer);
 #if DEBUG
                             System.Diagnostics.Debug.Assert(foundCellDigits.Length == 2);
 #endif
                             // 二国同盟に含まれるセルの数字 A
-                            var cellDigitA = foundCellDigits[0];
+                            var keyCellDigitA = foundCellDigits[0];
                             // 二国同盟に含まれるセルの数字 B
-                            var cellDigitB = foundCellDigits[1];
+                            var keyCellDigitB = foundCellDigits[1];
 
                             // 二国同盟によって排除可能なセルの数字の候補を求める
-                            var keyCellBitSet = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet();
-                            var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(cellDigitA) & ~keyCellBitSet;
-                            var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(cellDigitB) & ~keyCellBitSet;
+                            var keyCellBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet();
+                            var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(keyCellDigitA) & ~keyCellBitSet;
+                            var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(keyCellDigitB) & ~keyCellBitSet;
 
                             var excludedCellNoteBitSet = excludedCellNoteBitSetA | excludedCellNoteBitSetB;
                             if (excludedCellNoteBitSet != 0)
@@ -125,32 +126,30 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 // この時点で、二国同盟によって排除可能なセルの候補が存在する
 
                                 // 二国同盟に含まれるセルの位置と数字を求める
-                                var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
-                                var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
+                                var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(keyCellDigitA) & keyCellBitSet;
+                                var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(keyCellDigitB) & keyCellBitSet;
                                 var highlightedCellNotes =
-                                    highlightedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
-                                    .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
-                                    .ToArray();
+                                    highlightedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
+                                    .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB));
 #if DEBUG
-                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Length >= 2);
+                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Count() >= 2);
 #endif
 
                                 // 二国同盟によって排除可能なセルの位置と数字の候補を求める
                                 var excludedCellNotes =
-                                    excludedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
-                                    .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
-                                    .ToArray();
+                                    excludedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
+                                    .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB));
 #if DEBUG
-                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Length > 0);
+                                System.Diagnostics.Debug.Assert(highlightedCellNotes.Any());
 #endif
 
                                 var houseName = houseNameGetter();
-                                var cellPositionText1 = cellIndex1.ToFriendlyString();
-                                var cellPositionText2 = cellIndex2.ToFriendlyString();
-                                var cellDigitCharA = cellDigitA.ToCellDigitChar();
-                                var cellDigitCharB = cellDigitB.ToCellDigitChar();
-                                var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}";
-                                var keyCellDigitCharsText = $"'{cellDigitCharA}', '{cellDigitCharB}'";
+                                var keyCellPositionsText = string.Join(", ", keyCellBitSet.EnumerateAsCellPositionTexts());
+                                var keyCellDigitCharsText =
+                                    string.Join(
+                                        ", ",
+                                        (keyCellDigitA.ToCellNoteBitSet() | keyCellDigitB.ToCellNoteBitSet())
+                                            .EnumerateAsCellDigitTexts());
                                 var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                 var description =
                                     $"{houseName}において、{keyCellPositionsText} の二つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +

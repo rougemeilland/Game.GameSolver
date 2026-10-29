@@ -65,7 +65,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             {
                 gameBoardSource[index] =
                     ws.IsDetermined(index + SudokuBoardCellIndex.FirstValue)
-                    ? ws.GetDeterminedCellDigit(index + SudokuBoardCellIndex.FirstValue).ToCellDigitChar().ToString()
+                    ? ws.GetDeterminedCellDigit(index + SudokuBoardCellIndex.FirstValue).ToCellDigitText(false)
                     : string.Empty;
             }
 
@@ -75,7 +75,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                 // あるセルとある数字の候補を仮に確定する
                 var copyOfGameBoardSource = new string[gameBoardSource.Length];
                 gameBoardSource.AsSpan().CopyTo(copyOfGameBoardSource);
-                copyOfGameBoardSource[cellIndex - SudokuBoardCellIndex.FirstValue] = cellNoteDigit.ToCellDigitChar().ToString();
+                copyOfGameBoardSource[cellIndex - SudokuBoardCellIndex.FirstValue] = cellNoteDigit.ToCellDigitText(false);
 
                 // 現在の盤面に仮に数字を確定させた盤面を元に新たに数独の盤面を作成して、論証を試みる
                 var gameBoard = new SudokuGameBoard(copyOfGameBoardSource);
@@ -88,12 +88,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                         // 論証に失敗した場合
                         var excludedCellNote = new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit);
                         var excludedCellNotePosiionText = cellIndex.ToFriendlyString();
-                        var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitChar();
+                        var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitText();
                         var description =
-                            $"{excludedCellNotePosiionText}のセルの数字が '{excludedCellNoteDigitText}' と仮定して解答を求めようとしたところ失敗しました。\n" +
-                            $"失敗の原因は{excludedCellNotePosiionText}のセルの数字が '{excludedCellNoteDigitText}' と仮定したことであるため、" +
-                            $"{excludedCellNotePosiionText}のセルの数字が '{excludedCellNoteDigitText}' であることはあり得ません。\n" +
-                            $"したがって、{excludedCellNotePosiionText}のセルの数字の候補から '{excludedCellNoteDigitText}' を排除します。";
+                            $"{excludedCellNotePosiionText}のセルの数字が {excludedCellNoteDigitText} と仮定して解答を求めようとしたところ失敗しました。\n" +
+                            $"失敗の原因は{excludedCellNotePosiionText}のセルの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
+                            $"{excludedCellNotePosiionText}のセルの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
+                            $"したがって、{excludedCellNotePosiionText}のセルの数字の候補から {excludedCellNoteDigitText} を排除します。";
                         yield return
                             new ForcingChainOperation(
                                 Enumerable.Empty<SudokuBoardCellPositionDigit>().Append(excludedCellNote),

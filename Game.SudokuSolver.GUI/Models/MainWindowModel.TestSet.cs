@@ -1,6 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
 using System.Linq;
-using System;
 
 namespace Game.SudokuSolver.GUI.Models
 {
@@ -39,6 +38,8 @@ namespace Game.SudokuSolver.GUI.Models
             "000000800" +
             "000000900";
 
+        #region Fullhouse
+
         private const string sourceArray_Fullhouse =
             "170906500" +
             "059170060" +
@@ -49,6 +50,10 @@ namespace Game.SudokuSolver.GUI.Models
             "080709640" +
             "907630851" +
             "060005097";
+
+        #endregion
+
+        #region Naked Single
 
         private const string sourceArray_NakedSingle1 =
             "080043170" +
@@ -93,6 +98,10 @@ namespace Game.SudokuSolver.GUI.Models
             "000000700" +
             "900064000" +
             "000000962";
+
+        #endregion
+
+        #region Hidden Single
 
         // '6' と '7' を交換済み
         private const string sourceArray_HiddenSingle1 =
@@ -152,6 +161,10 @@ namespace Game.SudokuSolver.GUI.Models
             "702060015" +
             "560070040";
 
+        #endregion
+
+        #region Pointing
+
         private const string sourceArray_Pointing1 =
             "005078069" +
             "843569712" +
@@ -174,6 +187,10 @@ namespace Game.SudokuSolver.GUI.Models
             "008724956" +
             "000135020";
 
+        #endregion
+
+        #region Box Line Reduction
+
         private const string sourceArray_BoxLineReduction1 =
             "305100709" +
             "980057100" +
@@ -195,6 +212,10 @@ namespace Game.SudokuSolver.GUI.Models
             "103002700" +
             "008370910" +
             "700018320";
+
+        #endregion
+
+        #region Naked Pair
 
         private const string sourceArray_NakedPair1 =
             "000008510" +
@@ -238,6 +259,10 @@ namespace Game.SudokuSolver.GUI.Models
             "480020970" +
             "279800060" +
             "005097004";
+
+        #endregion
+
+        #region Naked Triple
 
         private const string sourceArray_NakedTriple1 =
             "060000325" +
@@ -294,6 +319,10 @@ namespace Game.SudokuSolver.GUI.Models
             "000500720" +
             "005102000";
 
+        #endregion
+
+        #region Naked Quad
+
         private const string sourceArray_NakedQuad1 =
             "200608579" +
             "809507040" +
@@ -327,7 +356,11 @@ namespace Game.SudokuSolver.GUI.Models
             "900076000" +
             "000021060";
 
-        private const string sourceArray_SueDdeCoq1 =
+        #endregion
+
+        #region Sue de Coq
+
+        private const string sourceArray_SueDeCoq1 =
             "352748169" +
             "146529387" +
             "789316524" +
@@ -338,7 +371,7 @@ namespace Game.SudokuSolver.GUI.Models
             "230051700" +
             "900230000";
 
-        private const string sourceArray_SueDdeCoq2 =
+        private const string sourceArray_SueDeCoq2 =
             "008001703" +
             "741935682" +
             "230867000" +
@@ -349,7 +382,7 @@ namespace Game.SudokuSolver.GUI.Models
             "100700028" +
             "070000069";
 
-        private const string sourceArray_SueDdeCoq3 =
+        private const string sourceArray_SueDeCoq3 =
             "203075009" +
             "065030047" +
             "700006053" +
@@ -360,7 +393,7 @@ namespace Game.SudokuSolver.GUI.Models
             "006000700" +
             "030007006";
 
-        private const string sourceArray_SueDdeCoq4 =
+        private const string sourceArray_SueDeCoq4 =
             "136000289" +
             "872369514" +
             "459812736" +
@@ -371,7 +404,7 @@ namespace Game.SudokuSolver.GUI.Models
             "500206800" +
             "607008302";
 
-        private const string sourceArray_SueDdeCoq5 =
+        private const string sourceArray_SueDeCoq5 =
             "002630749" +
             "070240831" +
             "300710652" +
@@ -382,9 +415,34 @@ namespace Game.SudokuSolver.GUI.Models
             "007891263" +
             "000426517";
 
+        private const string sourceArray_SueDeCoq7 =
+            "238641759" +
+            "154729863" +
+            "679000412" +
+            "461000238" +
+            "825463971" +
+            "793182546" +
+            "506000107" +
+            "907006304" +
+            "302000605";
+
+        // 別の定石で 1行9列 の数字の候補 4 をあらかじめ消しておかないと Su de Coq が適用されない。
+        private const string sourceArray_SueDeCoq8 =
+            "001000000" +
+            "000140580" +
+            "050000070" +
+            "038700025" +
+            "006000897" +
+            "090000403" +
+            "004005000" +
+            "000920050" +
+            "060003000";
+
+        #endregion
+
         private static string[] CreateInitialBoard()
             => [..
-                sourceArray_SueDdeCoq5
+                sourceArray_Hard
                 .Select(c => c is < '0' or > '9' ? throw new ApplicationException() : c == '0' ? string.Empty : c.ToString())
             ];
     }

@@ -111,7 +111,7 @@ namespace Game.SudokuSolver.GUI.Models
                         new SudokuBoardCellModel
                         {
                             BackgroundEffect = determinedCell.BackgroundEffect,
-                            DeterminedDigit = determinedCell.DeterminedDigit.ToCellDigitChar().ToString(),
+                            DeterminedDigit = determinedCell.DeterminedDigit.ToCellDigitText(false),
                             ForegroundEffect =
                                 determinedCell.ForegroundEffect switch
                                 {

@@ -81,12 +81,12 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 var excludedCellNoteBitSet = cellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
                 if (KeyCellIndexBitSet != 0 && (cellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && excludedCellNoteBitSet != 0)
                 {
-                    var cellDigitChar = cellDigit.ToCellDigitChar();
+                    var cellDigitChar = cellDigit.ToCellDigitText();
                     var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                     var description
-                        = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 '{cellDigitChar}' が含まれているので、" +
-                        $"必ずこれらのセルの何れかが '{cellDigitChar}' となります。\n" +
-                        $"そのため、{columnOrRowHouseText}にある他のセル {excludedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を排除します。";
+                        = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 {cellDigitChar} が含まれているので、" +
+                        $"必ずこれらのセルの何れかが {cellDigitChar} となります。\n" +
+                        $"そのため、{columnOrRowHouseText}にある他のセル {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
                     return
                         new PointingOperation(
                             excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),

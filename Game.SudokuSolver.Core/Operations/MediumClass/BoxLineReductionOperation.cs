@@ -82,11 +82,11 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 if (highlightedCellNoteBitSet == 0 || (cellNoteBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask) != 0 || excludedCellNoteBitSet == 0)
                     return null;
 
-                var cellDigitChar = cellDigit.ToCellDigitChar();
+                var cellDigitChar = cellDigit.ToCellDigitText();
                 var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                 var description =
                     $"{columnOrRowHouseText}には{block.ToFriendlyString()}のブロックと重なるセルのみに数字の候補 '{cellDigitChar}' が含まれており、" +
-                    $"必ずこれらのセルの何れかが '{cellDigitChar}' になります。\n" +
+                    $"必ずこれらのセルの何れかが {cellDigitChar} になります。\n" +
                     $"したがって、{block.ToFriendlyString()}のブロックにある他のセル {excludedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を排除します。";
                 return
                     new BoxLineReductionOperation(

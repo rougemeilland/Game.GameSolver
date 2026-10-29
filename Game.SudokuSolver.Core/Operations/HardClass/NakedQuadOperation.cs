@@ -89,49 +89,50 @@ namespace Game.SudokuSolver.Operations.HardClass
                 if (UInt128.PopCount(houseNoteMask) < 5)
                     return null;
 
+                Span<SudokuBoardCellDigit> keyCellDigitBuffer = stackalloc SudokuBoardCellDigit[9];
                 for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 3; ++keyIndex1)
                 {
-                    var cellIndex1 = keyCellIIndexes[keyIndex1];
-                    var cellDigitBitSet1 = ws.GetNoteBitSet(cellIndex1);
+                    var keyCellIndex1 = keyCellIIndexes[keyIndex1];
+                    var keyCellDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 2; ++keyIndex2)
                     {
-                        var cellIndex2 = keyCellIIndexes[keyIndex2];
-                        var cellDigitBitSet2 = ws.GetNoteBitSet(cellIndex2);
+                        var keyCellIndex2 = keyCellIIndexes[keyIndex2];
+                        var keyCellDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
                         for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 1; ++keyIndex3)
                         {
-                            var cellIndex3 = keyCellIIndexes[keyIndex3];
-                            var cellDigitBitSet3 = ws.GetNoteBitSet(cellIndex3);
+                            var keyCellIndex3 = keyCellIIndexes[keyIndex3];
+                            var keyCellDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
                             for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length; ++keyIndex4)
                             {
-                                var cellIndex4 = keyCellIIndexes[keyIndex4];
-                                var cellDigitBitSet4 = ws.GetNoteBitSet(cellIndex4);
+                                var keyCellIndex4 = keyCellIIndexes[keyIndex4];
+                                var keyCellDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
 
-                                var cellDigitBitSet = cellDigitBitSet1 | cellDigitBitSet2 | cellDigitBitSet3 | cellDigitBitSet4;
-                                if (cellDigitBitSet.GetPopCount() == 4)
+                                var keyCellDigitBitSet = keyCellDigitBitSet1 | keyCellDigitBitSet2 | keyCellDigitBitSet3 | keyCellDigitBitSet4;
+                                if (keyCellDigitBitSet.GetPopCount() == 4)
                                 {
-                                    // この時点で、cellIndex1 と cellIndex2 と cellIndex3 と cellIndex4 が示す四つのセルの数字の候補の和集合の大きさが 4 である、つまり四国同盟が成立している。
+                                    // この時点で、keyCellIndex1 と keyCellIndex2 と keyCellIndex3 と keyCellIndex4 が示す四つのセルの数字の候補の和集合の大きさが 4 である、つまり四国同盟が成立している。
                                     // ただし、四国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                                     // 四国同盟に含まれるセルの数字を求める
-                                    var foundCellDigits = cellDigitBitSet.EnumerateAsCellDigits().ToArray();
+                                    var foundCellDigits = keyCellDigitBitSet.EnumerateAsCellDigits(keyCellDigitBuffer);
 #if DEBUG
                                     System.Diagnostics.Debug.Assert(foundCellDigits.Length == 4);
 #endif
                                     // 四国同盟に含まれるセルの数字 A
-                                    var cellDigitA = foundCellDigits[0];
+                                    var keyCellDigitA = foundCellDigits[0];
                                     // 四国同盟に含まれるセルの数字 B
-                                    var cellDigitB = foundCellDigits[1];
+                                    var keyCellDigitB = foundCellDigits[1];
                                     // 四国同盟に含まれるセルの数字 C
-                                    var cellDigitC = foundCellDigits[2];
+                                    var keyCellDigitC = foundCellDigits[2];
                                     // 四国同盟に含まれるセルの数字 D
-                                    var cellDigitD = foundCellDigits[3];
+                                    var keyCellDigitD = foundCellDigits[3];
 
                                     // 四国同盟によって排除されるセルの数字の候補を求める
-                                    var keyCellBitSet = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet();
-                                    var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(cellDigitA) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(cellDigitB) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetC = houseMask & ws.GetNoteBitSet(cellDigitC) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetD = houseMask & ws.GetNoteBitSet(cellDigitD) & ~keyCellBitSet;
+                                    var keyCellBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
+                                    var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(keyCellDigitA) & ~keyCellBitSet;
+                                    var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(keyCellDigitB) & ~keyCellBitSet;
+                                    var excludedCellNoteBitSetC = houseMask & ws.GetNoteBitSet(keyCellDigitC) & ~keyCellBitSet;
+                                    var excludedCellNoteBitSetD = houseMask & ws.GetNoteBitSet(keyCellDigitD) & ~keyCellBitSet;
 
                                     var excludedCellNoteBitSet = excludedCellNoteBitSetA | excludedCellNoteBitSetB | excludedCellNoteBitSetC | excludedCellNoteBitSetD;
                                     if (excludedCellNoteBitSet != 0)
@@ -139,40 +140,36 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         // この時点で、四国同盟によって排除されるセルの数字の候補が存在する
 
                                         // 四国同盟に含まれるセルの位置と数字を求める
-                                        var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(cellDigitC) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetD = houseNoteMask & ws.GetNoteBitSet(cellDigitD) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(keyCellDigitA) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(keyCellDigitB) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(keyCellDigitC) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetD = houseNoteMask & ws.GetNoteBitSet(keyCellDigitD) & keyCellBitSet;
                                         var highlightedCellNotes =
-                                            highlightedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
-                                            .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
-                                            .Concat(highlightedCellNoteBitSetC.EnumerateAsCellNotes(cellDigitC))
-                                            .Concat(highlightedCellNoteBitSetD.EnumerateAsCellNotes(cellDigitD));
+                                            highlightedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
+                                            .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB))
+                                            .Concat(highlightedCellNoteBitSetC.EnumerateAsCellNotes(keyCellDigitC))
+                                            .Concat(highlightedCellNoteBitSetD.EnumerateAsCellNotes(keyCellDigitD));
 #if DEBUG
                                         System.Diagnostics.Debug.Assert(highlightedCellNotes.Count() >= 4);
 #endif
 
                                         // 四国同盟によって排除されるセルの位置と数字の候補を求める
                                         var excludedCellNotes =
-                                            excludedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
-                                            .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
-                                            .Concat(excludedCellNoteBitSetC.EnumerateAsCellNotes(cellDigitC))
-                                            .Concat(excludedCellNoteBitSetD.EnumerateAsCellNotes(cellDigitD));
+                                            excludedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
+                                            .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB))
+                                            .Concat(excludedCellNoteBitSetC.EnumerateAsCellNotes(keyCellDigitC))
+                                            .Concat(excludedCellNoteBitSetD.EnumerateAsCellNotes(keyCellDigitD));
 #if DEBUG
                                         System.Diagnostics.Debug.Assert(excludedCellNotes.Any());
 #endif
 
                                         var houseName = houseNameGetter();
-                                        var cellPositionText1 = cellIndex1.ToFriendlyString();
-                                        var cellPositionText2 = cellIndex2.ToFriendlyString();
-                                        var cellPositionText3 = cellIndex3.ToFriendlyString();
-                                        var cellPositionText4 = cellIndex4.ToFriendlyString();
-                                        var cellDigitCharA = cellDigitA.ToCellDigitChar();
-                                        var cellDigitCharB = cellDigitB.ToCellDigitChar();
-                                        var cellDigitCharC = cellDigitC.ToCellDigitChar();
-                                        var cellDigitCharD = cellDigitD.ToCellDigitChar();
-                                        var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}, {cellPositionText3}, {cellPositionText4}";
-                                        var keyCellDigitCharsText = $"'{cellDigitCharA}', '{cellDigitCharB}', '{cellDigitCharC}', '{cellDigitCharD}'";
+                                        var keyCellPositionsText = string.Join(", ", keyCellBitSet.EnumerateAsCellPositionTexts());
+                                        var keyCellDigitCharsText =
+                                            string.Join(
+                                                ", ",
+                                                (keyCellDigitA.ToCellNoteBitSet() | keyCellDigitB.ToCellNoteBitSet() | keyCellDigitC.ToCellNoteBitSet() | keyCellDigitD.ToCellNoteBitSet())
+                                                    .EnumerateAsCellDigitTexts());
                                         var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                         var description =
                                             $"{houseName}において、{keyCellPositionsText} の四つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +

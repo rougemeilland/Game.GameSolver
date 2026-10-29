@@ -46,11 +46,11 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             .EnumerateAsCellNotes(cellDigit)
                             .ToArray();
                         var determinedCellPositionText = cellIndex.ToFriendlyString();
-                        var determinedCellDigitText = cellDigit.ToCellDigitChar();
+                        var determinedCellDigitText = cellDigit.ToCellDigitText();
                         var description =
-                            $"{determinedCellPositionText}のセルの数字の候補は '{determinedCellDigitText}' しかないため、" +
-                            $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}";
+                            $"{determinedCellPositionText}のセルの数字の候補は {determinedCellDigitText} しかないため、" +
+                            $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif

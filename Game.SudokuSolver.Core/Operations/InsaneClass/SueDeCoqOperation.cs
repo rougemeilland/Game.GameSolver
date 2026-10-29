@@ -98,8 +98,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 block,
                                 SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
                                 SudokuBoardCellGeometry.GetRowCellsBitSet(row),
-                                $"{block.ToFriendlyString()}のブロック",
-                                $"{row.ToFriendlyString()}の行");
+                                () => $"{block.ToFriendlyString()}のブロック",
+                                () => $"{row.ToFriendlyString()}の行");
                         foreach (var operation in operations)
                             yield return operation;
                     }
@@ -115,21 +115,21 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 block,
                                 SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
                                 SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
-                                $"{block.ToFriendlyString()}のブロック",
-                                $"{column.ToFriendlyString()}の列");
+                                () => $"{block.ToFriendlyString()}のブロック",
+                                () => $"{column.ToFriendlyString()}の列");
                         foreach (var operation in operations)
                             yield return operation;
                     }
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByHouse(SudokuBoardWorkspace ws, int numberOfAlliance, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 columnOrRowHouseMask, string blockHouseNmae, string columnOrRowHouseName)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByHouse(SudokuBoardWorkspace ws, int numberOfAlliance, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 columnOrRowHouseMask, Func<string> blockHouseNameGetter, Func<string> columnOrRowHouseNameGetter)
             {
                 switch (numberOfAlliance)
                 {
                     case 4:
                     {
-                        var operation = MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;
@@ -137,35 +137,35 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
                     case 5:
                     {
-                        var operation = MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;
                     }
                     case 6:
                     {
-                        var operation = MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;
                     }
                     case 7:
                     {
-                        var operation = MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;
                     }
                     case 8:
                     {
-                        var operation = MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;
                     }
                     case 9:
                     {
-                        var operation = MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNmae, columnOrRowHouseName);
+                        var operation = MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
                         if (operation is not null)
                             yield return operation;
                         break;

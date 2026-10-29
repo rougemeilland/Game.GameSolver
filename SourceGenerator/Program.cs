@@ -644,11 +644,11 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"        /// <param name=\"lineHouseMask\">");
                     sourceWriter.WriteLine($"        /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref=\"UInt128\"/> 値です。");
                     sourceWriter.WriteLine($"        /// </param>");
-                    sourceWriter.WriteLine($"        /// <param name=\"blockHouseName\">");
-                    sourceWriter.WriteLine($"        /// ブロックハウスの名称です。");
+                    sourceWriter.WriteLine($"        /// <param name=\"blockHouseNameGetter\">");
+                    sourceWriter.WriteLine($"        /// ブロックハウスの名称を取得するデリゲートです。");
                     sourceWriter.WriteLine($"        /// </param>");
-                    sourceWriter.WriteLine($"        /// <param name=\"lineHouseName\">");
-                    sourceWriter.WriteLine($"        /// ラインハウスの名称です。");
+                    sourceWriter.WriteLine($"        /// <param name=\"lineHouseNameGetter\">");
+                    sourceWriter.WriteLine($"        /// ラインハウスの名称を取得するデリゲートです。");
                     sourceWriter.WriteLine($"        /// </param>");
                     sourceWriter.WriteLine($"        /// <returns>");
                     sourceWriter.WriteLine($"        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref=\"SueDeCoqOperation\"/> オブジェクトを返します。そうではない場合は <see langword=\"null\"/> を返します。 ");
@@ -675,7 +675,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"        /// </list>");
                     sourceWriter.WriteLine($"        /// </para>");
                     sourceWriter.WriteLine($"        /// </remarks>");
-                    sourceWriter.WriteLine($"        private static SueDeCoqOperation? MatchPatternByHouse{numberOfAlliance}(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)");
+                    sourceWriter.WriteLine($"        private static SueDeCoqOperation? MatchPatternByHouse{numberOfAlliance}(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)");
                     sourceWriter.WriteLine($"        {{");
                     sourceWriter.WriteLine($"            var bothHouseMask = blockHouseMask | lineHouseMask;");
                     sourceWriter.WriteLine($"            var intersectionCellBitMask = blockHouseMask & lineHouseMask;");
@@ -697,7 +697,7 @@ namespace SourceGenerator
                     var indent = new string(' ', indentCount);
                     for (var n = 0; n < numberOfAlliance; ++n)
                     {
-                        sourceWriter.WriteLine($"            {indent}for (var keyIndex{n + 1} = {(n <= 0 ? $"0" : $"keyIndex{n} + 1")}; keyIndex{n + 1} < keyCellIIndexes.Length{(n < numberOfAlliance - 1 ? $" - {numberOfAlliance - n}" : "")}; ++keyIndex{n + 1})");
+                        sourceWriter.WriteLine($"            {indent}for (var keyIndex{n + 1} = {(n <= 0 ? $"0" : $"keyIndex{n} + 1")}; keyIndex{n + 1} < keyCellIIndexes.Length{(n < numberOfAlliance - 1 ? $" - {numberOfAlliance - 1 - n}" : "")}; ++keyIndex{n + 1})");
                         sourceWriter.WriteLine($"            {indent}{{");
                         sourceWriter.WriteLine($"            {indent}    var keyCellIndex{n + 1} = keyCellIIndexes[keyIndex{n + 1}];");
                         sourceWriter.WriteLine($"            {indent}    var keyDigitBitSet{n + 1} = ws.GetNoteBitSet(keyCellIndex{n + 1});");
@@ -775,6 +775,8 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}            excludedCellNotesInBlock.ToArray()");
                     sourceWriter.WriteLine($"            {indent}            .Concat(excludedCellNotesInLine.ToArray());");
                     sourceWriter.WriteLine();
+                    sourceWriter.WriteLine($"            {indent}        var blockHouseName = blockHouseNameGetter();");
+                    sourceWriter.WriteLine($"            {indent}        var lineHouseName = lineHouseNameGetter();");
                     sourceWriter.WriteLine($"            {indent}        var keyCellPositionsText =");
                     sourceWriter.WriteLine($"            {indent}            string.Join(");
                     sourceWriter.WriteLine($"            {indent}                \", \",");
@@ -785,12 +787,12 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}        var intersectionKeyCellPositionsText = string.Join(\", \", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());");
                     sourceWriter.WriteLine($"            {indent}        var blockWingKeyCellPositionsText = string.Join(\", \", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());");
                     sourceWriter.WriteLine($"            {indent}        var lineWingKeyCellPositionsText = string.Join(\", \", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());");
-                    sourceWriter.WriteLine($"            {indent}        var blockOnlyKeyDigitsText = string.Join(\", \", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
-                    sourceWriter.WriteLine($"            {indent}        var lineOnlyKeyDigitsText = string.Join(\", \", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
-                    sourceWriter.WriteLine($"            {indent}        var intersectionKeyDigitsText = string.Join(\", \", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
-                    sourceWriter.WriteLine($"            {indent}        var blockWingKeyDigitsText = string.Join(\", \", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
-                    sourceWriter.WriteLine($"            {indent}        var lineWingKeyDigitsText = string.Join(\", \", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
-                    sourceWriter.WriteLine($"            {indent}        var bothWingKeyigitsText = string.Join(\", \", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
+                    sourceWriter.WriteLine($"            {indent}        var blockOnlyKeyDigitsText = string.Join(\", \", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());");
+                    sourceWriter.WriteLine($"            {indent}        var lineOnlyKeyDigitsText = string.Join(\", \", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());");
+                    sourceWriter.WriteLine($"            {indent}        var intersectionKeyDigitsText = string.Join(\", \", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());");
+                    sourceWriter.WriteLine($"            {indent}        var blockWingKeyDigitsText = string.Join(\", \", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());");
+                    sourceWriter.WriteLine($"            {indent}        var lineWingKeyDigitsText = string.Join(\", \", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());");
+                    sourceWriter.WriteLine($"            {indent}        var bothWingKeyigitsText = string.Join(\", \", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());");
                     sourceWriter.WriteLine($"            {indent}        var allKeyDigitsText =");
                     sourceWriter.WriteLine($"            {indent}            string.Join(");
                     sourceWriter.WriteLine($"            {indent}                \", \",");
@@ -798,7 +800,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}                .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())");
                     sourceWriter.WriteLine($"            {indent}                .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())");
                     sourceWriter.WriteLine($"            {indent}                .OrderBy(digit => digit)");
-                    sourceWriter.WriteLine($"            {indent}                .Select(digit => $\"'{{digit.ToCellDigitChar()}}'\"));");
+                    sourceWriter.WriteLine($"            {indent}                .Select(digit => digit.ToCellDigitText()));");
                     sourceWriter.WriteLine($"            {indent}        var description =");
                     sourceWriter.WriteLine($"            {indent}            $\"{{blockHouseName}}と{{lineHouseName}}において、{nameOfPiecesNumber}のセル ({{keyCellPositionsText}}) を選びます。\\n\" +");
                     sourceWriter.WriteLine($"            {indent}            $\"このうち、交差部 ({{blockHouseName}}と{{lineHouseName}}が重なっている部分) のセル ({{intersectionKeyCellPositionsText}}) の候補の数字は {{intersectionKeyDigitsText}} で、\" +");
@@ -815,7 +817,9 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}        return");
                     sourceWriter.WriteLine($"            {indent}            new SueDeCoqOperation(");
                     sourceWriter.WriteLine($"            {indent}                excludedCellNotes,");
-                    sourceWriter.WriteLine($"            {indent}                allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)");
+                    sourceWriter.WriteLine($"            {indent}                intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)");
+                    sourceWriter.WriteLine($"            {indent}                    .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))");
+                    sourceWriter.WriteLine($"            {indent}                    .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))");
                     sourceWriter.WriteLine($"            {indent}                    .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),");
                     sourceWriter.WriteLine($"            {indent}                ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)");
                     sourceWriter.WriteLine($"            {indent}                    .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))");

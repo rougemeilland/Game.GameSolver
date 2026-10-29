@@ -22,11 +22,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -53,7 +53,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse4(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse4(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -70,15 +70,15 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 4; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 3; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 3; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 2; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 2; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 1; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
@@ -153,6 +153,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                         excludedCellNotesInBlock.ToArray()
                                         .Concat(excludedCellNotesInLine.ToArray());
 
+                                    var blockHouseName = blockHouseNameGetter();
+                                    var lineHouseName = lineHouseNameGetter();
                                     var keyCellPositionsText =
                                         string.Join(
                                             ", ",
@@ -163,12 +165,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                     var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                     var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                     var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                    var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                    var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                    var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                    var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                    var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                    var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                    var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                    var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                    var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                    var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                    var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                    var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                     var allKeyDigitsText =
                                         string.Join(
                                             ", ",
@@ -176,7 +178,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                             .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                             .OrderBy(digit => digit)
-                                            .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                            .Select(digit => digit.ToCellDigitText()));
                                     var description =
                                         $"{blockHouseName}と{lineHouseName}において、四つのセル ({keyCellPositionsText}) を選びます。\n" +
                                         $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -193,7 +195,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                     return
                                         new SueDeCoqOperation(
                                             excludedCellNotes,
-                                            allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                            intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                 .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                             ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                 .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))
@@ -228,11 +232,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -259,7 +263,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse5(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse5(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -276,19 +280,19 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 5; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 4; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 4; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 3; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 3; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 2; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
-                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 2; ++keyIndex4)
+                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 1; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
                             var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
@@ -364,6 +368,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             excludedCellNotesInBlock.ToArray()
                                             .Concat(excludedCellNotesInLine.ToArray());
 
+                                        var blockHouseName = blockHouseNameGetter();
+                                        var lineHouseName = lineHouseNameGetter();
                                         var keyCellPositionsText =
                                             string.Join(
                                                 ", ",
@@ -374,12 +380,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                         var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                         var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                         var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                        var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                        var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                        var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                        var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                        var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                        var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                        var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                        var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                        var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                        var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                        var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                        var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                         var allKeyDigitsText =
                                             string.Join(
                                                 ", ",
@@ -387,7 +393,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                 .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                 .OrderBy(digit => digit)
-                                                .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                .Select(digit => digit.ToCellDigitText()));
                                         var description =
                                             $"{blockHouseName}と{lineHouseName}において、五つのセル ({keyCellPositionsText}) を選びます。\n" +
                                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -404,7 +410,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                         return
                                             new SueDeCoqOperation(
                                                 excludedCellNotes,
-                                                allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                    .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                    .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                     .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                 ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                     .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))
@@ -440,11 +448,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -471,7 +479,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse6(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse6(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -488,23 +496,23 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 6; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 5; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 5; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 4; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 4; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 3; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
-                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 3; ++keyIndex4)
+                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 2; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
                             var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
-                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 2; ++keyIndex5)
+                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 1; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
                                 var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
@@ -581,6 +589,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 excludedCellNotesInBlock.ToArray()
                                                 .Concat(excludedCellNotesInLine.ToArray());
 
+                                            var blockHouseName = blockHouseNameGetter();
+                                            var lineHouseName = lineHouseNameGetter();
                                             var keyCellPositionsText =
                                                 string.Join(
                                                     ", ",
@@ -591,12 +601,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                             var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                             var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                            var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                            var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                            var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                            var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                            var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                            var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                            var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                            var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                            var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                            var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                            var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                            var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                             var allKeyDigitsText =
                                                 string.Join(
                                                     ", ",
@@ -604,7 +614,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                     .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                     .OrderBy(digit => digit)
-                                                    .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                    .Select(digit => digit.ToCellDigitText()));
                                             var description =
                                                 $"{blockHouseName}と{lineHouseName}において、六つのセル ({keyCellPositionsText}) を選びます。\n" +
                                                 $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -621,7 +631,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             return
                                                 new SueDeCoqOperation(
                                                     excludedCellNotes,
-                                                    allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                    intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                        .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                        .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                         .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                     ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                         .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))
@@ -658,11 +670,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -689,7 +701,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse7(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse7(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -706,27 +718,27 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 7; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 6; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 6; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 5; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 5; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 4; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
-                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 4; ++keyIndex4)
+                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 3; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
                             var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
-                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 3; ++keyIndex5)
+                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 2; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
                                 var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
-                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 2; ++keyIndex6)
+                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 1; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
                                     var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
@@ -804,6 +816,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     excludedCellNotesInBlock.ToArray()
                                                     .Concat(excludedCellNotesInLine.ToArray());
 
+                                                var blockHouseName = blockHouseNameGetter();
+                                                var lineHouseName = lineHouseNameGetter();
                                                 var keyCellPositionsText =
                                                     string.Join(
                                                         ", ",
@@ -814,12 +828,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                 var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                 var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                                var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                                 var allKeyDigitsText =
                                                     string.Join(
                                                         ", ",
@@ -827,7 +841,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                         .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                         .OrderBy(digit => digit)
-                                                        .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                        .Select(digit => digit.ToCellDigitText()));
                                                 var description =
                                                     $"{blockHouseName}と{lineHouseName}において、七つのセル ({keyCellPositionsText}) を選びます。\n" +
                                                     $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -844,7 +858,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 return
                                                     new SueDeCoqOperation(
                                                         excludedCellNotes,
-                                                        allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                        intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                            .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                            .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                             .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                         ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                             .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))
@@ -882,11 +898,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -913,7 +929,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse8(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse8(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -930,31 +946,31 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 8; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 7; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 7; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 6; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 6; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 5; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
-                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 5; ++keyIndex4)
+                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 4; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
                             var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
-                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 4; ++keyIndex5)
+                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 3; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
                                 var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
-                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 3; ++keyIndex6)
+                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 2; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
                                     var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
-                                    for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 2; ++keyIndex7)
+                                    for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 1; ++keyIndex7)
                                     {
                                         var keyCellIndex7 = keyCellIIndexes[keyIndex7];
                                         var keyDigitBitSet7 = ws.GetNoteBitSet(keyCellIndex7);
@@ -1033,6 +1049,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         excludedCellNotesInBlock.ToArray()
                                                         .Concat(excludedCellNotesInLine.ToArray());
 
+                                                    var blockHouseName = blockHouseNameGetter();
+                                                    var lineHouseName = lineHouseNameGetter();
                                                     var keyCellPositionsText =
                                                         string.Join(
                                                             ", ",
@@ -1043,12 +1061,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                     var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                     var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                                    var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                    var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                    var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                    var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                    var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                    var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                    var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                    var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                    var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                    var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                    var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                    var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                                     var allKeyDigitsText =
                                                         string.Join(
                                                             ", ",
@@ -1056,7 +1074,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                             .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                             .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                             .OrderBy(digit => digit)
-                                                            .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                            .Select(digit => digit.ToCellDigitText()));
                                                     var description =
                                                         $"{blockHouseName}と{lineHouseName}において、八つのセル ({keyCellPositionsText}) を選びます。\n" +
                                                         $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -1073,7 +1091,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     return
                                                         new SueDeCoqOperation(
                                                             excludedCellNotes,
-                                                            allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                            intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                                .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                                .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                                 .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                             ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                                 .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))
@@ -1112,11 +1132,11 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <param name="lineHouseMask">
         /// ライン (行または列) に属するセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
-        /// <param name="blockHouseName">
-        /// ブロックハウスの名称です。
+        /// <param name="blockHouseNameGetter">
+        /// ブロックハウスの名称を取得するデリゲートです。
         /// </param>
-        /// <param name="lineHouseName">
-        /// ラインハウスの名称です。
+        /// <param name="lineHouseNameGetter">
+        /// ラインハウスの名称を取得するデリゲートです。
         /// </param>
         /// <returns>
         /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
@@ -1143,7 +1163,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </list>
         /// </para>
         /// </remarks>
-        private static SueDeCoqOperation? MatchPatternByHouse9(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, string blockHouseName, string lineHouseName)
+        private static SueDeCoqOperation? MatchPatternByHouse9(SudokuBoardWorkspace ws, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 lineHouseMask, Func<string> blockHouseNameGetter, Func<string> lineHouseNameGetter)
         {
             var bothHouseMask = blockHouseMask | lineHouseMask;
             var intersectionCellBitMask = blockHouseMask & lineHouseMask;
@@ -1160,35 +1180,35 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 15 はブロックハウスとラインハウスのどちらかに含まれるセルの数
             Span<SudokuBoardCellPositionDigit> excludedCellNotesBuffer = stackalloc SudokuBoardCellPositionDigit[15];
-            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 9; ++keyIndex1)
+            for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 8; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
                 var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
-                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 8; ++keyIndex2)
+                for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 7; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
                     var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
-                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 7; ++keyIndex3)
+                    for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 6; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
                         var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
-                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 6; ++keyIndex4)
+                        for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 5; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
                             var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
-                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 5; ++keyIndex5)
+                            for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 4; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
                                 var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
-                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 4; ++keyIndex6)
+                                for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 3; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
                                     var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
-                                    for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 3; ++keyIndex7)
+                                    for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 2; ++keyIndex7)
                                     {
                                         var keyCellIndex7 = keyCellIIndexes[keyIndex7];
                                         var keyDigitBitSet7 = ws.GetNoteBitSet(keyCellIndex7);
-                                        for (var keyIndex8 = keyIndex7 + 1; keyIndex8 < keyCellIIndexes.Length - 2; ++keyIndex8)
+                                        for (var keyIndex8 = keyIndex7 + 1; keyIndex8 < keyCellIIndexes.Length - 1; ++keyIndex8)
                                         {
                                             var keyCellIndex8 = keyCellIIndexes[keyIndex8];
                                             var keyDigitBitSet8 = ws.GetNoteBitSet(keyCellIndex8);
@@ -1268,6 +1288,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                             excludedCellNotesInBlock.ToArray()
                                                             .Concat(excludedCellNotesInLine.ToArray());
 
+                                                        var blockHouseName = blockHouseNameGetter();
+                                                        var lineHouseName = lineHouseNameGetter();
                                                         var keyCellPositionsText =
                                                             string.Join(
                                                                 ", ",
@@ -1278,12 +1300,12 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         var intersectionKeyCellPositionsText = string.Join(", ", intersectionKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                         var blockWingKeyCellPositionsText = string.Join(", ", blockWingKeyCellBitSet.EnumerateAsCellPositionTexts());
                                                         var lineWingKeyCellPositionsText = string.Join(", ", lineWingKeyCellBitSet.EnumerateAsCellPositionTexts());
-                                                        var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                        var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                        var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                        var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                        var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
-                                                        var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigits().Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                        var blockOnlyKeyDigitsText = string.Join(", ", (blockWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~lineWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                        var lineOnlyKeyDigitsText = string.Join(", ", (lineWingKeyDigitBitSet | (intersectionKeyDigitBitSet & ~blockWingKeyDigitBitSet)).EnumerateAsCellDigitTexts());
+                                                        var intersectionKeyDigitsText = string.Join(", ", intersectionKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                        var blockWingKeyDigitsText = string.Join(", ", blockWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                        var lineWingKeyDigitsText = string.Join(", ", lineWingKeyDigitBitSet.EnumerateAsCellDigitTexts());
+                                                        var bothWingKeyigitsText = string.Join(", ", (blockWingKeyDigitBitSet & lineWingKeyDigitBitSet).EnumerateAsCellDigitTexts());
                                                         var allKeyDigitsText =
                                                             string.Join(
                                                                 ", ",
@@ -1291,7 +1313,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                                 .Concat((blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                                 .Concat((lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).EnumerateAsCellDigits())
                                                                 .OrderBy(digit => digit)
-                                                                .Select(digit => $"'{digit.ToCellDigitChar()}'"));
+                                                                .Select(digit => digit.ToCellDigitText()));
                                                         var description =
                                                             $"{blockHouseName}と{lineHouseName}において、九つのセル ({keyCellPositionsText}) を選びます。\n" +
                                                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
@@ -1308,7 +1330,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         return
                                                             new SueDeCoqOperation(
                                                                 excludedCellNotes,
-                                                                allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                                intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)
+                                                                    .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                                                                    .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                                                                     .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                                 ws.EnumerateAsCellNoteEffects(blockKeyCellBitSet, blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType2)
                                                                     .Concat(ws.EnumerateAsCellNoteEffects(lineKeyCellBitSet, lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet, SudokuBoardCellNoteEffect.PositivelyHilightedType3))

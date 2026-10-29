@@ -66,7 +66,7 @@ namespace Game.SudokuSolver.GUI.Controls
                     c.AnimationBackground.Visibility = Visibility.Visible;
                     break;
                 case SudokuBoardCellBackgroundEffect.NegativelyHighlighted:
-                    c.CellContainer.Background = Brushes.LightPink;
+                    c.CellContainer.Background = Brushes.HotPink;
                     c.AnimationBackground.Visibility = Visibility.Collapsed;
                     break;
                 default:

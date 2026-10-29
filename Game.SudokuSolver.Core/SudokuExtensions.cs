@@ -57,13 +57,13 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定された整数をセルの位置を示すビット集合とみなし、セルの位置を列挙します。
+        /// 指定された整数をセルの位置を示すビット集合とみなし、セルの位置のシーケンスを取得します。
         /// </summary>
         /// <param name="cellIndexBitSet">
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <returns>
-        /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値の列挙子を返します。
+        /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> 値のシーケンスを返します。
         /// </returns>
         internal static IEnumerable<SudokuBoardCellIndex> EnumerateAsCellIndexes(this UInt128 cellIndexBitSet)
         {
@@ -78,6 +78,37 @@ namespace Game.SudokuSolver
                 yield return cellIndex;
                 cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
+        }
+
+        /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、個々のセルの位置指定された領域に格納します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="cellIndexBuffer">
+        /// セルの位置 <see cref="SudokuBoardCellIndex"/> 値の格納先です。
+        /// </param>
+        /// <returns>
+        /// 実際にセルの位置 <see cref="SudokuBoardCellIndex"/> が格納された場所と長さを示す <see cref="Span{T}"/> 値です。
+        /// </returns>
+        internal static Span<SudokuBoardCellIndex> EnumerateAsCellIndexes(this UInt128 cellIndexBitSet, Span<SudokuBoardCellIndex> cellIndexBuffer)
+        {
+#if DEBUG
+            if ((cellIndexBitSet & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+            if (cellIndexBuffer.Length < (int)UInt128.PopCount(cellIndexBitSet))
+                throw new ArgumentException("", nameof(cellIndexBuffer));
+#endif
+            var index = 0;
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+                cellIndexBuffer[index++] = cellIndex;
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+
+            return cellIndexBuffer[..index];
         }
 
         /// <summary>
@@ -414,7 +445,7 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値を視覚的な文字に変換します。
+        /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値を視覚的にわかりやすい文字に変換します。
         /// </summary>
         /// <param name="digit">
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
@@ -431,6 +462,32 @@ namespace Game.SudokuSolver
 #endif
 
             return (char)('1' + (digit - SudokuBoardCellDigit.One));
+        }
+
+        /// <summary>
+        /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値を視覚的にわかりやすい文字列に変換します。
+        /// </summary>
+        /// <param name="digit">
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
+        /// </param>
+        /// <param name="quoted">
+        /// 出力する文字列をシングルクォーテーションで囲む場合は <see langword="true"/>、そうではない場合は <see langword="false"/> です。
+        /// 既定値は <see langword="true"/> です。
+        /// </param>
+        /// <returns>
+        /// セルの数字を示す <see cref="string"/> 値を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ToCellDigitText(this SudokuBoardCellDigit digit, bool quoted = true)
+        {
+#if DEBUG
+            if (digit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(digit));
+#endif
+            return
+                quoted
+                ? $"'{(char)('1' + (digit - SudokuBoardCellDigit.One))}'"
+                : new string((char)('1' + (digit - SudokuBoardCellDigit.One)), 1);
         }
 
         /// <summary>
@@ -519,13 +576,13 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定された数字のビット集合から数字を列挙します。
+        /// 指定された数字のビット集合からセルの数字のシーケンスを取得します。
         /// </summary>
         /// <param name="cellDigitBitSet">
         /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
         /// <returns>
-        /// セルの位置を示す <see cref="SudokuBoardCellDigit"/> 値の列挙子を返します。
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値のシーケンスを返します。
         /// </returns>
         internal static IEnumerable<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellDigitBitSet)
         {
@@ -543,29 +600,58 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
+        /// 指定された数字のビット集合からセルの数字の視覚的にわかりやすい文字列のシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の視覚的にわかりやすい文字列を示す <see cref="string"/> 値の列挙子を返します。
+        /// </returns>
+        internal static IEnumerable<string> EnumerateAsCellDigitTexts(this SudokuBoardCellNoteBitSet cellDigitBitSet)
+        {
+#if DEBUG
+            if ((cellDigitBitSet & ~SudokuBoardCellNoteBitSet.AllCells) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
+#endif
+
+            while (cellDigitBitSet != 0)
+            {
+                var cellDigit = cellDigitBitSet.GetOneCellNoteDigit();
+                yield return $"'{cellDigit.ToCellDigitChar()}'";
+                cellDigitBitSet &= ~cellDigit.ToCellNoteBitSet();
+            }
+        }
+
+        /// <summary>
         /// 指定された数字のビット集合から個々の数字を指定された領域に格納します。
         /// </summary>
         /// <param name="cellDigitBitSet">
         /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
-        /// <param name="cellDigits">
+        /// <param name="cellDigitBuffer">
         /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値の格納先です。
         /// </param>
-        internal static void EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellDigitBitSet, Span<SudokuBoardCellDigit> cellDigits)
+        /// <returns>
+        /// 実際にセルの数字 <see cref="SudokuBoardCellDigit"/> が格納された場所と長さを示す <see cref="Span{T}"/> 値です。
+        /// </returns>
+        internal static Span<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellDigitBitSet, Span<SudokuBoardCellDigit> cellDigitBuffer)
         {
 #if DEBUG
             if ((cellDigitBitSet & ~SudokuBoardCellNoteBitSet.AllCells) != 0)
                 throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
-            if (cellDigits.Length != cellDigitBitSet.GetPopCount())
-                throw new ArgumentException("", nameof(cellDigits));
+            if (cellDigitBuffer.Length < cellDigitBitSet.GetPopCount())
+                throw new ArgumentException("", nameof(cellDigitBuffer));
 #endif
             var index = 0;
             while (cellDigitBitSet != 0)
             {
                 var cellDigit = cellDigitBitSet.GetOneCellNoteDigit();
-                cellDigits[index++] = cellDigit;
+                cellDigitBuffer[index++] = cellDigit;
                 cellDigitBitSet &= ~cellDigit.ToCellNoteBitSet();
             }
+
+            return cellDigitBuffer[..index];
         }
 
         /// <summary>
@@ -717,18 +803,12 @@ namespace Game.SudokuSolver
                 var cellNoteDigitBitSet = ws.GetNoteBitSet(cellIndex) & cellNoteBitMask;
                 while (cellNoteDigitBitSet != 0)
                 {
-#if DEBUG
-                    System.Diagnostics.Debug.WriteLine($"[{string.Join(", ", cellNoteDigitBitSet.EnumerateAsCellDigits().Select(cellNoteDigit => $"'{cellNoteDigit.ToCellDigitChar()}'"))}]");
-#endif
                     var cellNoteDigit = cellNoteDigitBitSet.GetOneCellNoteDigit();
                     yield return (new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit), effect);
 
                     cellNoteDigitBitSet &= ~cellNoteDigit.ToCellNoteBitSet();
                 }
 
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"[{string.Join(", ", cellNoteDigitBitSet.EnumerateAsCellDigits().Select(cellNoteDigit => $"'{cellNoteDigit.ToCellDigitChar()}'"))}]");
-#endif
                 cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
         }

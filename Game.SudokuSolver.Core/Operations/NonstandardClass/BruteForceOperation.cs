@@ -53,11 +53,11 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                     .EnumerateAsCellNotes(cellNoteDigit)
                     .ToArray();
                 var determinedCellPosiionText = cellIndex.ToFriendlyString();
-                var undeterminedCellDigitTexts = string.Join(", ", ws.GetNoteBitSet(cellIndex).EnumerateAsCellDigits().Select(noteOnCell => $"'{noteOnCell.ToCellDigitChar()}'"));
-                var determinedCellDigitText = cellNoteDigit.ToCellDigitChar();
+                var undeterminedCellDigitsText = string.Join(", ", ws.GetNoteBitSet(cellIndex).EnumerateAsCellDigitTexts());
+                var determinedCellDigitText = cellNoteDigit.ToCellDigitText();
                 var description =
-                    $"適用できる定石がないため、{determinedCellPosiionText}のセルの数字の候補 {undeterminedCellDigitTexts} のうち、" +
-                    $"'{determinedCellDigitText}' を仮に確定します。";
+                    $"適用できる定石がないため、{determinedCellPosiionText}のセルの数字の候補 {undeterminedCellDigitsText} のうち、" +
+                    $"{determinedCellDigitText} を仮に確定します。";
 #if DEBUG
                 System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellNoteDigit));
 #endif
