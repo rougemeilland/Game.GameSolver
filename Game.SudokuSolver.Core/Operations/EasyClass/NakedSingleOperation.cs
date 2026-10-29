@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -9,24 +8,20 @@ namespace Game.SudokuSolver.Operations.EasyClass
     /// ネイキッドシングルパターンのオペレーションのクラスです。
     /// </summary>
     internal sealed class NakedSingleOperation
-        : SudokuBoardOperation
+        : SudokuBoardDetermineCellOperation
     {
         private NakedSingleOperation(
-            SudokuBoardCellPositionDigit? determinedCell,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            SudokuBoardCellPositionDigit determinedCell,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "一択セル",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  UInt128.Zero,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
                   description)
         {
         }
@@ -46,42 +41,29 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     if (!ws.IsDetermined(cellIndex) && cellNoteBitSet.IsSingleBit())
                     {
                         var cellDigit = cellNoteBitSet.GetOneCellNoteDigit();
-                        var removedCellNotes =
-                            ws.GetCellIndexBitSetForRemovedNoteDigit(cellIndex, cellDigit)
-                            .EnumerateAsCellIndexes()
-                            .ToCells(cellDigit)
+                        var excludedCellNotes =
+                            ws.GetCellIndexBitSetForExcludedNoteDigit(cellIndex, cellDigit)
+                            .EnumerateAsCellNotes(cellDigit)
                             .ToArray();
-                        var determinedCellPositionText = new SudokuBoardCellPosition(cellIndex).ToFriendlyString();
+                        var determinedCellPositionText = cellIndex.ToFriendlyString();
                         var determinedCellDigitText = cellDigit.ToCellDigitChar();
                         var description =
                             $"{determinedCellPositionText}のセルの数字の候補は '{determinedCellDigitText}' しかないため、" +
                             $"{determinedCellPositionText}の数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}";
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}";
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif
                         yield return
                             new NakedSingleOperation(
                                 new SudokuBoardCellPositionDigit(cellIndex, cellDigit),
-                                removedCellNotes,
-                                removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex) : UInt128.Zero,
+                                excludedCellNotes,
+                                Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>()
+                                    .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                 description);
                     }
                 }
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            if (!newCellSet.DetermineCell(DeterminedCell.Value.CellIndex, DeterminedCell.Value.Digit))
-                throw new ApplicationException();
-
-            return newCellSet;
         }
     }
 }

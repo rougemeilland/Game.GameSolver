@@ -9,25 +9,20 @@ namespace Game.SudokuSolver.Operations.MediumClass
     /// 二国同盟パターンのオペレーションのクラスです。
     /// </summary>
     internal sealed class NakedPairOperation
-        : SudokuBoardOperation
+        : SudokuBoardRemoveCellNoteOperation
     {
         private NakedPairOperation(
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
+            IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "二国同盟",
                   SudokuBoardDifficultyLevel.Medium,
-                  null,
-                  highlightedCellNotes,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
+                  cellNoteEffects,
                   description)
         {
         }
@@ -90,7 +85,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
                 var houseNoteMask = ~ws.DeterminedCellBitSet & houseMask;
 
-                // ハウス内の未確定セルの数が 3 未満の場合、二国同盟が成立しないかあるいは仮に成立したとしても数字の候補を否定するべき他の未確定セルが存在しないため、検索を中断する
+                // ハウス内の未確定セルの数が 3 未満の場合、二国同盟が成立しないかあるいは仮に成立したとしても数字の候補を排除可能な他の未確定セルが存在しないため、検索を中断する
                 if (UInt128.PopCount(houseNoteMask) < 3)
                     return null;
 
@@ -107,7 +102,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         if (cellDigitBitSet.GetPopCount() == 2)
                         {
                             // この時点で、cellIndex1 と cellIndex2 が示す二つのセルの数字の候補の和集合の大きさが 2 である、つまり二国同盟が成立している。
-                            // ただし、二国同盟によって否定可能な数字の候補を持つセルが存在するかどうかはまだわからない。
+                            // ただし、二国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                             // 二国同盟に含まれるセルの数字を求める
                             var foundCellDigits = cellDigitBitSet.EnumerateAsCellDigits().ToArray();
@@ -119,56 +114,55 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             // 二国同盟に含まれるセルの数字 B
                             var cellDigitB = foundCellDigits[1];
 
-                            // 二国同盟によって否定されるセルの数字の候補を求める
+                            // 二国同盟によって排除可能なセルの数字の候補を求める
                             var keyCellBitSet = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet();
-                            var removedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(cellDigitA) & ~keyCellBitSet;
-                            var removedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(cellDigitB) & ~keyCellBitSet;
+                            var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(cellDigitA) & ~keyCellBitSet;
+                            var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(cellDigitB) & ~keyCellBitSet;
 
-                            var removedCellNoteBitSet = removedCellNoteBitSetA | removedCellNoteBitSetB;
-                            if (removedCellNoteBitSet != 0)
+                            var excludedCellNoteBitSet = excludedCellNoteBitSetA | excludedCellNoteBitSetB;
+                            if (excludedCellNoteBitSet != 0)
                             {
-                                // この時点で、二国同盟によって否定されるセルの候補が存在する
+                                // この時点で、二国同盟によって排除可能なセルの候補が存在する
 
                                 // 二国同盟に含まれるセルの位置と数字を求める
                                 var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(cellDigitA) & keyCellBitSet;
                                 var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(cellDigitB) & keyCellBitSet;
                                 var highlightedCellNotes =
-                                    highlightedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
-                                    .Concat(highlightedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
+                                    highlightedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
+                                    .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
                                     .ToArray();
 #if DEBUG
                                 System.Diagnostics.Debug.Assert(highlightedCellNotes.Length >= 2);
 #endif
 
-                                // 二国同盟によって否定されるセルの位置と数字の候補を求める
-                                var removedCellNotes =
-                                    removedCellNoteBitSetA.EnumerateAsCellIndexes().ToCells(cellDigitA)
-                                    .Concat(removedCellNoteBitSetB.EnumerateAsCellIndexes().ToCells(cellDigitB))
+                                // 二国同盟によって排除可能なセルの位置と数字の候補を求める
+                                var excludedCellNotes =
+                                    excludedCellNoteBitSetA.EnumerateAsCellNotes(cellDigitA)
+                                    .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(cellDigitB))
                                     .ToArray();
 #if DEBUG
                                 System.Diagnostics.Debug.Assert(highlightedCellNotes.Length > 0);
 #endif
 
                                 var houseName = houseNameGetter();
-                                var relatedCellPositions = houseMask.EnumerateAsCellIndexes().ToCellPositions().ToArray();
                                 var cellPositionText1 = cellIndex1.ToFriendlyString();
                                 var cellPositionText2 = cellIndex2.ToFriendlyString();
                                 var cellDigitCharA = cellDigitA.ToCellDigitChar();
                                 var cellDigitCharB = cellDigitB.ToCellDigitChar();
                                 var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}";
                                 var keyCellDigitCharsText = $"'{cellDigitCharA}', '{cellDigitCharB}'";
-                                var removedCellPositionsText = string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
+                                var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                 var description =
                                     $"{houseName}において、{keyCellPositionsText} の二つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
                                     $"これら二つのセルの数字は必ずこれら二つの数字の何れかです。\n" +
                                     $"したがって、{houseName}の他のセルは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                    $"他のセル ({removedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を削除します。";
+                                    $"他のセル ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
                                 return
                                     new NakedPairOperation(
-                                        highlightedCellNotes,
-                                        removedCellNotes,
-                                        cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet(),
-                                        houseMask,
+                                        excludedCellNotes,
+                                        keyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                            .Concat((houseMask & ~keyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                        highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                         description);
                             }
                         }
@@ -190,24 +184,6 @@ namespace Game.SudokuSolver.Operations.MediumClass
                     return keyCellIIndexesBuffer[..length];
                 }
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is not null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            var removedCellNotes = RemovedCellNotes.Span;
-            for (var index = 0; index < RemovedCellNotes.Length; ++index)
-            {
-                var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
-                    throw new ApplicationException();
-            }
-
-            return newCellSet;
         }
     }
 }

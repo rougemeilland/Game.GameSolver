@@ -327,9 +327,64 @@ namespace Game.SudokuSolver.GUI.Models
             "900076000" +
             "000021060";
 
+        private const string sourceArray_SueDdeCoq1 =
+            "352748169" +
+            "146529387" +
+            "789316524" +
+            "815463972" +
+            "427895631" +
+            "693172000" +
+            "500080203" +
+            "230051700" +
+            "900230000";
+
+        private const string sourceArray_SueDdeCoq2 =
+            "008001703" +
+            "741935682" +
+            "230867000" +
+            "010504230" +
+            "007306004" +
+            "403000000" +
+            "302600500" +
+            "100700028" +
+            "070000069";
+
+        private const string sourceArray_SueDdeCoq3 =
+            "203075009" +
+            "065030047" +
+            "700006053" +
+            "600053900" +
+            "394018070" +
+            "500700000" +
+            "800002090" +
+            "006000700" +
+            "030007006";
+
+        private const string sourceArray_SueDdeCoq4 =
+            "136000289" +
+            "872369514" +
+            "459812736" +
+            "945623178" +
+            "761985423" +
+            "328741965" +
+            "280000600" +
+            "500206800" +
+            "607008302";
+
+        private const string sourceArray_SueDdeCoq5 =
+            "002630749" +
+            "070240831" +
+            "300710652" +
+            "090357128" +
+            "728164395" +
+            "000982476" +
+            "261573984" +
+            "007891263" +
+            "000426517";
+
         private static string[] CreateInitialBoard()
             => [..
-                sourceArray_NakedTriple5
+                sourceArray_SueDdeCoq5
                 .Select(c => c is < '0' or > '9' ? throw new ApplicationException() : c == '0' ? string.Empty : c.ToString())
             ];
     }

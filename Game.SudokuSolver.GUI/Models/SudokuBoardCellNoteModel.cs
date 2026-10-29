@@ -4,12 +4,12 @@
         : Model
     {
         private SudokuBoardCellNoteEffect _foregroundEffect;
-        private string _cellNoteDidit;
+        private string _cellNoteDigit;
 
         public SudokuBoardCellNoteModel()
         {
             ForegroundEffect = SudokuBoardCellNoteEffect.Hidden;
-            _cellNoteDidit = string.Empty;
+            _cellNoteDigit = string.Empty;
         }
 
         public SudokuBoardCellNoteEffect ForegroundEffect
@@ -24,15 +24,15 @@
             }
         }
 
-        public string CellNoteDidit
+        public string CellNoteDigit
         {
-            get => _cellNoteDidit;
+            get => _cellNoteDigit;
             set
             {
-                if (value == _cellNoteDidit)
+                if (value == _cellNoteDigit)
                     return;
-                _cellNoteDidit = value;
-                RaisePropertyChangedEvent(_cellNoteDidit);
+                _cellNoteDigit = value;
+                RaisePropertyChangedEvent(_cellNoteDigit);
             }
         }
     }

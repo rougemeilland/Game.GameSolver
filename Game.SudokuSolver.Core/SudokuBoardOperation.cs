@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Game.GameSolver;
 
 namespace Game.SudokuSolver
@@ -9,6 +12,173 @@ namespace Game.SudokuSolver
     public abstract class SudokuBoardOperation
         : GameBoardOperation<SudokuBoardOperation>
     {
+        private sealed class CellNoteCollection
+            : ISudokuBoardCellNoteCollection
+        {
+            private readonly SudokuBoardCellPositionDigit[] _cellNotes;
+
+            internal CellNoteCollection(IEnumerable<SudokuBoardCellPositionDigit> source)
+            {
+                _cellNotes = new HashSet<SudokuBoardCellPositionDigit>(source).ToArray();
+            }
+
+            /// <inheritdoc/>
+            SudokuBoardCellPositionDigit IReadOnlyVectorIndexer<SudokuBoardCellPositionDigit, int>.this[int index]
+            {
+                get
+                {
+#if DEBUG
+                    ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+                    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _cellNotes.Length);
+#endif
+
+                    return _cellNotes[index];
+                }
+            }
+
+            /// <inheritdoc/>
+            int IReadOnlyVectorIndexer<SudokuBoardCellPositionDigit, int>.Length => _cellNotes.Length;
+
+            /// <inheritdoc/>
+            IEnumerator<SudokuBoardCellPositionDigit> IEnumerable<SudokuBoardCellPositionDigit>.GetEnumerator() => _cellNotes.AsEnumerable().GetEnumerator();
+
+            /// <inheritdoc/>
+            IEnumerator IEnumerable.GetEnumerator() => _cellNotes.GetEnumerator();
+        }
+
+        private sealed class CellBackgroundEffectCollection
+            : ISudokuBoardCellBackgroundEffectCollection
+        {
+            private readonly Dictionary<SudokuBoardCellIndex, SudokuBoardCellBackgroundEffect> _effects;
+
+            internal CellBackgroundEffectCollection(IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> source)
+            {
+                _effects = [];
+                foreach (var (cellIndex, effect) in source)
+                {
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(cellIndex is >= SudokuBoardCellIndex.MinValue and <= SudokuBoardCellIndex.MaxValue);
+#endif
+                    if (!_effects.TryAdd(cellIndex, effect))
+                    {
+                        if (_effects[cellIndex] < effect)
+                            _effects[cellIndex] = effect;
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            SudokuBoardCellBackgroundEffect IReadOnlyVectorIndexer<SudokuBoardCellBackgroundEffect, SudokuBoardCellIndex>.this[SudokuBoardCellIndex index]
+            {
+                get
+                {
+#if DEBUG
+                    if (index is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
+                        throw new ArgumentOutOfRangeException(nameof(index));
+#endif
+
+                    return _effects[index];
+                }
+            }
+
+            /// <inheritdoc/>
+            bool ISudokuBoardCellBackgroundEffectCollection.TryGetValue(SudokuBoardCellIndex cellIndex, out SudokuBoardCellBackgroundEffect effect)
+                => _effects.TryGetValue(cellIndex, out effect);
+
+            /// <inheritdoc/>
+            int IReadOnlyVectorIndexer<SudokuBoardCellBackgroundEffect, SudokuBoardCellIndex>.Length
+                => _effects.Count;
+
+            /// <inheritdoc/>
+            IEnumerator<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>.GetEnumerator()
+                => GetEnumeratorCore();
+
+            /// <inheritdoc/>
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumeratorCore();
+
+            private IEnumerator<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> GetEnumeratorCore()
+            {
+                foreach (var keyValue in _effects)
+                    yield return (keyValue.Key, keyValue.Value);
+            }
+        }
+
+        private sealed class CellNoteEffectCollection
+            : ISudokuBoardCellNoteEffectCollection
+        {
+            private readonly Dictionary<SudokuBoardCellPositionDigit, SudokuBoardCellNoteEffect> _effects;
+
+            internal CellNoteEffectCollection(IEnumerable<(SudokuBoardCellPositionDigit cellIndex, SudokuBoardCellNoteEffect effect)> source)
+            {
+                _effects = [];
+                foreach (var (cellPositionDigit, effect) in source)
+                {
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(cellPositionDigit.CellIndex is >= SudokuBoardCellIndex.MinValue and <= SudokuBoardCellIndex.MaxValue);
+                    System.Diagnostics.Debug.Assert(cellPositionDigit.Digit is >= SudokuBoardCellDigit.MinValue and <= SudokuBoardCellDigit.MaxValue);
+#endif
+                    if (!_effects.TryAdd(cellPositionDigit, effect))
+                    {
+                        if (_effects[cellPositionDigit] < effect)
+                            _effects[cellPositionDigit] = effect;
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            SudokuBoardCellNoteEffect IReadOnlyVectorIndexer<SudokuBoardCellNoteEffect, SudokuBoardCellPositionDigit>.this[SudokuBoardCellPositionDigit index]
+                => _effects[index];
+
+            /// <inheritdoc/>
+            bool ISudokuBoardCellNoteEffectCollection.TryGetValue(SudokuBoardCellPositionDigit positionDigit, out SudokuBoardCellNoteEffect effect)
+                => _effects.TryGetValue(positionDigit, out effect);
+
+            /// <inheritdoc/>
+            SudokuBoardCellNoteEffect ISudokuBoardCellNoteEffectCollection.this[SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit]
+            {
+                get
+                {
+#if DEBUG
+                    if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
+                        throw new ArgumentOutOfRangeException(nameof(cellIndex));
+                    if (cellNoteDigit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
+                        throw new ArgumentOutOfRangeException(nameof(cellNoteDigit));
+#endif
+
+                    return _effects[new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit)];
+                }
+            }
+
+            /// <inheritdoc/>
+            bool ISudokuBoardCellNoteEffectCollection.TryGetValue(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit, out SudokuBoardCellNoteEffect effect)
+                => _effects.TryGetValue(new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit), out effect);
+
+            /// <inheritdoc/>
+            int IReadOnlyVectorIndexer<SudokuBoardCellNoteEffect, SudokuBoardCellPositionDigit>.Length
+                => _effects.Count;
+
+            /// <inheritdoc/>
+            IEnumerator<(SudokuBoardCellPositionDigit positionDigit, SudokuBoardCellNoteEffect effect)> IEnumerable<(SudokuBoardCellPositionDigit positionDigit, SudokuBoardCellNoteEffect effect)>.GetEnumerator()
+                => GetEnumeratorCore();
+
+            /// <inheritdoc/>
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumeratorCore();
+
+            private IEnumerator<(SudokuBoardCellPositionDigit positionDigit, SudokuBoardCellNoteEffect effect)> GetEnumeratorCore()
+            {
+                foreach (var keyValue in _effects)
+                    yield return (keyValue.Key, keyValue.Value);
+            }
+        }
+
+        static SudokuBoardOperation()
+        {
+            EmptyCellBackgroundEffects = new CellBackgroundEffectCollection([]);
+            EmptyCellNoteEffects = new CellNoteEffectCollection([]);
+        }
+
         /// <summary>
         /// コンストラクタです。
         /// </summary>
@@ -24,78 +194,35 @@ namespace Game.SudokuSolver
         /// <param name="determinedCell">
         /// 定石を適用した結果数字が確定したセルが存在する場合はそのセルの位置と数字を示す <see cref="SudokuBoardCellPositionDigit"/> 値、そうではない場合は <see langword="null"/> です。
         /// </param>
-        /// <param name="primaryHighlightedCellNotes">
-        /// 定石のキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
+        /// <param name="excludedCellNotes">
+        /// 定石を適用した結果排除されるセルの数字の候補とそのセルの位置を示す <see cref="SudokuBoardCellPositionDigit"/> 値のシーケンスです。
         /// </param>
-        /// <param name="secondaryHighlightedCellNotes">
-        /// 定石の補助的なキーとなる数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
+        /// <param name="cellBackgroundEffects">
+        /// 定石の説明において背景効果を必要とするセルの位置を <see cref="SudokuBoardCellIndex"/> 値とその背景効果を示す <see cref="SudokuBoardCellBackgroundEffect"/> 値のペアのシーケンスです。
         /// </param>
-        /// <param name="removedCellNotes">
-        /// 定石を適用した結果により否定される数字の候補とその位置を示す <see cref="SudokuBoardCellPositionDigit"/> の配列です。
-        /// </param>
-        /// <param name="strongPpositivelyRelatedCellIndexBitSet">
-        /// 定石の適用において肯定的な意味を持つ (特に強リンクの) セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </param>
-        /// <param name="weakPpositivelyRelatedCellIndexBitSet">
-        /// 定石の適用において肯定的な意味を持つ (特に弱リンクの) セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </param>
-        /// <param name="negativelyRelatedCellIndexBitSet">
-        /// 定石の適用において否定的な意味を持つセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// <param name="cellNoteEffects">
+        /// 定石の説明において強調効果を必要とするセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値とその強調効果を示す <see cref="SudokuBoardCellNoteEffect"/> 値のペアのシーケンスです。
         /// </param>
         /// <param name="description">
-        /// 定石の解説のテキストを示す <see cref="string"/>オブジェクトです。
+        /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
         /// </param>
         protected SudokuBoardOperation(
             GameBoardStatus status,
             string title,
             SudokuBoardDifficultyLevel difficulty,
             SudokuBoardCellPositionDigit? determinedCell,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> primaryHighlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> secondaryHighlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 strongPpositivelyRelatedCellIndexBitSet,
-            UInt128 weakPpositivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
+            IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(status)
         {
-#if DEBUG
-            {
-
-                // primaryHighlightedCellNotes あるいは secondaryHighlightedCellNotes と removedCellNotes に同じ要素が含まれていてはならない
-                for (var index1 = 0; index1 < primaryHighlightedCellNotes.Length; ++index1)
-                {
-                    var highlitedCellNote = primaryHighlightedCellNotes.Span[index1];
-                    for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
-                    {
-                        var removedCellNote = removedCellNotes.Span[index2];
-                        if (highlitedCellNote == removedCellNote)
-                            throw new ApplicationException();
-                    }
-                }
-
-                for (var index1 = 0; index1 < secondaryHighlightedCellNotes.Length; ++index1)
-                {
-                    var highlitedCellNote = secondaryHighlightedCellNotes.Span[index1];
-                    for (var index2 = 0; index2 < removedCellNotes.Length; ++index2)
-                    {
-                        var removedCellNote = removedCellNotes.Span[index2];
-                        if (highlitedCellNote == removedCellNote)
-                            throw new ApplicationException();
-                    }
-                }
-            }
-#endif
-
             Title = title;
             Difficulty = difficulty;
             DeterminedCell = determinedCell;
-            PrimaryHighlightedCellNotes = primaryHighlightedCellNotes;
-            SecondaryHighlightedCellNotes = secondaryHighlightedCellNotes;
-            RemovedCellNotes = removedCellNotes;
-            StrongPositivelyRelatedCellIndexBitSet = strongPpositivelyRelatedCellIndexBitSet;
-            WeakPositivelyRelatedCellIndexBitSet = weakPpositivelyRelatedCellIndexBitSet;
-            NegativelyRelatedCellIndexBitSet = negativelyRelatedCellIndexBitSet;
+            ExcludedCellNotes = new CellNoteCollection(excludedCellNotes);
+            CellBackgroundEffects = new CellBackgroundEffectCollection(cellBackgroundEffects);
+            CellNoteEffects = new CellNoteEffectCollection(cellNoteEffects);
             Description = description;
         }
 
@@ -124,82 +251,22 @@ namespace Game.SudokuSolver
         public SudokuBoardCellPositionDigit? DeterminedCell { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
+        /// オペレーションにより排除されるセルの数字の候補とそのセルの位置のペアのコレクションを取得します。
         /// </summary>
         /// <value>
-        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
+        /// セルの数字の候補とそのセルの位置のペアのコレクションを示す <see cref="ISudokuBoardCellNoteCollection"/> オブジェクトです。
         /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
-        /// </para>
-        /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPositionDigit> PrimaryHighlightedCellNotes { get; }
+        public ISudokuBoardCellNoteCollection ExcludedCellNotes { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ肯定的なセルの数字の候補のコレクションを取得します。
+        /// オペレーションの説明に役立つセルの背景表示効果のコレクションを示す <see cref="ISudokuBoardCellBackgroundEffectCollection"/> オブジェクトを取得します。
         /// </summary>
-        /// <value>
-        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
-        /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、セルの数字の候補の絞り込みの根拠となったセルのメモのコレクションを意味します。
-        /// </para>
-        /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPositionDigit> SecondaryHighlightedCellNotes { get; }
+        public ISudokuBoardCellBackgroundEffectCollection CellBackgroundEffects { get; }
 
         /// <summary>
-        /// オペレーションの説明に役立つ否定的なセルの数字の候補のコレクションを取得します。
+        /// オペレーションの説明に役立つセルの数字の候補の表示効果のコレクションを示す <see cref="ISudokuBoardCellNoteEffectCollection"/> オブジェクトを取得します。
         /// </summary>
-        /// <value>
-        /// セルを示す <see cref="SudokuBoardCellPositionDigit"/> 値のコレクションです。
-        /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、オペレーションの結果により削除されるセルの数字の候補のコレクションを意味します。
-        /// </para>
-        /// </remarks>
-        public ReadOnlyMemory<SudokuBoardCellPositionDigit> RemovedCellNotes { get; }
-
-        /// <summary>
-        /// オペレーションの説明に強く肯定的に役立つ関連セルの位置のビット集合を取得します。
-        /// </summary>
-        /// <value>
-        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなる (特に強リンクの) セルの位置などを意味します。
-        /// </para>
-        /// </remarks>
-        public UInt128 StrongPositivelyRelatedCellIndexBitSet { get; }
-
-        /// <summary>
-        /// オペレーションの説明に弱く肯定的に役立つ関連セルの位置のビット集合を取得します。
-        /// </summary>
-        /// <value>
-        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みのキーとなる (特に弱リンクの) セルの位置などを意味します。
-        /// </para>
-        /// </remarks>
-        public UInt128 WeakPositivelyRelatedCellIndexBitSet { get; }
-
-        /// <summary>
-        /// オペレーションの説明に否定的に役立つ関連セルの位置のビット集合を取得します。
-        /// </summary>
-        /// <value>
-        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </value>
-        /// <remarks>
-        /// <para>
-        /// このプロパティは、例えば、オペレーションによるセルの数字の候補の絞り込みの結果、否定される数字の候補のセルの位置などを意味します。
-        /// </para>
-        /// </remarks>
-        public UInt128 NegativelyRelatedCellIndexBitSet { get; }
+        public ISudokuBoardCellNoteEffectCollection CellNoteEffects { get; }
 
         /// <summary>
         /// オペレーションの動作内容を示す文字列を取得します。
@@ -217,6 +284,9 @@ namespace Game.SudokuSolver
         /// </para>
         /// </remarks>
         public string Description { get; }
+
+        internal static ISudokuBoardCellBackgroundEffectCollection EmptyCellBackgroundEffects { get; }
+        internal static ISudokuBoardCellNoteEffectCollection EmptyCellNoteEffects { get; }
 
         /// <summary>
         /// 定石を盤面に適用します。

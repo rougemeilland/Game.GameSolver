@@ -6,6 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:Game.SudokuSolver.GUI.Controls"
+    xmlns:models="clr-namespace:Game.SudokuSolver.GUI.Models"
+    d:DataContext="{d:DesignInstance Type=models:SudokuBoardSolutionModel}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ControlTemplate x:Key="LeftArrowButtonTemplate" TargetType="Button">
@@ -52,17 +54,13 @@
             <EventSetter Event="Click" Handler="PreviousButtonEventHandler"/>
             <Setter Property="Visibility" Value="{Binding PreviousStepButtonVisibility}"/>
             <Setter Property="Background" Value="LightGray"/>
-            <!--
             <Setter Property="Template" Value="{StaticResource LeftArrowButtonTemplate}"/>
-            -->
         </Style>
         <Style x:Key="RightArrowStyle" TargetType="Button">
             <EventSetter Event="Click" Handler="NextButtonClickedEventHandler"/>
             <Setter Property="Visibility" Value="{Binding NextStepButtonVisibility}"/>
             <Setter Property="Background" Value="LightGray"/>
-            <!--
             <Setter Property="Template" Value="{StaticResource RightArrowButtonTemplate}"/>
-            -->
         </Style>
     </UserControl.Resources>
     <StackPanel

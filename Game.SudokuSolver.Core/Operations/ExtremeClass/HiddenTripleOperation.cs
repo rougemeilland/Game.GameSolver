@@ -9,24 +9,20 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
     /// 隠れ三国同盟パターンのオペレーションのクラスです。
     /// </summary>
     internal sealed class HiddenTripleOperation
-        : SudokuBoardOperation
+        : SudokuBoardRemoveCellNoteOperation
     {
         private HiddenTripleOperation(
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
+            IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "隠れ三国同盟",
                   SudokuBoardDifficultyLevel.Extreme,
-                  null,
-                  highlightedCellNotes,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  UInt128.Zero,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
+                  cellNoteEffects,
                   description)
         {
         }
@@ -36,7 +32,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             // 【論拠】
             // あるハウス H と ある三つの数字 D1, D2, D3 とある三つのセル C1, C2, C3 に対して、
             // H 内に数字の候補として D1, D2, D3 の何れかを持つセルが C1, C2, C3 のみの場合
-            // => C1, C2, C3 の数字はそれぞれ D1, D2, D3 の何れかであるので、C1, C2, C3 の D1, S2, D3 以外の数字の候補は否定される。
+            // => C1, C2, C3 の数字はそれぞれ D1, D2, D3 の何れかであるので、C1, C2, C3 の D1, S2, D3 以外の数字の候補を排除することが出来る。
 
             // ブロックハウスの検索
             for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
@@ -102,7 +98,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                         {
                                             // あるハウスにおいて、ある三つの数字が三つのセルのみの候補に存在する
                                             // => 隠れ三国同盟が成立している
-                                            // ただし、隠れ三国同盟によって否定可能な数字の候補を持つセルが存在するかどうかはまだわからない。
+                                            // ただし、隠れ三国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                                             // 隠れ三国同盟のセルの位置を求める
                                             var cellIndexes = cellNoteBitSet.EnumerateAsCellIndexes().ToArray();
@@ -120,48 +116,40 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             var cellNoteBitSet1 = ws.GetNoteBitSet(cellIndex1);
                                             var cellNoteBitSet2 = ws.GetNoteBitSet(cellIndex2);
                                             var cellNoteBitSet3 = ws.GetNoteBitSet(cellIndex3);
-                                            var removedCellDigitBitSet1 = cellNoteBitSet1 & ~keyCellDigitBitSet;
-                                            var removedCellDigitBitSet2 = cellNoteBitSet2 & ~keyCellDigitBitSet;
-                                            var removedCellDigitBitSet3 = cellNoteBitSet3 & ~keyCellDigitBitSet;
-                                            var removedCellDigitBitSet = removedCellDigitBitSet1 | removedCellDigitBitSet2 | removedCellDigitBitSet3;
-                                            if (removedCellDigitBitSet != 0)
+                                            var excludedCellDigitBitSet1 = cellNoteBitSet1 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet2 = cellNoteBitSet2 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet3 = cellNoteBitSet3 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet = excludedCellDigitBitSet1 | excludedCellDigitBitSet2 | excludedCellDigitBitSet3;
+                                            if (excludedCellDigitBitSet != 0)
                                             {
-                                                // この時点で、隠れ三国同盟によって否定される数字の候補が存在する
+                                                // この時点で、隠れ三国同盟によって排除される数字の候補が存在する
 
                                                 var highlightedCellNote =
-                                                    (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex1)
-                                                    .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex2))
-                                                    .Concat((cellNoteBitSet3 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex3))
-                                                    .ToArray();
-                                                var removedCellNotes =
-                                                    removedCellDigitBitSet1.EnumerateAsCellDigits().ToCells(cellIndex1)
-                                                    .Concat(removedCellDigitBitSet2.EnumerateAsCellDigits().ToCells(cellIndex2))
-                                                    .Concat(removedCellDigitBitSet3.EnumerateAsCellDigits().ToCells(cellIndex3))
-                                                    .ToArray();
+                                                    (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellNotes(cellIndex1)
+                                                    .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellNotes(cellIndex2))
+                                                    .Concat((cellNoteBitSet3 & keyCellDigitBitSet).EnumerateAsCellNotes(cellIndex3));
+                                                var excludedCellNotes =
+                                                    excludedCellDigitBitSet1.EnumerateAsCellNotes(cellIndex1)
+                                                    .Concat(excludedCellDigitBitSet2.EnumerateAsCellNotes(cellIndex2))
+                                                    .Concat(excludedCellDigitBitSet3.EnumerateAsCellNotes(cellIndex3));
                                                 var houseName = houseNameGetter();
-                                                var cellPositionText1 = cellIndex1.ToFriendlyString();
-                                                var cellPositionText2 = cellIndex2.ToFriendlyString();
-                                                var cellPositionText3 = cellIndex3.ToFriendlyString();
-                                                var cellDigitCharA = cellDigitA.ToCellDigitChar();
-                                                var cellDigitCharB = cellDigitB.ToCellDigitChar();
-                                                var cellDigitCharC = cellDigitC.ToCellDigitChar();
-                                                var removedDigitChars =
+                                                var excludedDigitChars =
                                                     string.Join(
                                                         ", ",
-                                                        removedCellDigitBitSet
+                                                        excludedCellDigitBitSet
                                                         .EnumerateAsCellDigits()
                                                         .Select(cellDigit => $"'{cellDigit.ToCellDigitChar()}'"));
-                                                var keyCellDigitCharsText = $"'{cellDigitCharA}', '{cellDigitCharB}', '{cellDigitCharC}'";
-                                                var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}, {cellPositionText3}";
+                                                var keyCellDigitCharsText = $"'{cellDigitA.ToCellDigitChar()}', '{cellDigitB.ToCellDigitChar()}', '{cellDigitC.ToCellDigitChar()}'";
+                                                var keyCellPositionsText = $"{cellIndex1.ToFriendlyString()}, {cellIndex2.ToFriendlyString()}, {cellIndex3.ToFriendlyString()}";
                                                 var description =
                                                     $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の三つしかないので、" +
                                                     $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
-                                                    $"したがって、三つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
+                                                    $"したがって、三つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
                                                 yield return
                                                     new HiddenTripleOperation(
-                                                        highlightedCellNote,
-                                                        removedCellNotes,
-                                                        houseMask,
+                                                        excludedCellNotes,
+                                                        houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted),
+                                                        highlightedCellNote.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                         description);
                                             }
                                         }
@@ -172,24 +160,6 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     }
                 }
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is not null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            var removedCellNotes = RemovedCellNotes.Span;
-            for (var index = 0; index < RemovedCellNotes.Length; ++index)
-            {
-                var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
-                    throw new ApplicationException();
-            }
-
-            return newCellSet;
         }
     }
 }

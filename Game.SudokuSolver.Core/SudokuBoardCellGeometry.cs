@@ -203,7 +203,7 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定されたブロックと重なる行のうちひとつの列を取得します。
+        /// 指定されたブロックと重なる行のうちひとつの行を取得します。
         /// </summary>
         /// <param name="block">
         /// 指定されたブロックを示す <see cref="SudokuBoardCellBlock"/> 値です。
@@ -212,7 +212,7 @@ namespace Game.SudokuSolver
         /// ブロックと重なる行のうちのひとつを示す <see cref="SudokuBoardCellBlockRow"/> 値です。
         /// </param>
         /// <returns>
-        /// 指定されたブロックと重なる列を示す <see cref="SudokuBoardCellColumn"/>値を返します。
+        /// 指定されたブロックと重なる行を示す <see cref="SudokuBoardCellColumn"/>値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static SudokuBoardCellRow GetRow(SudokuBoardCellBlock block, SudokuBoardCellBlockRow rowOffset)

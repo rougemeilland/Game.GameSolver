@@ -149,7 +149,7 @@ namespace Game.SudokuSolver
         /// </list>
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt128 GetCellIndexBitSetForRemovedNoteDigit(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit)
+        public UInt128 GetCellIndexBitSetForExcludedNoteDigit(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit)
             => ~DeterminedCellBitSet
                 & GetNoteBitSet(cellNoteDigit)
                 & SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex)

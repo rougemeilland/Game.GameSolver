@@ -6,9 +6,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:Game.SudokuSolver.GUI.Controls"
+    xmlns:models="clr-namespace:Game.SudokuSolver.GUI.Models"
+    d:DataContext="{d:DesignInstance Type=models:SudokuBoardCellNoteModel}"
     mc:Ignorable="d" >
     <Canvas Width="15" Height="15" x:Name="CellNoteContainer" x:FieldModifier="private">
         <Rectangle Canvas.Left="0.5" Canvas.Top="0.5" Panel.ZIndex="1" Width="14" Height="14" RadiusX="3" RadiusY="3" x:Name="CellNoteBackgroundRectangle" x:FieldModifier="private" StrokeThickness="0"/>
-        <TextBlock Canvas.Left="-3" Canvas.Top="-3.5" Panel.ZIndex="1" Width="21" Height="21" FontSize="15" TextAlignment="Center" Text="{Binding CellNoteDidit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="CellNoteDigitTextBlock" x:FieldModifier="private"/>
+        <TextBlock Canvas.Left="-3" Canvas.Top="-3.5" Panel.ZIndex="1" Width="21" Height="21" FontSize="15" TextAlignment="Center" Text="{Binding CellNoteDigit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="CellNoteDigitTextBlock" x:FieldModifier="private"/>
     </Canvas>
 </UserControl>

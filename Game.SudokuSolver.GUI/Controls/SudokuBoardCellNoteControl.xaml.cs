@@ -52,12 +52,17 @@ namespace Game.SudokuSolver.GUI.Controls
                     c.CellNoteDigitTextBlock.Foreground = Brushes.Black;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Transparent;
                     break;
-                case SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted:
+                case SudokuBoardCellNoteEffect.PositivelyHilightedType1:
                     c.CellNoteContainer.Visibility = Visibility.Visible;
                     c.CellNoteDigitTextBlock.Foreground = Brushes.White;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Green;
                     break;
-                case SudokuBoardCellNoteEffect.SecondaryPositivelyHilighted:
+                case SudokuBoardCellNoteEffect.PositivelyHilightedType2:
+                    c.CellNoteContainer.Visibility = Visibility.Visible;
+                    c.CellNoteDigitTextBlock.Foreground = Brushes.Black;
+                    c.CellNoteBackgroundRectangle.Fill = Brushes.Orange;
+                    break;
+                case SudokuBoardCellNoteEffect.PositivelyHilightedType3:
                     c.CellNoteContainer.Visibility = Visibility.Visible;
                     c.CellNoteDigitTextBlock.Foreground = Brushes.Black;
                     c.CellNoteBackgroundRectangle.Fill = Brushes.Pink;

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Game.SudokuSolver.GUI.Models;
 
 namespace Game.SudokuSolver.GUI.Controls
@@ -42,15 +43,35 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private static void InitializeUserControlByModel(SudokuBoardCellControl c, SudokuBoardCellModel model)
         {
-            c.CellContainer.Background =
-                model.BackgroundEffect switch
-                {
-                    SudokuBoardCellBackgroundEffect.Normal => Brushes.Transparent,
-                    SudokuBoardCellBackgroundEffect.StrongPotisivelyHighlighted => Brushes.LightGreen,
-                    SudokuBoardCellBackgroundEffect.WeakPositivelyHighlighted => Brushes.LightCyan,
-                    SudokuBoardCellBackgroundEffect.NegativelyHighlighted => Brushes.LightPink,
-                    _ => throw new ApplicationException(),
-                };
+            switch (model.BackgroundEffect)
+            {
+                case SudokuBoardCellBackgroundEffect.Normal:
+                    c.CellContainer.Background = Brushes.Transparent;
+                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1:
+                    c.CellContainer.Background = Brushes.Lime;
+                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2:
+                    c.CellContainer.Background = Brushes.Cyan;
+                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3:
+                    c.CellContainer.Background = Brushes.GreenYellow;
+                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4:
+                    c.CellContainer.Background = Brushes.Transparent;
+                    c.AnimationBackground.Visibility = Visibility.Visible;
+                    break;
+                case SudokuBoardCellBackgroundEffect.NegativelyHighlighted:
+                    c.CellContainer.Background = Brushes.LightPink;
+                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    break;
+                default:
+                    throw new ApplicationException();
+            }
 
             switch (model.ForegroundEffect)
             {

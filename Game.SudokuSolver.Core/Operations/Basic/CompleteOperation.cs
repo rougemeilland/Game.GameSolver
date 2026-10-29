@@ -15,12 +15,9 @@ namespace Game.SudokuSolver.Operations.Basic
                   "完了",
                   SudokuBoardDifficultyLevel.Basic,
                   null,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  UInt128.Zero,
-                  UInt128.Zero,
-                  UInt128.Zero,
+                  [],
+                  [],
+                  [],
                   description)
         {
         }

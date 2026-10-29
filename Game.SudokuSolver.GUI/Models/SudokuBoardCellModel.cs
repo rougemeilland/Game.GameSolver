@@ -55,15 +55,15 @@ namespace Game.SudokuSolver.GUI.Models
             _notes =
                 new CellNoteCollection(
                 [
-                    new(){ CellNoteDidit = "1" },
-                    new(){ CellNoteDidit = "2" },
-                    new(){ CellNoteDidit = "3" },
-                    new(){ CellNoteDidit = "4" },
-                    new(){ CellNoteDidit = "5" },
-                    new(){ CellNoteDidit = "6" },
-                    new(){ CellNoteDidit = "7" },
-                    new(){ CellNoteDidit = "8" },
-                    new(){ CellNoteDidit = "9" },
+                    new(){ CellNoteDigit = "1" },
+                    new(){ CellNoteDigit = "2" },
+                    new(){ CellNoteDigit = "3" },
+                    new(){ CellNoteDigit = "4" },
+                    new(){ CellNoteDigit = "5" },
+                    new(){ CellNoteDigit = "6" },
+                    new(){ CellNoteDigit = "7" },
+                    new(){ CellNoteDigit = "8" },
+                    new(){ CellNoteDigit = "9" },
                 ]);
         }
 

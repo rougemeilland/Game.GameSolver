@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:local="clr-namespace:Game.SudokuSolver.GUI.Controls" xmlns:models="clr-namespace:Game.SudokuSolver.GUI.Models" d:DataContext="{d:DesignInstance Type=models:SudokuBoardCellModel}"
+    xmlns:local="clr-namespace:Game.SudokuSolver.GUI.Controls"
+    xmlns:models="clr-namespace:Game.SudokuSolver.GUI.Models"
+    d:DataContext="{d:DesignInstance Type=models:SudokuBoardCellModel}"
     mc:Ignorable="d">
     <Grid x:Name="CellContainer" x:FieldModifier="private">
         <Grid.ColumnDefinitions>
@@ -14,11 +16,38 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Canvas Panel.ZIndex="2" Width="45" Height="45" x:Name="CellDeterminedDigitContainer" x:FieldModifier="private">
+        <Grid Panel.ZIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="AnimationBackground" x:FieldModifier="private">
+            <Grid.Background>
+                <SolidColorBrush x:Name="GridBackgroundColor" Color="Cyan"/>
+            </Grid.Background>
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <ColorAnimation 
+                                Storyboard.TargetName="GridBackgroundColor"
+                                Storyboard.TargetProperty="Color"
+                                From="Cyan" 
+                                To="GreenYellow" 
+                                BeginTime="0:0:0.8"
+                                Duration="0:0:0.2"/>
+                            <ColorAnimation 
+                                Storyboard.TargetName="GridBackgroundColor"
+                                Storyboard.TargetProperty="Color"
+                                From="GreenYellow" 
+                                To="Cyan" 
+                                BeginTime="0:0:1.8"
+                                Duration="0:0:0.2"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+        </Grid>
+        <Canvas Panel.ZIndex="3" Width="45" Height="45" x:Name="CellDeterminedDigitContainer" x:FieldModifier="private">
             <Rectangle Canvas.Left="1" Canvas.Top="1" Panel.ZIndex="1" Width="43" RadiusX="10" RadiusY="10" Height="43" StrokeThickness="0" x:Name="CellDeterminedDigitBackgroundRectangle" x:FieldModifier="private"/>
             <TextBlock Canvas.Left="-10" Canvas.Top="-14" Width="65" Height="65" Panel.ZIndex="2" TextAlignment="Center" FontSize="50" Text="{Binding DeterminedDigit}" x:Name="CellDeterminedDigitTextBlock" x:FieldModifier="private"/>
         </Canvas>
-        <Grid Panel.ZIndex="1" x:Name="CellNotesContainer" x:FieldModifier="private">
+        <Grid Panel.ZIndex="2" x:Name="CellNotesContainer" x:FieldModifier="private">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>

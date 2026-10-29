@@ -9,25 +9,20 @@ namespace Game.SudokuSolver.Operations.EasyClass
     /// 隠れシングルパターンのオペレーションのクラスです。
     /// </summary>
     internal sealed class HiddenSingleOperation
-        : SudokuBoardOperation
+        : SudokuBoardDetermineCellOperation
     {
         private HiddenSingleOperation(
-            SudokuBoardCellPositionDigit? determinedCell,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            SudokuBoardCellPositionDigit determinedCell,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "隠れシングル",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
                   description)
         {
         }
@@ -89,10 +84,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                 if (UInt128.PopCount(foundBitSet) != 1)
                     return null;
                 var determinedCellIndex = foundBitSet.GetOneCellIndex();
-                var removedCellNotes =
-                    ws.GetCellIndexBitSetForRemovedNoteDigit(determinedCellIndex, cellDigit)
-                    .EnumerateAsCellIndexes()
-                    .ToCells(cellDigit)
+                var excludedCellNotes =
+                    ws.GetCellIndexBitSetForExcludedNoteDigit(determinedCellIndex, cellDigit)
+                    .EnumerateAsCellNotes(cellDigit)
                     .ToArray();
                 var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(determinedCellIndex);
                 var determinedCellPosiionText = determinedCellIndex.ToFriendlyString();
@@ -104,15 +98,15 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
                             $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}のセルのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
                             $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
                             $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち '{determinedCellDigitText}' であり得るセルが{determinedCellPosiionText}のみであるため、" +
                             $"{determinedCellPosiionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };
 
@@ -124,24 +118,11 @@ namespace Game.SudokuSolver.Operations.EasyClass
                 return
                     new HiddenSingleOperation(
                         new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
-                        removedCellNotes,
-                        houseBitMask,
-                        removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex) : UInt128.Zero,
+                        excludedCellNotes,
+                        houseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            if (!newCellSet.DetermineCell(DeterminedCell.Value.CellIndex, DeterminedCell.Value.Digit))
-                throw new ApplicationException();
-
-            return newCellSet;
         }
     }
 }

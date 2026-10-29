@@ -138,7 +138,7 @@ namespace Game.SudokuSolver
 #if DEBUG
             if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
-            System.Diagnostics.Debug.Assert(!IsDetermined(cellIndex));
+            System.Diagnostics.Debug.Assert(!IsDetermined(cellIndex), $"{cellIndex.ToFriendlyString()} is determined cell.");
 #endif
             return (SudokuBoardCellNoteBitSet)(_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
         }

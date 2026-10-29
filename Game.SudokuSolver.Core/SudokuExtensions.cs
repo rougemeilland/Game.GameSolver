@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver
@@ -75,6 +76,110 @@ namespace Game.SudokuSolver
             {
                 var cellIndex = cellIndexBitSet.GetOneCellIndex();
                 yield return cellIndex;
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定された数字のビット集合とセルの位置からセルの数字の候補のシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="cellNoteDigit">
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値のシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<SudokuBoardCellPositionDigit> EnumerateAsCellNotes(this UInt128 cellIndexBitSet, SudokuBoardCellDigit cellNoteDigit)
+        {
+#if DEBUG
+            if ((cellIndexBitSet & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+            if (cellNoteDigit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(cellNoteDigit));
+#endif
+
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+                yield return new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit);
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、セルの位置を示す文字列のシーケンスに変換します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの番号のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの位置を示す <see cref="string"/> オブジェクトの列挙子を返します。
+        /// </returns>
+        internal static IEnumerable<string> EnumerateAsCellPositionTexts(this UInt128 cellIndexBitSet)
+        {
+#if DEBUG
+            if ((cellIndexBitSet & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+#endif
+
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+                yield return cellIndex.ToFriendlyString();
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、各セルの背景表示効果のシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="effect">
+        /// セルの背景効果を示す <see cref="SudokuBoardCellBackgroundEffect"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの位置を示す <see cref="SudokuBoardCellPosition"/> と セルの背景効果を示す <see cref="SudokuBoardCellBackgroundEffect"/> 値のペアのシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> EnumerateAsCellBackgroundEffects(this UInt128 cellIndexBitSet, SudokuBoardCellBackgroundEffect effect)
+        {
+#if DEBUG
+            if ((cellIndexBitSet & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+#endif
+
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+                yield return (cellIndex, effect);
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定されたセル位置のビット集合と数字から、セルの数字の候補の表示効果とのペアのシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="cellNoteDigit">
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellDigit"/> 値です。
+        /// </param>
+        /// <param name="effect"></param>
+        /// セルの数字の表示効果を示す <see cref="SudokuBoardCellNoteEffect"/> 値です。
+        /// <returns>
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値とセルの数字の候補の表示効果を示す <see cref="SudokuBoardCellNoteEffect"/> のペアのシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> EnumerateAsCellNoteEffects(this UInt128 cellIndexBitSet, SudokuBoardCellDigit cellNoteDigit, SudokuBoardCellNoteEffect effect)
+        {
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+                yield return (new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit), effect);
                 cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
         }
@@ -247,7 +352,7 @@ namespace Game.SudokuSolver
         internal static IEnumerable<string> ToCellPositionTexts(this IEnumerable<SudokuBoardCellIndex> cellIndexes)
         {
             foreach (var cellIndex in cellIndexes)
-                yield return new SudokuBoardCellPosition(cellIndex).ToFriendlyString();
+                yield return cellIndex.ToFriendlyString();
         }
 
         /// <summary>
@@ -353,19 +458,19 @@ namespace Game.SudokuSolver
         /// <summary>
         /// 与えられたセルの数字のビット集合に含まれる数字がひとつだけであるかどうかを調べます。
         /// </summary>
-        /// <param name="cellIndexBitSet">
+        /// <param name="cellDigitBitSet">
         /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
         /// <returns>
         /// ビット集合に含まれる数字が一つだけであるならば <see langword="true"/>、そうではないなら <see langword="false"/> を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsSingleBit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static bool IsSingleBit(this SudokuBoardCellNoteBitSet cellDigitBitSet)
         {
-            var value = (ushort)cellIndexBitSet;
+            var value = (ushort)cellDigitBitSet;
 #if DEBUG
-            if (cellIndexBitSet is SudokuBoardCellNoteBitSet.None or > SudokuBoardCellNoteBitSet.AllCells)
-                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+            if (cellDigitBitSet is SudokuBoardCellNoteBitSet.None or > SudokuBoardCellNoteBitSet.AllCells)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
 #endif
 
             return ushort.IsPow2(value);
@@ -374,19 +479,19 @@ namespace Game.SudokuSolver
         /// <summary>
         /// 与えられたセルの数字のビット集合に含まれる数字の数を取得します。
         /// </summary>
-        /// <param name="cellIndexBitSet">
+        /// <param name="cellDigitBitSet">
         /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
         /// <returns>
         /// ビット集合に含まれる数字の数を示す <see cref="int"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int GetPopCount(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static int GetPopCount(this SudokuBoardCellNoteBitSet cellDigitBitSet)
         {
-            var value = (ushort)cellIndexBitSet;
+            var value = (ushort)cellDigitBitSet;
 #if DEBUG
-            if (cellIndexBitSet is SudokuBoardCellNoteBitSet.None or > SudokuBoardCellNoteBitSet.AllCells)
-                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+            if (cellDigitBitSet > SudokuBoardCellNoteBitSet.AllCells)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
 #endif
 
             return ushort.PopCount(value);
@@ -395,45 +500,97 @@ namespace Game.SudokuSolver
         /// <summary>
         /// 与えられたセルの数字のビット集合からひとつの数字を取得します。
         /// </summary>
-        /// <param name="cellIndexBitSet">
+        /// <param name="cellDigitBitSet">
         /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
         /// <returns>
         /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static SudokuBoardCellDigit GetOneCellNoteDigit(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static SudokuBoardCellDigit GetOneCellNoteDigit(this SudokuBoardCellNoteBitSet cellDigitBitSet)
         {
-            var value = (ushort)cellIndexBitSet;
+            var value = (ushort)cellDigitBitSet;
 #if DEBUG
-            if (cellIndexBitSet is SudokuBoardCellNoteBitSet.None or > SudokuBoardCellNoteBitSet.AllCells)
-                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+            if (cellDigitBitSet is SudokuBoardCellNoteBitSet.None or > SudokuBoardCellNoteBitSet.AllCells)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
 #endif
 
             return SudokuBoardCellDigit.One + ushort.TrailingZeroCount(value);
         }
 
         /// <summary>
-        /// 指定された整数をセルの位置を示すビット集合とみなし、セルの位置を列挙します。
+        /// 指定された数字のビット集合から数字を列挙します。
         /// </summary>
-        /// <param name="cellIndexBitSet">
-        /// セルの位置のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// <param name="cellDigitBitSet">
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
         /// </param>
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellDigit"/> 値の列挙子を返します。
         /// </returns>
-        internal static IEnumerable<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellIndexBitSet)
+        internal static IEnumerable<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellDigitBitSet)
         {
-            var value = (ushort)cellIndexBitSet;
 #if DEBUG
-            if ((value & ~SudokuBoardWorkspace.AllCellIndexBitSet) != 0)
+            if ((cellDigitBitSet & ~SudokuBoardCellNoteBitSet.AllCells) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
+#endif
+
+            while (cellDigitBitSet != 0)
+            {
+                var cellDigit = cellDigitBitSet.GetOneCellNoteDigit();
+                yield return cellDigit;
+                cellDigitBitSet &= ~cellDigit.ToCellNoteBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定された数字のビット集合から個々の数字を指定された領域に格納します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// </param>
+        /// <param name="cellDigits">
+        /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値の格納先です。
+        /// </param>
+        internal static void EnumerateAsCellDigits(this SudokuBoardCellNoteBitSet cellDigitBitSet, Span<SudokuBoardCellDigit> cellDigits)
+        {
+#if DEBUG
+            if ((cellDigitBitSet & ~SudokuBoardCellNoteBitSet.AllCells) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
+            if (cellDigits.Length != cellDigitBitSet.GetPopCount())
+                throw new ArgumentException("", nameof(cellDigits));
+#endif
+            var index = 0;
+            while (cellDigitBitSet != 0)
+            {
+                var cellDigit = cellDigitBitSet.GetOneCellNoteDigit();
+                cellDigits[index++] = cellDigit;
+                cellDigitBitSet &= ~cellDigit.ToCellNoteBitSet();
+            }
+        }
+
+        /// <summary>
+        /// 指定された数字のビット集合とセルの位置からセルの数字の候補のシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// </param>
+        /// <param name="cellIndex">
+        /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値のシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<SudokuBoardCellPositionDigit> EnumerateAsCellNotes(this SudokuBoardCellNoteBitSet cellIndexBitSet, SudokuBoardCellIndex cellIndex)
+        {
+#if DEBUG
+            if ((cellIndexBitSet & ~SudokuBoardCellNoteBitSet.AllCells) != 0)
                 throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
 #endif
 
             while (cellIndexBitSet != 0)
             {
                 var cellDigit = cellIndexBitSet.GetOneCellNoteDigit();
-                yield return cellDigit;
+                yield return new SudokuBoardCellPositionDigit(cellIndex, cellDigit);
                 cellIndexBitSet &= ~cellDigit.ToCellNoteBitSet();
             }
         }
@@ -482,6 +639,28 @@ namespace Game.SudokuSolver
 
         #endregion
 
+        #region for SudokuBoardCellPositionDigit
+
+        /// <summary>
+        /// 指定されたセルの数字の候補のシーケンスとセルの文字の候補の背景表示効果から、セルの数字の候補と背景表示効果のペアのシーケンスを取得します。
+        /// </summary>
+        /// <param name="cellNotes">
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値のシーケンスです。
+        /// </param>
+        /// <param name="effect">
+        /// セルの数字の候補の背景表示効果です。
+        /// </param>
+        /// <returns>
+        /// セルの数字の候補と背景表示効果のペアのシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> ToCellNoteEffects(this IEnumerable<SudokuBoardCellPositionDigit> cellNotes, SudokuBoardCellNoteEffect effect)
+        {
+            foreach (var cellNote in cellNotes)
+                yield return (cellNote, effect);
+        }
+
+        #endregion
+
         #region for SudokuBoardDifficultyLevel
 
         /// <summary>
@@ -495,50 +674,159 @@ namespace Game.SudokuSolver
         /// </returns>
         public static string ToFriendlyString(this SudokuBoardDifficultyLevel difficulty)
             => difficulty switch
+            {
+                SudokuBoardDifficultyLevel.Beginner => "★ 入門",
+                SudokuBoardDifficultyLevel.Easy => "★★ 初級",
+                SudokuBoardDifficultyLevel.Medium => "★★★ 中級",
+                SudokuBoardDifficultyLevel.Hard => "★★★★ 上級",
+                SudokuBoardDifficultyLevel.Extreme => "★★★★★ 超上級",
+                SudokuBoardDifficultyLevel.Insane => "★★★★★★ 究極",
+                SudokuBoardDifficultyLevel.Nonstandard => "(規格外)",
+                _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
+            };
+
+        #endregion
+
+        #region for SudokuBoardWorkspace
+
+        /// <summary>
+        /// 指定されたセル位置のビット集合と数字のマスクからセルの文字の数字の候補を抽出して、セルの数字の候補の表示効果とのペアのシーケンスを取得します。
+        /// </summary>
+        /// <param name="ws">
+        /// 盤面の状態を示す <see cref="SudokuBoardWorkspace"/> オブジェクトです。
+        /// </param>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <param name="cellNoteBitMask">
+        /// セルの数字の候補を抽出するためのビットマスクを示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// </param>
+        /// <param name="effect"></param>
+        /// セルの数字の表示効果を示す <see cref="SudokuBoardCellNoteEffect"/> 値です。
+        /// <returns>
+        /// セルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値とセルの数字の候補の表示効果を示す <see cref="SudokuBoardCellNoteEffect"/> のペアのシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> EnumerateAsCellNoteEffects(this SudokuBoardWorkspace ws, UInt128 cellIndexBitSet, SudokuBoardCellNoteBitSet cellNoteBitMask, SudokuBoardCellNoteEffect effect)
+        {
+            while (cellIndexBitSet != 0)
+            {
+                var cellIndex = cellIndexBitSet.GetOneCellIndex();
+#if DEBUG
+                System.Diagnostics.Debug.Assert(!ws.IsDetermined(cellIndex));
+#endif
+                var cellNoteDigitBitSet = ws.GetNoteBitSet(cellIndex) & cellNoteBitMask;
+                while (cellNoteDigitBitSet != 0)
                 {
-                    SudokuBoardDifficultyLevel.Beginner => "★ 入門",
-                    SudokuBoardDifficultyLevel.Easy => "★★ 初級",
-                    SudokuBoardDifficultyLevel.Medium => "★★★ 中級",
-                    SudokuBoardDifficultyLevel.Hard => "★★★★ 上級",
-                    SudokuBoardDifficultyLevel.Extreme => "★★★★★ 超上級",
-                    SudokuBoardDifficultyLevel.Insane => "★★★★★★ 究極",
-                    SudokuBoardDifficultyLevel.Nonstandard => "(規格外)",
-                    _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
-                };
+#if DEBUG
+                    System.Diagnostics.Debug.WriteLine($"[{string.Join(", ", cellNoteDigitBitSet.EnumerateAsCellDigits().Select(cellNoteDigit => $"'{cellNoteDigit.ToCellDigitChar()}'"))}]");
+#endif
+                    var cellNoteDigit = cellNoteDigitBitSet.GetOneCellNoteDigit();
+                    yield return (new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit), effect);
+
+                    cellNoteDigitBitSet &= ~cellNoteDigit.ToCellNoteBitSet();
+                }
+
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"[{string.Join(", ", cellNoteDigitBitSet.EnumerateAsCellDigits().Select(cellNoteDigit => $"'{cellNoteDigit.ToCellDigitChar()}'"))}]");
+#endif
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+        }
 
         #endregion
 
         #region Linq
 
         /// <summary>
-        /// 二つのコレクションのうち最初のコレクションが空である場合だけ二つ目のコレクションを返す列挙子を返します。
+        /// 指定された真偽値が真のときだけ二つのシーケンスを結合します。
         /// </summary>
         /// <typeparam name="ELEMENT_T">
-        /// コレクションの要素の型です。
+        /// シーケンスの要素の型です。
         /// </typeparam>
         /// <param name="first">
-        /// 最初のコレクションの列挙子です。
+        /// 最初のシーケンスの列挙子です。
+        /// </param>
+        /// <param name="condition">
+        /// 二番目のシーケンスを結合するかどうかの <see cref="bool"/> 値です。
         /// </param>
         /// <param name="second">
-        /// 二番目のコレクションの列挙子です。
+        /// 二番目のシーケンスの列挙子です。
         /// </param>
-        /// <returns></returns>
+        /// <returns>
+        /// <paramref name="condition"/> が <see langword="true"/> の場合は、<paramref name="first"/> と <paramref name="second"/> を結合したシーケンスを返します。
+        /// そうではない場合は、<paramref name="first"/> を返します。
+        /// </returns>
+        internal static IEnumerable<ELEMENT_T> ConcatIf<ELEMENT_T>(this IEnumerable<ELEMENT_T> first, bool condition, IEnumerable<ELEMENT_T> second)
+        {
+            foreach (var element in first)
+                yield return element;
+            if (condition)
+            {
+                foreach (var element in second)
+                    yield return element;
+            }
+        }
+
+        /// <summary>
+        /// 二つのシーケンスのうち最初のシーケンスが空である場合だけ二つ目のシーケンスを返す列挙子を取得します。
+        /// </summary>
+        /// <typeparam name="ELEMENT_T">
+        /// シーケンスの要素の型です。
+        /// </typeparam>
+        /// <param name="first">
+        /// 最初のシーケンスの列挙子です。
+        /// </param>
+        /// <param name="second">
+        /// 二番目のシーケンスの列挙子です。
+        /// </param>
+        /// <returns>
+        /// <paramref name="first"/> が空でなければ <paramref name="first"/> の要素が、そうではない場合は <paramref name="second"/> の要素が返る列挙子を返します。
+        /// </returns>
         internal static IEnumerable<ELEMENT_T> ConcatIfNone<ELEMENT_T>(this IEnumerable<ELEMENT_T> first, IEnumerable<ELEMENT_T> second)
         {
-            using (var enumerator1 = first.GetEnumerator())
+            using var enumerator1 = first.GetEnumerator();
+            if (enumerator1.MoveNext())
             {
-                if (enumerator1.MoveNext())
-                {
+                yield return enumerator1.Current;
+                while (enumerator1.MoveNext())
                     yield return enumerator1.Current;
-                    while (enumerator1.MoveNext())
-                        yield return enumerator1.Current;
-                }
-                else
-                {
-                    foreach (var item in second)
-                        yield return item;
-                }
             }
+            else
+            {
+                foreach (var item in second)
+                    yield return item;
+            }
+        }
+
+        /// <summary>
+        /// 指定されたシーケンスに指定された条件付きで指定された要素を追加します。
+        /// </summary>
+        /// <typeparam name="ELEMENT_T">
+        /// シーケンスの要素の型です。
+        /// </typeparam>
+        /// <param name="source">
+        /// 指定されたシーケンスです。
+        /// </param>
+        /// <param name="condition">
+        /// <paramref name="element"/> を追加するならば <see langword="true"/>、そうでなない場合は <see langword="false"/> です。
+        /// </param>
+        /// <param name="element">
+        /// シーケンスに追加する要素を示す <typeparamref name="ELEMENT_T"/> 型のオブジェクトまたは値です。
+        /// </param>
+        /// <returns>
+        /// <paramref name="condition"/> が <see langword="true"/> である場合は、<paramref name="source"/> の末尾に <paramref name="element"/> が追加されたシーケンスを返します。
+        /// そうではない場合は <paramref name="source"/> がそのまま返ります。
+        /// </returns>
+        internal static IEnumerable<ELEMENT_T> AppendIf<ELEMENT_T>(this IEnumerable<ELEMENT_T> source, bool condition, ELEMENT_T element)
+        {
+            using (var enumerator1 = source.GetEnumerator())
+            {
+                while (enumerator1.MoveNext())
+                    yield return enumerator1.Current;
+            }
+
+            if (condition)
+                yield return element;
         }
 
         #endregion

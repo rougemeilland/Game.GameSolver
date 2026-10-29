@@ -7,22 +7,13 @@ namespace Game.WateSortSolver.GUI
     internal sealed class WateSortBoardState
         : GameBoardState<WateSortBoardState, WateSortBoardOperation>
     {
-        protected override ReadOnlyMemory<uint> GenerateUniqueKeySource()
-        {
-            // TODO: 未実装
-            throw new NotImplementedException();
-        }
+        // TODO: 未実装
+        protected override ReadOnlyMemory<uint> GenerateUniqueKeySource() => throw new NotImplementedException();
 
-        protected override IEnumerable<WateSortBoardOperation> EnumerateNextOperations()
-        {
-            // TODO: 未実装
-            throw new NotImplementedException();
-        }
+        // TODO: 未実装
+        protected override IEnumerable<WateSortBoardOperation> EnumerateNextOperations() => throw new NotImplementedException();
 
-        protected override WateSortBoardState GenerateNextState(WateSortBoardOperation operation)
-        {
-            // TODO: 未実装
-            throw new NotImplementedException();
-        }
+        // TODO: 未実装
+        protected override WateSortBoardState GenerateNextState(WateSortBoardOperation operation) => throw new NotImplementedException();
     }
 }

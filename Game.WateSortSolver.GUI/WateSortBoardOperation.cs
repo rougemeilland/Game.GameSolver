@@ -11,5 +11,10 @@ namespace Game.WateSortSolver.GUI
     internal sealed class WateSortBoardOperation
         : GameBoardOperation<WateSortBoardOperation>
     {
+        public WateSortBoardOperation()
+            : base(GameBoardStatus.Unknown)
+        {
+            
+        }
     }
 }

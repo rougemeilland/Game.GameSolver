@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -11,19 +11,16 @@ namespace Game.SudokuSolver.Operations.Basic
         : SudokuBoardOperation
     {
         private NoNoteOperation(
-            UInt128 noNoteCellIndexBitSet,
+            IEnumerable<SudokuBoardCellIndex> noNoteCellIndexes,
             string description)
             : base(
                   GameBoardStatus.Failed,
                   "数字の候補が存在しない",
                   SudokuBoardDifficultyLevel.Basic,
                   null,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  UInt128.Zero,
-                  UInt128.Zero,
-                  noNoteCellIndexBitSet,
+                  [],
+                  noNoteCellIndexes.Select(cellIndex => (cellIndex, SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                  [],
                   description)
         {
         }
@@ -38,12 +35,12 @@ namespace Game.SudokuSolver.Operations.Basic
             if (notNoteCellIndexBitSet == 0)
                 return null;
 
-            var cellPositionList = notNoteCellIndexBitSet.EnumerateAsCellIndexes().Select(cellIndex => new SudokuBoardCellPosition(cellIndex)).ToArray();
-            var cellPositionListText = string.Join(", ", cellPositionList.Select(cellPosition => cellPosition.ToFriendlyString()));
+            var notNoteCellIndexes = notNoteCellIndexBitSet.EnumerateAsCellIndexes();
+            var cellPositionListText = string.Join(", ", notNoteCellIndexes.ToCellPositionTexts());
             var description =
                 $"{cellPositionListText}のセルの数字の候補が存在しないため、" +
                 $"解答は存在しません。";
-            return new NoNoteOperation(notNoteCellIndexBitSet, description);
+            return new NoNoteOperation(notNoteCellIndexes, description);
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

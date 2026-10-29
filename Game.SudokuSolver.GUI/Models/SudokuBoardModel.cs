@@ -14,7 +14,11 @@ namespace Game.SudokuSolver.GUI.Models
 
             public CellCollection(SudokuBoardCellModel[] source)
             {
+#if DEBUG
+                System.Diagnostics.Debug.Assert(source is not null && source.Length == SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1);
+#endif
                 _source = source;
+
             }
 
             public SudokuBoardCellModel this[int index]
@@ -39,16 +43,17 @@ namespace Game.SudokuSolver.GUI.Models
                 }
             }
 
-            public int Length => throw new NotImplementedException();
+            public int Length => _source.Length;
         }
 
         private readonly SudokuBoardCellModel[] _cells;
+        private readonly bool _latestOperationIsNotNull;
         private bool _showOPeration;
+        private bool _showOPerationDetail;
         private string _operationName;
         private Visibility _operationNameVisibility;
         private string _description;
         private Visibility _operationVisibility;
-        private readonly bool _latestOperationIsNotNull;
 
         public SudokuBoardModel(SudokuBoardState boardState)
         {
@@ -63,22 +68,25 @@ namespace Game.SudokuSolver.GUI.Models
             for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
                 _cells[cellIndex - SudokuBoardCellIndex.MinValue] = CreateCellModel(sourceCells[cellIndex]);
             _showOPeration = false;
+            _showOPerationDetail = false;
             _operationName = string.Empty;
-            _operationNameVisibility = Visibility.Hidden;
+            _operationNameVisibility = (Visibility)255;
             _description = string.Empty;
-            _operationVisibility = Visibility.Collapsed;
+            _operationVisibility = (Visibility)255;
             StepCount = boardState.StepCount;
             var latestOperation = boardState.LatestOperation;
             if (latestOperation is null || latestOperation.Status == GameBoardStatus.Success)
             {
                 _latestOperationIsNotNull = false;
                 OperationNameVisibility = Visibility.Visible;
-                ShowOPeration = false;
+                ShowOperation = false;
+                ShowOperationDetail = false;
             }
             else if (latestOperation.Status == GameBoardStatus.Failed)
             {
                 _latestOperationIsNotNull = true;
-                ShowOPeration = true;
+                ShowOperation = true;
+                ShowOperationDetail = true;
                 OperationName = string.Empty;
                 OperationNameVisibility = Visibility.Collapsed;
                 Description = latestOperation.Description;
@@ -86,11 +94,14 @@ namespace Game.SudokuSolver.GUI.Models
             else
             {
                 _latestOperationIsNotNull = true;
-                ShowOPeration = true;
+                ShowOperation = true;
+                ShowOperationDetail = _latestOperationIsNotNull;
                 OperationName = $"{latestOperation.Title} ({latestOperation.Difficulty.ToFriendlyString()})";
                 OperationNameVisibility = Visibility.Visible;
                 Description = latestOperation.Description;
             }
+
+            SetOperationVisibility();
 
             static SudokuBoardCellModel CreateCellModel(SudokuBoardCell sourceCell)
             {
@@ -120,8 +131,8 @@ namespace Game.SudokuSolver.GUI.Models
                         DeterminedDigit = "",
                         ForegroundEffect = SudokuBoardCellForegroundEffect.NotDetermined
                     };
-                    for (var cellNoteDidit = SudokuBoardCellDigit.MinValue; cellNoteDidit <= SudokuBoardCellDigit.MaxValue; ++cellNoteDidit)
-                        model.Notes[cellNoteDidit].ForegroundEffect = notDeterminedCell.Notes[cellNoteDidit].Effect;
+                    for (var cellNoteDigit = SudokuBoardCellDigit.MinValue; cellNoteDigit <= SudokuBoardCellDigit.MaxValue; ++cellNoteDigit)
+                        model.Notes[cellNoteDigit].ForegroundEffect = notDeterminedCell.Notes[cellNoteDigit].Effect;
                     return model;
                 }
                 else
@@ -133,7 +144,7 @@ namespace Game.SudokuSolver.GUI.Models
 
         public IReadOnlyCellsIndexer Cells { get; }
 
-        public bool ShowOPeration
+        public bool ShowOperation
         {
             get => _showOPeration;
             set
@@ -141,13 +152,21 @@ namespace Game.SudokuSolver.GUI.Models
                 if (value == _showOPeration)
                     return;
                 _showOPeration = value;
-                RaisePropertyChangedEvent(nameof(ShowOPeration));
-                OperationVisibility =
-                    !ShowOPeration
-                    ? Visibility.Collapsed
-                    : _latestOperationIsNotNull
-                    ? Visibility.Visible
-                    : Visibility.Hidden;
+                RaisePropertyChangedEvent(nameof(ShowOperation));
+                SetOperationVisibility();
+            }
+        }
+
+        public bool ShowOperationDetail
+        {
+            get => _showOPerationDetail;
+            private set
+            {
+                if (value == _showOPerationDetail)
+                    return;
+                _showOPerationDetail = value;
+                RaisePropertyChangedEvent(nameof(ShowOperationDetail));
+                SetOperationVisibility();
             }
         }
 
@@ -200,5 +219,13 @@ namespace Game.SudokuSolver.GUI.Models
                 RaisePropertyChangedEvent(nameof(OperationVisibility));
             }
         }
+
+        private void SetOperationVisibility()
+            => OperationVisibility =
+                !ShowOperation
+                ? Visibility.Hidden
+                : ShowOperationDetail
+                ? Visibility.Visible
+                : Visibility.Collapsed;
     }
 }

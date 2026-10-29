@@ -9,25 +9,20 @@ namespace Game.SudokuSolver.Operations.MediumClass
     /// ボックスラインリダクションのオペレーションのクラスです。
     /// </summary>
     internal sealed class BoxLineReductionOperation
-        : SudokuBoardOperation
+        : SudokuBoardRemoveCellNoteOperation
     {
         private BoxLineReductionOperation(
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
+            IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "ボックスラインリダクション",
                   SudokuBoardDifficultyLevel.Medium,
-                  null,
-                  highlightedCellNotes,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
+                  cellNoteEffects,
                   description)
         {
         }
@@ -83,44 +78,24 @@ namespace Game.SudokuSolver.Operations.MediumClass
             static BoxLineReductionOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
                 var highlightedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
-                var removedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask;
-                if (highlightedCellNoteBitSet != 0 && (cellNoteBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask) == 0 && removedCellNoteBitSet != 0)
-                {
-                    var cellDigitChar = cellDigit.ToCellDigitChar();
-                    var removedCellNotePositionTexts = $"({string.Join(", ", removedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
-                    var description =
-                        $"{columnOrRowHouseText}には{block.ToFriendlyString()}のブロックと重なるセルのみに数字の候補 '{cellDigitChar}' が含まれており、" +
-                        $"必ずこれらのセルの何れかが '{cellDigitChar}' になります。\n" +
-                        $"したがって、{block.ToFriendlyString()}のブロックにある他のセル {removedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を削除します。";
-                    return
-                        new BoxLineReductionOperation(
-                            highlightedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
-                            removedCellNoteBitSet.EnumerateAsCellIndexes().ToCells(cellDigit).ToArray(),
-                            columnOrRowHouseBitMask,
-                            blockHouseBitMask,
-                            description);
-                }
+                var excludedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask;
+                if (highlightedCellNoteBitSet == 0 || (cellNoteBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask) != 0 || excludedCellNoteBitSet == 0)
+                    return null;
 
-                return null;
+                var cellDigitChar = cellDigit.ToCellDigitChar();
+                var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
+                var description =
+                    $"{columnOrRowHouseText}には{block.ToFriendlyString()}のブロックと重なるセルのみに数字の候補 '{cellDigitChar}' が含まれており、" +
+                    $"必ずこれらのセルの何れかが '{cellDigitChar}' になります。\n" +
+                    $"したがって、{block.ToFriendlyString()}のブロックにある他のセル {excludedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を排除します。";
+                return
+                    new BoxLineReductionOperation(
+                        excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
+                        columnOrRowHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                            .Concat((blockHouseBitMask & ~columnOrRowHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        highlightedCellNoteBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                        description);
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is not null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            var removedCellNotes = RemovedCellNotes.Span;
-            for (var index = 0; index < RemovedCellNotes.Length; ++index)
-            {
-                var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
-                    throw new ApplicationException();
-            }
-
-            return newCellSet;
         }
     }
 }

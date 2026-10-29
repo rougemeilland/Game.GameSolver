@@ -112,27 +112,14 @@ namespace Game.SudokuSolver
         public IReadOnlySudokuBoardCellCollection GetCells()
         {
             var cellsBuffer = new SudokuBoardCell[81];
-            var strongPositivelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
-            var weakPositivelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
-            var negativelyHighlightedBackgroundCellsBitSet = UInt128.Zero;
-            if (LatestOperation is not null)
-            {
-                strongPositivelyHighlightedBackgroundCellsBitSet = LatestOperation.StrongPositivelyRelatedCellIndexBitSet;
-                weakPositivelyHighlightedBackgroundCellsBitSet = LatestOperation.WeakPositivelyRelatedCellIndexBitSet;
-                negativelyHighlightedBackgroundCellsBitSet = LatestOperation.NegativelyRelatedCellIndexBitSet;
-            }
+            var cellBackgroundEffects = LatestOperation is null ? SudokuBoardOperation.EmptyCellBackgroundEffects : LatestOperation.CellBackgroundEffects;
+            var cellNoteEffects = LatestOperation is null ? SudokuBoardOperation.EmptyCellNoteEffects : LatestOperation.CellNoteEffects;
 
             for (var cellIndex = SudokuBoardCellIndex.MinValue; cellIndex <= SudokuBoardCellIndex.MaxValue; ++cellIndex)
             {
                 var cellIndexBitSet = cellIndex.ToCellIndexBitSet();
-                var backgroundEffect =
-                    (strongPositivelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
-                    ? SudokuBoardCellBackgroundEffect.StrongPotisivelyHighlighted
-                    : (weakPositivelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
-                    ? SudokuBoardCellBackgroundEffect.WeakPositivelyHighlighted
-                    : (negativelyHighlightedBackgroundCellsBitSet & cellIndexBitSet) != 0
-                    ? SudokuBoardCellBackgroundEffect.NegativelyHighlighted
-                    : SudokuBoardCellBackgroundEffect.Normal;
+                if (!cellBackgroundEffects.TryGetValue(cellIndex, out var backgroundEffect))
+                    backgroundEffect = SudokuBoardCellBackgroundEffect.Normal;
                 if (_cells.IsDetermined(cellIndex))
                 {
                     var latestDeterminedCell = LatestOperation?.DeterminedCell;
@@ -153,45 +140,22 @@ namespace Game.SudokuSolver
                 else
                 {
                     var enabledCellNoteBitSet = _cells.GetNoteBitSet(cellIndex);
-                    var primaryPositivelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
-                    var secondaryPositivelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
-                    var negativelyHighlightedCellNoteBitSet = SudokuBoardCellNoteBitSet.None;
-                    if (LatestOperation is not null)
-                    {
-                        for (var index = 0; index < LatestOperation.PrimaryHighlightedCellNotes.Length; ++index)
-                        {
-                            var cellNote = LatestOperation.PrimaryHighlightedCellNotes.Span[index];
-                            if (cellNote.CellIndex == cellIndex)
-                                primaryPositivelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
-                        }
-
-                        for (var index = 0; index < LatestOperation.SecondaryHighlightedCellNotes.Length; ++index)
-                        {
-                            var cellNote = LatestOperation.SecondaryHighlightedCellNotes.Span[index];
-                            if (cellNote.CellIndex == cellIndex)
-                                secondaryPositivelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
-                        }
-
-                        for (var index = 0; index < LatestOperation.RemovedCellNotes.Length; ++index)
-                        {
-                            var cellNote = LatestOperation.RemovedCellNotes.Span[index];
-                            if (cellNote.CellIndex == cellIndex)
-                                negativelyHighlightedCellNoteBitSet |= cellNote.Digit.ToCellNoteBitSet();
-                        }
-                    }
-
                     cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
                         new SudokuBoardNotDeterminedCell(
                             backgroundEffect,
-                            enabledCellNoteBitSet,
-                            primaryPositivelyHighlightedCellNoteBitSet,
-                            secondaryPositivelyHighlightedCellNoteBitSet,
-                            negativelyHighlightedCellNoteBitSet);
+                            cellNoteDigit =>
+                            {
+                                if (cellNoteEffects.TryGetValue(cellIndex, cellNoteDigit, out var effect))
+                                    return effect;
+                                else if ((enabledCellNoteBitSet & cellNoteDigit.ToCellNoteBitSet()) != SudokuBoardCellNoteBitSet.None)
+                                    return SudokuBoardCellNoteEffect.Normal;
+                                else
+                                    return SudokuBoardCellNoteEffect.Hidden;
+                            });
                 }
             }
 
-            return
-                new CellCollection(cellsBuffer);
+            return new CellCollection(cellsBuffer);
         }
 
         /// <inheritdoc/>
@@ -219,7 +183,7 @@ namespace Game.SudokuSolver
 
             operation =
                 FullHouseOperation.MatchPattern(workspace)
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -230,7 +194,7 @@ namespace Game.SudokuSolver
             operation =
                 NakedSingleOperation.MatchPattern(workspace)
                 .Concat(HiddenSingleOperation.MatchPattern(workspace))
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -243,7 +207,7 @@ namespace Game.SudokuSolver
                 .Concat(BoxLineReductionOperation.MatchPattern(workspace))
                 .Concat(NakedPairOperation.MatchPattern(workspace))
                 .Concat(NakedTripleOperation.MatchPattern(workspace))
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -254,10 +218,8 @@ namespace Game.SudokuSolver
             operation =
                 NakedQuadOperation.MatchPattern(workspace)
                 .Concat(HiddenPairOperation.MatchPattern(workspace))
-#if false // 未実装
                 .Concat(XWingOperation.MatchPattern(workspace))
-#endif
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -268,7 +230,7 @@ namespace Game.SudokuSolver
             operation =
                 HiddenTripleOperation.MatchPattern(workspace)
                 .Concat(HiddenQuadOperation.MatchPattern(workspace))
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -277,8 +239,9 @@ namespace Game.SudokuSolver
             #region InsaneClass
 
             operation =
-                ForcingChainOperation.MatchPattern(workspace)
-                .MaxBy(operation => operation.RemovedCellNotes.Length);
+                SueDeCoqOperation.MatchPattern(workspace)
+                .Concat(ForcingChainOperation.MatchPattern(workspace))
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 

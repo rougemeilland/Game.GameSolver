@@ -9,25 +9,20 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
     /// フルハウスパターンオペレーションのクラスです。
     /// </summary>
     internal sealed class FullHouseOperation
-        : SudokuBoardOperation
+        : SudokuBoardDetermineCellOperation
     {
         private FullHouseOperation(
-            SudokuBoardCellPositionDigit? determinedCell,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            SudokuBoardCellPositionDigit determinedCell,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "フルハウス",
                   SudokuBoardDifficultyLevel.Beginner,
                   determinedCell,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
                   description)
         {
         }
@@ -86,13 +81,12 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
 #endif
                 var foundCellDigit = FindMissingCellDigit(ws, determinedCellBitSetByHouse);
 
-                var removedCellNotes =
-                    ws.GetCellIndexBitSetForRemovedNoteDigit(undeterminedCellIndex, foundCellDigit)
-                    .EnumerateAsCellIndexes()
-                    .ToCells(foundCellDigit)
+                var excludedCellNotes =
+                    ws.GetCellIndexBitSetForExcludedNoteDigit(undeterminedCellIndex, foundCellDigit)
+                    .EnumerateAsCellNotes(foundCellDigit)
                     .ToArray();
                 var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(undeterminedCellIndex);
-                var determinedCellPositionText = new SudokuBoardCellPosition(undeterminedCellIndex).ToFriendlyString();
+                var determinedCellPositionText = undeterminedCellIndex.ToFriendlyString();
                 var determinedCellDigitText = foundCellDigit.ToCellDigitChar();
                 var description =
                     house switch
@@ -100,15 +94,15 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
                             $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
                             $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
                             $"{determinedCellBlock.ToFriendlyString()}のブロックのセルのうち{determinedCellPositionText}以外のセルが '{determinedCellDigitText}' 以外の数字で確定しているため、" +
                             $"{determinedCellPositionText}のセルの数字は '{determinedCellDigitText}' に確定します。\n" +
-                            $"{(removedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を削除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から '{determinedCellDigitText}' を排除します。" : "")}",
                         _ => throw new ApplicationException(),
                     };
 #if DEBUG
@@ -117,9 +111,9 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 return
                     new FullHouseOperation(
                         new SudokuBoardCellPositionDigit(undeterminedCellIndex, foundCellDigit),
-                        removedCellNotes,
-                        houseMask,
-                        removedCellNotes.Length > 0 ? SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex) : UInt128.Zero,
+                        excludedCellNotes,
+                        houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
 
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)
@@ -145,19 +139,6 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     return undeterminedCellDigitBitSet.GetOneCellNoteDigit();
                 }
             }
-        }
-
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            if (!newCellSet.DetermineCell(DeterminedCell.Value.CellIndex, DeterminedCell.Value.Digit))
-                throw new ApplicationException();
-
-            return newCellSet;
         }
     }
 }

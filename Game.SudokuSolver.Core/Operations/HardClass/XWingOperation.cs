@@ -9,172 +9,240 @@ namespace Game.SudokuSolver.Operations.HardClass
     /// X-ウィングパターンのオペレーションのクラスです。
     /// </summary>
     internal sealed class XWingOperation
-        : SudokuBoardOperation
+        : SudokuBoardRemoveCellNoteOperation
     {
         private XWingOperation(
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> highlightedCellNotes,
-            ReadOnlyMemory<SudokuBoardCellPositionDigit> removedCellNotes,
-            UInt128 positivelyRelatedCellIndexBitSet,
-            UInt128 negativelyRelatedCellIndexBitSet,
+            IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
+            IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
+            IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
                   GameBoardStatus.Solving,
                   "X-ウィング",
                   SudokuBoardDifficultyLevel.Hard,
-                  null,
-                  highlightedCellNotes,
-                  ReadOnlyMemory<SudokuBoardCellPositionDigit>.Empty,
-                  removedCellNotes,
-                  positivelyRelatedCellIndexBitSet,
-                  UInt128.Zero,
-                  negativelyRelatedCellIndexBitSet,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
+                  cellNoteEffects,
                   description)
         {
         }
 
         public static IEnumerable<SudokuBoardOperation> MatchPattern(SudokuBoardWorkspace ws)
         {
-            // TODO: X-ウィングの実装
-
             // 【論拠】
-            // あるハウス H と ある二つの数字 D1, D2 とある二つのセル C1, C2 に対して、
-            // H 内に数字の候補として D1, D2 の何れかを持つセルが C1, C2 のみの場合
-            // => C1, C2 の数字はそれぞれ D1, D2 の何れかであるので、C1, C2 の D1, S2 以外の数字の候補は否定される。
+            // ある数字 D について、
+            // 1) ある行にセル C1, C2 の何れの候補にも D が含まれており、かつ
+            // 2) C1, C2 と同じ行の他のセルの数字の候補には D は含まれておらず、かつ
+            // 3) 別の行のセル  C3, C4 の何れの候補にも D が含まれており、かつ
+            // 4) C3, C4 と同じ行の他のセルの数字の候補には D は含まれておらず、かつ
+            // 5) C1, C3 は同じ列に存在し、かつ
+            // 6) C2, C4 は同じ列に存在し、かつ
+            // 7) C1 とC4 は同じブロックには存在せず、かつ
+            // 8) C2 とC3 は同じブロックには存在しない場合。
+            // => C1, C2 の数字は何れかだけが必ず D であり、C3, C4 の数字も何れかだけが必ず D である。
+            //    そして、C1, C3 は同時には D になり得ないので、C2, C4 の何れかだけが必ず D となる。そのため、C1, C3 も何れかだけが D となる。
+            //    したがって、数字の候補を排除できる。
+            //    a) C1, C2 と同じハウス (ブロック) のセルに数字の候補 D
+            //    b) C1, C3 と同じハウス (列またはブロック) のセルに数字の候補 D
+            //    c) C2, C4 と同じハウス (列またはブロック) のセルに数字の候補 D
+            //    d) C3, C4 と同じハウス (ブロック) のセルに数字の候補 D
+            // 
+            // ※上記の論拠は、行と列を言い換えても成立する。
 
-            // ブロックハウスの検索
-            for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
+            for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
             {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
-                        () => $"{block.ToFriendlyString()}のブロック",
-                        SudokuBoardCellGeometry.GetCellIndexes(block).Span);
-                if (operation is not null)
-                    yield return operation;
-            }
+                var cellNoteBitSet = ws.GetNoteBitSet(digit);
 
-            // 行ハウスの検索
-            for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
-            {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetRowCellsBitSet(row),
-                        () => $"{row.ToFriendlyString()}の行",
-                        SudokuBoardCellGeometry.GetCellIndexes(row).Span);
-                if (operation is not null)
-                    yield return operation;
-            }
-
-            // 列ハウスの検索
-            for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
-            {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
-                        () => $"{column.ToFriendlyString()}の列",
-                        SudokuBoardCellGeometry.GetCellIndexes(column).Span);
-                if (operation is not null)
-                    yield return operation;
-            }
-
-            static XWingOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
-            {
-                for (var cellDigitA = SudokuBoardCellDigit.MinValue; cellDigitA < SudokuBoardCellDigit.MaxValue - 1; ++cellDigitA)
+                // 行ハウスに含まれる数字が 2 個のみの場合
+                for (var row12 = SudokuBoardCellRow.MinValue; row12 <= SudokuBoardCellRow.MaxValue - 1; ++row12)
                 {
-                    var cellNoteBitSetA = ws.GetNoteBitSet(cellDigitA);
-                    for (var cellDigitB = cellDigitA + 1; cellDigitB < SudokuBoardCellDigit.MaxValue; ++cellDigitB)
+                    var rowHouse12 = SudokuBoardCellGeometry.GetRowCellsBitSet(row12);
+                    var keyCells12 = cellNoteBitSet & rowHouse12;
+                    if (UInt128.PopCount(keyCells12) == 2)
                     {
-                        var cellNoteBitSetB = ws.GetNoteBitSet(cellDigitB);
-
-                        var cellNoteBitSet = houseMask & (cellNoteBitSetA | cellNoteBitSetB);
-                        if (UInt128.PopCount(cellNoteBitSet) == 2)
-                        {
-                            // あるハウスにおいて、ある二つの数字が二つのセルのみの候補に存在する
-                            // => 隠れ二国同盟が成立している
-                            // ただし、隠れ二国同盟によって否定可能な数字の候補を持つセルが存在するかどうかはまだわからない。
-
-                            // 隠れ二国同盟のセルの位置を求める
-                            var cellIndexes = cellNoteBitSet.EnumerateAsCellIndexes().ToArray();
+                        var cellIndex1 = keyCells12.GetOneCellIndex();
+                        keyCells12 &= ~cellIndex1.ToCellIndexBitSet();
+                        var cellIndex2 = keyCells12.GetOneCellIndex();
 #if DEBUG
-                            System.Diagnostics.Debug.Assert(cellIndexes.Length == 2);
+                        keyCells12 &= ~cellIndex2.ToCellIndexBitSet();
+                        System.Diagnostics.Debug.Assert(keyCells12 == 0);
 #endif
-                            // 隠れ二国同盟に含まれるセル 1
-                            var cellIndex1 = cellIndexes[0];
-                            // 隠れ二国同盟に含まれるセル 2
-                            var cellIndex2 = cellIndexes[1];
+                        // 行 row12 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は cellIndex1 と cellIndex2 である。
 
-                            var keyCellDigitBitSet = cellDigitA.ToCellNoteBitSet() | cellDigitB.ToCellNoteBitSet();
-                            var cellNoteBitSet1 = ws.GetNoteBitSet(cellIndex1);
-                            var cellNoteBitSet2 = ws.GetNoteBitSet(cellIndex2);
-                            var removedCellDigitBitSet1 = cellNoteBitSet1 & ~keyCellDigitBitSet;
-                            var removedCellDigitBitSet2 = cellNoteBitSet2 & ~keyCellDigitBitSet;
-                            var removedCellDigitBitSet = removedCellDigitBitSet1 | removedCellDigitBitSet2;
-                            if (removedCellDigitBitSet != 0)
+                        for (var row34 = row12 + 1; row34 <= SudokuBoardCellRow.MaxValue; ++row34)
+                        {
+                            var rowHouse34 = SudokuBoardCellGeometry.GetRowCellsBitSet(row34);
+                            var keyCells34 = cellNoteBitSet & rowHouse34;
+                            if (UInt128.PopCount(keyCells34) == 2)
                             {
-                                // この時点で、隠れ二国同盟によって否定される数字の数字の候補が存在する
+                                var cellIndex3 = keyCells34.GetOneCellIndex();
+                                keyCells34 &= ~cellIndex3.ToCellIndexBitSet();
+                                var cellIndex4 = keyCells34.GetOneCellIndex();
+#if DEBUG
+                                keyCells34 &= ~cellIndex4.ToCellIndexBitSet();
+                                System.Diagnostics.Debug.Assert(keyCells34 == 0);
+#endif
 
-                                // 隠れ二国同盟によって否定されるセルの位置と数字の候補を求める
-                                var highlightedCellNote =
-                                    (cellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex1)
-                                    .Concat((cellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellDigits().ToCells(cellIndex2))
-                                    .ToArray();
-                                var removedCellNotes =
-                                    removedCellDigitBitSet1.EnumerateAsCellDigits().ToCells(cellIndex1)
-                                    .Concat(removedCellDigitBitSet2.EnumerateAsCellDigits().ToCells(cellIndex2))
-                                    .ToArray();
+                                // 行 row34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は cellIndex3 と cellIndex4 である。
 
-                                var houseName = houseNameGetter();
-                                var cellPositionText1 = cellIndex1.ToFriendlyString();
-                                var cellPositionText2 = cellIndex2.ToFriendlyString();
-                                var cellDigitCharA = cellDigitA.ToCellDigitChar();
-                                var cellDigitCharB = cellDigitB.ToCellDigitChar();
-                                var removedDigitChars =
-                                    string.Join(
-                                        ", ",
-                                        removedCellDigitBitSet
-                                        .EnumerateAsCellDigits()
-                                        .Select(cellDigit => $"'{cellDigit.ToCellDigitChar()}'"));
-                                var keyCellDigitCharsText = $"'{cellDigitA}', '{cellDigitB}'";
-                                var keyCellPositionsText = $"{cellPositionText1}, {cellPositionText2}";
-                                var description =
-                                    $"{houseName}において、二つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の二つしかないので、" +
-                                    $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
-                                    $"したがって、二つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {removedDigitChars} を削除します。";
-                                return
-                                    new XWingOperation(
-                                        highlightedCellNote,
-                                        removedCellNotes,
-                                        houseMask,
-                                        houseMask,
-                                        description);
+                                var (column1, _, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex1);
+                                var (column2, _, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex2);
+                                var (column3, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex3);
+                                var (column4, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex4);
+                                if (column1 == column3 && column2 == column4 && block1 != block4 && block2 != block3)
+                                {
+                                    // 1) cellIndex1 のセルの列と cellIndex3 のセルの列は等しく、かつ
+                                    // 2) cellIndex2 のセルの列と cellIndex4 のセルの列は等しく、かつ
+                                    // 3) cellIndex1 のセルのブロックと cellIndex4 のセルのブロックは等しくなく、かつ
+                                    // 4) cellIndex2 のセルのブロックと cellIndex3 のセルのブロックは等しくない。
+                                    // => X-Wing が成立している。
+
+                                    var operation = MatchPatternByHouse(
+                                        ws,
+                                        digit,
+                                        cellNoteBitSet,
+                                        rowHouse12,
+                                        rowHouse34,
+                                        $"{row12.ToFriendlyString()}の行ハウス",
+                                        $"{column1.ToFriendlyString()}の列ハウス",
+                                        $"{column2.ToFriendlyString()}の列ハウス",
+                                        $"{row34.ToFriendlyString()}の行ハウス",
+                                        cellIndex1,
+                                        cellIndex2,
+                                        cellIndex3,
+                                        cellIndex4);
+                                    if (operation is not null)
+                                        yield return operation;
+                                }
                             }
                         }
                     }
                 }
 
-                return null;
+                // 列ハウスに含まれる数字が 2 個のみの場合
+                for (var column12 = SudokuBoardCellColumn.MinValue; column12 <= SudokuBoardCellColumn.MaxValue - 1; ++column12)
+                {
+                    var columnHouse12 = SudokuBoardCellGeometry.GetColumnCellsBitSet(column12);
+                    var keyCells12 = cellNoteBitSet & columnHouse12;
+                    if (UInt128.PopCount(keyCells12) == 2)
+                    {
+                        var cellIndex1 = keyCells12.GetOneCellIndex();
+                        keyCells12 &= ~cellIndex1.ToCellIndexBitSet();
+                        var cellIndex2 = keyCells12.GetOneCellIndex();
+#if DEBUG
+                        keyCells12 &= ~cellIndex2.ToCellIndexBitSet();
+                        System.Diagnostics.Debug.Assert(keyCells12 == 0);
+#endif
+                        // 行 column12 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は cellIndex1 と cellIndex2 である。
+
+                        for (var column34 = column12 + 1; column34 <= SudokuBoardCellColumn.MaxValue; ++column34)
+                        {
+                            var columnHouse34 = SudokuBoardCellGeometry.GetColumnCellsBitSet(column34);
+                            var keyCells34 = cellNoteBitSet & columnHouse34;
+                            if (UInt128.PopCount(keyCells34) == 2)
+                            {
+                                var cellIndex3 = keyCells34.GetOneCellIndex();
+                                keyCells34 &= ~cellIndex3.ToCellIndexBitSet();
+                                var cellIndex4 = keyCells34.GetOneCellIndex();
+#if DEBUG
+                                keyCells34 &= ~cellIndex4.ToCellIndexBitSet();
+                                System.Diagnostics.Debug.Assert(keyCells34 == 0);
+#endif
+
+                                // 列 column34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は cellIndex3 と cellIndex4 である。
+
+                                var (_, row1, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex1);
+                                var (_, row2, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex2);
+                                var (_, row3, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex3);
+                                var (_, row4, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex4);
+                                if (row1 == row3 && row2 == row4 && block1 != block4 && block2 != block3)
+                                {
+                                    // 1) cellIndex1 のセルの行と cellIndex3 のセルの行は等しく、かつ
+                                    // 2) cellIndex2 のセルの行と cellIndex4 のセルの行は等しく、かつ
+                                    // 3) cellIndex1 のセルのブロックと cellIndex4 のセルのブロックは等しくなく、かつ
+                                    // 4) cellIndex2 のセルのブロックと cellIndex3 のセルのブロックは等しくない。
+                                    // => X-Wing が成立している。
+
+                                    var operation = MatchPatternByHouse(
+                                        ws,
+                                        digit,
+                                        cellNoteBitSet,
+                                        columnHouse12,
+                                        columnHouse34,
+                                        $"{column12.ToFriendlyString()}の列ハウス",
+                                        $"{row1.ToFriendlyString()}の行ハウス",
+                                        $"{row2.ToFriendlyString()}の行ハウス",
+                                        $"{column34.ToFriendlyString()}の列ハウス",
+                                        cellIndex1,
+                                        cellIndex2,
+                                        cellIndex3,
+                                        cellIndex4);
+                                    if (operation is not null)
+                                        yield return operation;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        }
 
-        internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)
-        {
-            if (DeterminedCell is not null)
-                throw new InvalidOperationException();
-
-            var newCellSet = cells.Clone();
-
-            var removedCellNotes = RemovedCellNotes.Span;
-            for (var index = 0; index < RemovedCellNotes.Length; ++index)
+            static XWingOperation? MatchPatternByHouse(
+                SudokuBoardWorkspace ws,
+                SudokuBoardCellDigit digit,
+                UInt128 cellNoteBitSet,
+                UInt128 houseMask12,
+                UInt128 houseMask34,
+                string houseName12,
+                string houseName13,
+                string houseName24,
+                string houseName34,
+                SudokuBoardCellIndex cellIndex1,
+                SudokuBoardCellIndex cellIndex2,
+                SudokuBoardCellIndex cellIndex3,
+                SudokuBoardCellIndex cellIndex4)
             {
-                var removedCellNote = removedCellNotes[index];
-                if (!newCellSet.RemoveNote(removedCellNote.CellIndex, removedCellNote.Digit))
-                    throw new ApplicationException();
-            }
+                var allKeyCells = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet();
+                var visibleCellsFromCellIndex1 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex1);
+                var visibleCellsFromCellIndex2 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex2);
+                var visibleCellsFromCellIndex3 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex3);
+                var visibleCellsFromCellIndex4 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex4);
 
-            return newCellSet;
+                // cellIndex1, cellIndex2. cellIndex3. cellIndex4 を除き、cellIndex1, cellIndex2 とハウスを共有するセルの候補からは digit を排除する
+                var notKeyCells = cellNoteBitSet & ~allKeyCells;
+                var excludedCellsBitSetA = notKeyCells & visibleCellsFromCellIndex1 & visibleCellsFromCellIndex2;
+                var excludedCellsBitSetB = notKeyCells & visibleCellsFromCellIndex1 & visibleCellsFromCellIndex3;
+                var excludedCellsBitSetC = notKeyCells & visibleCellsFromCellIndex2 & visibleCellsFromCellIndex4;
+                var excludedCellsBitSetD = notKeyCells & visibleCellsFromCellIndex3 & visibleCellsFromCellIndex4;
+                var excludedCellsBitSet = excludedCellsBitSetA | excludedCellsBitSetB | excludedCellsBitSetC | excludedCellsBitSetD;
+                if (excludedCellsBitSet == 0)
+                    return null;
+
+                // X-Wing により排除されるセルの数字の候補が存在する。
+
+                var digitText = $"'{digit.ToCellDigitChar()}'";
+                var cell1PositionText = cellIndex1.ToFriendlyString();
+                var cell2PositionText = cellIndex2.ToFriendlyString();
+                var cell3PositionText = cellIndex3.ToFriendlyString();
+                var cell4PositionText = cellIndex4.ToFriendlyString();
+                var description =
+                    $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のセルにしか存在しないので、どちらかのセルだけが必ず数字 {digitText} になります。\n" +
+                    $"同様に、{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} のセルにしか存在しないので、どちらかのセルだけが必ず数字 {digitText} になります。\n" +
+                    $"一方、{cell1PositionText} と {cell3PositionText} のセルは同じ{houseName13}に存在し、両方が数字 {digit} になることはあり得ません。\n" +
+                    $"これらのことから、{cell2PositionText} と {cell4PositionText} のセルは必ずどちらかだけが数字 {digitText} になります。\n" +
+                    $"更に、{cell1PositionText} と {cell3PositionText} のセルも必ずどちらかだけが数字 {digitText} になります。\n" +
+                    $"したがって、{cell1PositionText}, {cell2PositionText}, {cell3PositionText}, {cell4PositionText} を除く以下のセルの数字の候補からは数字 {digit} を排除できます。\n" +
+                    $"・{cell1PositionText} と {cell2PositionText} とハウスを共有するセル\n" +
+                    $"・{cell1PositionText} と {cell3PositionText} とハウスを共有するセル\n" +
+                    $"・{cell2PositionText} と {cell4PositionText} とハウスを共有するセル\n" +
+                    $"・{cell3PositionText} と {cell4PositionText} とハウスを共有するセル";
+                return
+                    new XWingOperation(
+                        excludedCellsBitSet.EnumerateAsCellNotes(digit),
+                        (houseMask12 | houseMask34).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                            .Concat((((visibleCellsFromCellIndex1 & visibleCellsFromCellIndex2) | (visibleCellsFromCellIndex1 & visibleCellsFromCellIndex3) | (visibleCellsFromCellIndex2 & visibleCellsFromCellIndex4) | (visibleCellsFromCellIndex3 & visibleCellsFromCellIndex4)) & ~houseMask12 & ~houseMask34).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        allKeyCells.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                        description);
+            }
         }
     }
 }
