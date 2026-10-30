@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "総当たり",
+                  "総当たり (Brute Force)",
                   SudokuBoardDifficultyLevel.Nonstandard,
                   determinedCell,
                   excludedCellNotes,
@@ -56,7 +56,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                 var undeterminedCellDigitsText = string.Join(", ", ws.GetNoteBitSet(cellIndex).EnumerateAsCellDigitTexts());
                 var determinedCellDigitText = cellNoteDigit.ToCellDigitText();
                 var description =
-                    $"適用できる定石がないため、{determinedCellPosiionText}のセルの数字の候補 {undeterminedCellDigitsText} のうち、" +
+                    $"適用できる定石がないため、{determinedCellPosiionText}のマスの数字の候補 {undeterminedCellDigitsText} のうち、" +
                     $"{determinedCellDigitText} を仮に確定します。";
 #if DEBUG
                 System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellNoteDigit));

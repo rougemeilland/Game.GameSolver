@@ -12,7 +12,7 @@ namespace Game.SudokuSolver.Operations.Basic
         private CompleteOperation(string description)
             : base(
                   GameBoardStatus.Success,
-                  "完了",
+                  "完了 (Complete)",
                   SudokuBoardDifficultyLevel.Basic,
                   null,
                   [],
@@ -31,7 +31,7 @@ namespace Game.SudokuSolver.Operations.Basic
             if (!ws.IsCompleted())
                 return null;
 
-            var description = "盤面のすべてのセルが確定しました。";
+            var description = "盤面のすべてのマスが確定しました。";
             return new CompleteOperation(description);
         }
 

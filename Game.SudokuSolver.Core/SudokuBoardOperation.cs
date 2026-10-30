@@ -222,7 +222,26 @@ namespace Game.SudokuSolver
             DeterminedCell = determinedCell;
             ExcludedCellNotes = new CellNoteCollection(excludedCellNotes);
             CellBackgroundEffects = new CellBackgroundEffectCollection(cellBackgroundEffects);
-            CellNoteEffects = new CellNoteEffectCollection(cellNoteEffects);
+            CellNoteEffects =
+                new CellNoteEffectCollection(
+                    cellNoteEffects
+#if DEBUG
+                    .Select(item =>
+                    {
+                        switch (item.effect)
+                        {
+                            case SudokuBoardCellNoteEffect.PositivelyHilightedType1:
+                            case SudokuBoardCellNoteEffect.PositivelyHilightedType2:
+                            case SudokuBoardCellNoteEffect.PositivelyHilightedType3:
+                                break;
+                            default:
+                                throw new ApplicationException();
+                        }
+
+                        return item;
+                    })
+#endif
+                    .Concat(excludedCellNotes.Select(cellNote => (cellNote, SudokuBoardCellNoteEffect.NegativelyHighlighted))));
             Description = description;
         }
 

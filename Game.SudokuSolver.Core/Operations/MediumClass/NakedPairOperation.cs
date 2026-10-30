@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "二国同盟",
+                  "二国同盟 (Naked Pair)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -152,10 +152,10 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                             .EnumerateAsCellDigitTexts());
                                 var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                 var description =
-                                    $"{houseName}において、{keyCellPositionsText} の二つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                    $"これら二つのセルの数字は必ずこれら二つの数字の何れかです。\n" +
-                                    $"したがって、{houseName}の他のセルは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                    $"他のセル ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
+                                    $"{houseName}において、{keyCellPositionsText} の二つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
+                                    $"これら二つの数字はこれら二つのマスの何れかにしか入り得ません。、\n" +
+                                    $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                    $"他のマス ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
                                 return
                                     new NakedPairOperation(
                                         excludedCellNotes,

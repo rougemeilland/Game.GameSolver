@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "ポインティング",
+                  "ポインティング (Locked Candidates (Pointing))",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -75,18 +75,19 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 }
             }
 
-            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellIndexBitSet)
+            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 cellIndexBitSet)
             {
                 var KeyCellIndexBitSet = cellIndexBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
                 var excludedCellNoteBitSet = cellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
                 if (KeyCellIndexBitSet != 0 && (cellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && excludedCellNoteBitSet != 0)
                 {
+                    var blockName = block.ToFriendlyString();
                     var cellDigitChar = cellDigit.ToCellDigitText();
                     var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                     var description
-                        = $"{block.ToFriendlyString()}のブロックには{columnOrRowHouseText}のセルのみに数字の候補 {cellDigitChar} が含まれているので、" +
-                        $"必ずこれらのセルの何れかが {cellDigitChar} となります。\n" +
-                        $"そのため、{columnOrRowHouseText}にある他のセル {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
+                        = $"{blockName}のブロックには{lineName}のマスのみに数字の候補 {cellDigitChar} が含まれており、" +
+                        $"必ずこれらのマスの何れかが {cellDigitChar} となります。\n" +
+                        $"そのため、{lineName}にある他のマス {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
                     return
                         new PointingOperation(
                             excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),

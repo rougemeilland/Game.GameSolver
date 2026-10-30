@@ -6,7 +6,7 @@ using Game.GameSolver;
 namespace Game.SudokuSolver.Operations.MediumClass
 {
     /// <summary>
-    /// ボックスラインリダクションのオペレーションのクラスです。
+    /// ボックスライン・リダクションのオペレーションのクラスです。
     /// </summary>
     internal sealed class BoxLineReductionOperation
         : SudokuBoardRemoveCellNoteOperation
@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "ボックスラインリダクション",
+                  "ボックスライン・リダクション (Locked Candidates (Claiming))",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -75,19 +75,20 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 }
             }
 
-            static BoxLineReductionOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string columnOrRowHouseText, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
+            static BoxLineReductionOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
             {
                 var highlightedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
                 var excludedCellNoteBitSet = cellNoteBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask;
                 if (highlightedCellNoteBitSet == 0 || (cellNoteBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask) != 0 || excludedCellNoteBitSet == 0)
                     return null;
 
+                var blockName = block.ToFriendlyString();
                 var cellDigitChar = cellDigit.ToCellDigitText();
                 var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                 var description =
-                    $"{columnOrRowHouseText}には{block.ToFriendlyString()}のブロックと重なるセルのみに数字の候補 '{cellDigitChar}' が含まれており、" +
-                    $"必ずこれらのセルの何れかが {cellDigitChar} になります。\n" +
-                    $"したがって、{block.ToFriendlyString()}のブロックにある他のセル {excludedCellNotePositionTexts} の数字の候補から '{cellDigitChar}' を排除します。";
+                    $"{lineName}には{blockName}のブロックと重なるマスのみに数字の候補 {cellDigitChar} が含まれており、" +
+                    $"{cellDigitChar} は必ずこれらのマスの何れかに入ります。\n" +
+                    $"したがって、{blockName}のブロックにある他のマス {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
                 return
                     new BoxLineReductionOperation(
                         excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),

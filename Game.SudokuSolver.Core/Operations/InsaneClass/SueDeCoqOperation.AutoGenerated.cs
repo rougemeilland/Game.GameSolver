@@ -180,18 +180,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             .OrderBy(digit => digit)
                                             .Select(digit => digit.ToCellDigitText()));
                                     var description =
-                                        $"{blockHouseName}と{lineHouseName}において、四つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                        $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                        $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                        $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                        $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                        $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                        $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                        $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                         $"{(
                                             bothWingKeyigitsText.Length > 0
-                                            ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため四つのセル ({keyCellPositionsText}) には四つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                            : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つのセル ({keyCellPositionsText}) には四つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                            ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                            : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                         )}" +
                                         $"したがって、" +
-                                        $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                        $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                        $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                        $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                     return
                                         new SueDeCoqOperation(
                                             excludedCellNotes,
@@ -395,18 +395,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 .OrderBy(digit => digit)
                                                 .Select(digit => digit.ToCellDigitText()));
                                         var description =
-                                            $"{blockHouseName}と{lineHouseName}において、五つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                            $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                            $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                            $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                            $"{blockHouseName}と{lineHouseName}において、五つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                            $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                            $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                            $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                             $"{(
                                                 bothWingKeyigitsText.Length > 0
-                                                ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため五つのセル ({keyCellPositionsText}) には五つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                                : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、五つのセル ({keyCellPositionsText}) には五つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、五つの数字 ({allKeyDigitsText}) は重複せず五つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、五つの数字 ({allKeyDigitsText}) は重複せず五つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                             )}" +
                                             $"したがって、" +
-                                            $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                            $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                            $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                            $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                         return
                                             new SueDeCoqOperation(
                                                 excludedCellNotes,
@@ -616,18 +616,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     .OrderBy(digit => digit)
                                                     .Select(digit => digit.ToCellDigitText()));
                                             var description =
-                                                $"{blockHouseName}と{lineHouseName}において、六つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                                $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                                $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                                $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                                $"{blockHouseName}と{lineHouseName}において、六つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                                $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                                $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                                $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                                 $"{(
                                                     bothWingKeyigitsText.Length > 0
-                                                    ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため六つのセル ({keyCellPositionsText}) には六つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                                    : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、六つのセル ({keyCellPositionsText}) には六つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                                    ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、六つの数字 ({allKeyDigitsText}) は重複せず六つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                                    : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、六つの数字 ({allKeyDigitsText}) は重複せず六つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                                 )}" +
                                                 $"したがって、" +
-                                                $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                                $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                                $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                                $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                             return
                                                 new SueDeCoqOperation(
                                                     excludedCellNotes,
@@ -843,18 +843,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         .OrderBy(digit => digit)
                                                         .Select(digit => digit.ToCellDigitText()));
                                                 var description =
-                                                    $"{blockHouseName}と{lineHouseName}において、七つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                                    $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                                    $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                                    $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                                    $"{blockHouseName}と{lineHouseName}において、七つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                                    $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                                    $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                                    $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                                     $"{(
                                                         bothWingKeyigitsText.Length > 0
-                                                        ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため七つのセル ({keyCellPositionsText}) には七つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                                        : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、七つのセル ({keyCellPositionsText}) には七つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                                        ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、七つの数字 ({allKeyDigitsText}) は重複せず七つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                                        : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、七つの数字 ({allKeyDigitsText}) は重複せず七つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                                     )}" +
                                                     $"したがって、" +
-                                                    $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                                    $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                                    $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                                    $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                 return
                                                     new SueDeCoqOperation(
                                                         excludedCellNotes,
@@ -1076,18 +1076,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                             .OrderBy(digit => digit)
                                                             .Select(digit => digit.ToCellDigitText()));
                                                     var description =
-                                                        $"{blockHouseName}と{lineHouseName}において、八つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                                        $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                                        $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                                        $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                                        $"{blockHouseName}と{lineHouseName}において、八つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                                        $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                                        $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                                        $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                                         $"{(
                                                             bothWingKeyigitsText.Length > 0
-                                                            ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため八つのセル ({keyCellPositionsText}) には八つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                                            : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、八つのセル ({keyCellPositionsText}) には八つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                                            ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、八つの数字 ({allKeyDigitsText}) は重複せず八つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                                            : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、八つの数字 ({allKeyDigitsText}) は重複せず八つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                                         )}" +
                                                         $"したがって、" +
-                                                        $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                                        $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                                        $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                                        $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                     return
                                                         new SueDeCoqOperation(
                                                             excludedCellNotes,
@@ -1315,18 +1315,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                                 .OrderBy(digit => digit)
                                                                 .Select(digit => digit.ToCellDigitText()));
                                                         var description =
-                                                            $"{blockHouseName}と{lineHouseName}において、九つのセル ({keyCellPositionsText}) を選びます。\n" +
-                                                            $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のセル ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
-                                                            $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のセル ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
-                                                            $"ラインウィング ({lineHouseName}のうち{blockHouseName}のセル ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
+                                                            $"{blockHouseName}と{lineHouseName}において、九つのマス ({keyCellPositionsText}) を選びます。\n" +
+                                                            $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
+                                                            $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
+                                                            $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                                                             $"{(
                                                                 bothWingKeyigitsText.Length > 0
-                                                                ? $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のセル {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため九つのセル ({keyCellPositionsText}) には九つの数字 ({allKeyDigitsText}) の何れかが重複せず入ると言えます。\n"
-                                                                : $"ブロックウィングのセル {blockWingKeyCellPositionsText} とラインウィングのセル {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、九つのセル ({keyCellPositionsText}) には九つの数字 ({allKeyDigitsText}) の何れかが重複せず入ります。\n"
+                                                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、九つの数字 ({allKeyDigitsText}) は重複せず九つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、九つの数字 ({allKeyDigitsText}) は重複せず九つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                                                             )}" +
                                                             $"したがって、" +
-                                                            $"ブロック内の {blockKeyCellPositionsText} のセルにしか数字の候補がない数字 ({blockOnlyKeyDigitsText}) をブロック内の他のセルの候補から排除し、" +
-                                                            $"ライン内の {lineKeyCellPositionsText} のセルにしか数字の候補がない数字 ({lineOnlyKeyDigitsText}) をライン内の他のセルの候補から排除します。";
+                                                            $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
+                                                            $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                         return
                                                             new SueDeCoqOperation(
                                                                 excludedCellNotes,

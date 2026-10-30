@@ -19,7 +19,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "隠れ三国同盟",
+                  "隠れ三国同盟 (Hidden Triple)",
                   SudokuBoardDifficultyLevel.Extreme,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -79,33 +79,39 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 var keyCellIndexBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
                 try
                 {
-                    for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA < SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitA)
+                    for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA <= SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitA)
                     {
-                        var keyCellNoteBitSetA = ws.GetNoteBitSet(keyCellDigitA) & houseMask;
-                        if (keyCellNoteBitSetA != 0)
+                        var keyCellBitSetA = ws.GetNoteBitSet(keyCellDigitA) & houseMask;
+                        if (keyCellBitSetA != 0)
                         {
                             // 指定されたハウスにおいて、keyCellDigitA が何れかのセルの数字の候補に存在する
-                            for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB < SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitB)
+                            for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB <= SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitB)
                             {
-                                var keyCellNoteBitSetB = ws.GetNoteBitSet(keyCellDigitB) & houseMask;
-                                if (keyCellNoteBitSetB != 0)
+                                var keyCellBitSetB = ws.GetNoteBitSet(keyCellDigitB) & houseMask;
+                                if (keyCellBitSetB != 0)
                                 {
                                     // 指定されたハウスにおいて、keyCellDigitB が何れかのセルの数字の候補に存在する
-                                    for (var cellDigitC = keyCellDigitB + 1; cellDigitC < SudokuBoardCellDigit.MaxValue; ++cellDigitC)
+                                    for (var keyCellDigitC = keyCellDigitB + 1; keyCellDigitC <= SudokuBoardCellDigit.MaxValue; ++keyCellDigitC)
                                     {
-                                        var keyCellNoteBitSetC = ws.GetNoteBitSet(cellDigitC) & houseMask;
-                                        if (keyCellNoteBitSetC != 0)
+                                        var keyCellBitSetC = ws.GetNoteBitSet(keyCellDigitC) & houseMask;
+                                        if (keyCellBitSetC != 0)
                                         {
                                             // 指定されたハウスにおいて、keyCellDigitC が何れかのセルの数字の候補に存在する
-                                            var keyCellNoteBitSet = keyCellNoteBitSetA | keyCellNoteBitSetB | keyCellNoteBitSetC;
-                                            if (UInt128.PopCount(keyCellNoteBitSet) == 3)
+                                            var keyCellBitSet = keyCellBitSetA | keyCellBitSetB | keyCellBitSetC;
+#if DEBUG
+                                            if (keyCellDigitA == SudokuBoardCellDigit.Two && keyCellDigitB == SudokuBoardCellDigit.Three && keyCellDigitC == SudokuBoardCellDigit.Nine && houseMask == SudokuBoardCellGeometry.GetRowCellsBitSet(SudokuBoardCellRow.One + 7))
+                                            {
+                                                System.Diagnostics.Debug.WriteLine("");
+                                            }
+#endif
+                                            if (UInt128.PopCount(keyCellBitSet) == 3)
                                             {
                                                 // あるハウスにおいて、ある三つの数字が三つのセルのみの候補に存在する
                                                 // => 隠れ三国同盟が成立している
                                                 // ただし、隠れ三国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                                                 // 隠れ三国同盟のセルの位置を求める
-                                                var keyCellIndexes = keyCellNoteBitSet.EnumerateAsCellIndexes(keyCellIndexBuffer);
+                                                var keyCellIndexes = keyCellBitSet.EnumerateAsCellIndexes(keyCellIndexBuffer);
 #if DEBUG
                                                 System.Diagnostics.Debug.Assert(keyCellIndexes.Length == 3);
 #endif
@@ -116,7 +122,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 // 隠れ三国同盟に含まれるセル 3
                                                 var keyCellIndex3 = keyCellIndexes[2];
 
-                                                var keyCellDigitBitSet = keyCellDigitA.ToCellNoteBitSet() | keyCellDigitB.ToCellNoteBitSet() | cellDigitC.ToCellNoteBitSet();
+                                                var keyCellDigitBitSet = keyCellDigitA.ToCellNoteBitSet() | keyCellDigitB.ToCellNoteBitSet() | keyCellDigitC.ToCellNoteBitSet();
                                                 var keyCellNoteBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
                                                 var keyCellNoteBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
                                                 var keyCellNoteBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
@@ -128,7 +134,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 {
                                                     // この時点で、隠れ三国同盟によって排除される数字の候補が存在する
 
-                                                    var highlightedCellNote =
+                                                    var highlightedCellNotes =
                                                         (keyCellNoteBitSet1 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex1)
                                                         .Concat((keyCellNoteBitSet2 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex2))
                                                         .Concat((keyCellNoteBitSet3 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex3));
@@ -145,14 +151,15 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                             (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet())
                                                                 .EnumerateAsCellPositionTexts());
                                                     var description =
-                                                        $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の三つしかないので、" +
-                                                        $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
-                                                        $"したがって、三つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
+                                                        $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の三つしかないので、" +
+                                                        $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
+                                                        $"したがって、三つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
                                                     yield return
                                                         new HiddenTripleOperation(
                                                             excludedCellNotes,
-                                                            houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted),
-                                                            highlightedCellNote.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                                                            keyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                                                                .Concat((houseMask & ~keyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2)),
+                                                            highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                             description);
                                                 }
                                             }

@@ -17,7 +17,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "一択セル",
+                  "一択マス (Naked Single)",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
                   excludedCellNotes,
@@ -48,9 +48,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         var determinedCellPositionText = cellIndex.ToFriendlyString();
                         var determinedCellDigitText = cellDigit.ToCellDigitText();
                         var description =
-                            $"{determinedCellPositionText}のセルの数字の候補は {determinedCellDigitText} しかないため、" +
+                            $"{determinedCellPositionText}のマスの数字の候補は {determinedCellDigitText} しかないため、" +
                             $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif

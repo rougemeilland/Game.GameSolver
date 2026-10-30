@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "四国同盟",
+                  "四国同盟 (Naked Quadruple)",
                   SudokuBoardDifficultyLevel.Hard,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -172,10 +172,10 @@ namespace Game.SudokuSolver.Operations.HardClass
                                                     .EnumerateAsCellDigitTexts());
                                         var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                         var description =
-                                            $"{houseName}において、{keyCellPositionsText} の四つのセルの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                            $"これら四つのセルの数字は必ずこれら四つの数字の何れかです。\n" +
-                                            $"したがって、{houseName}の他のセルは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                            $"他のセル ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
+                                            $"{houseName}において、{keyCellPositionsText} の四つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
+                                            $"これら四つの数字はこれら四つのマスの何れかにしか入り得ません。、\n" +
+                                            $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                            $"他のマス ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
                                         return
                                             new NakedQuadOperation(
                                                 excludedCellNotes,

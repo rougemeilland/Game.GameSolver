@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "X-ウィング",
+                  "X-ウィング (X-Wing)",
                   SudokuBoardDifficultyLevel.Hard,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -48,6 +48,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             //    d) C3, C4 と同じハウス (ブロック) のセルに数字の候補 D
             // 
             // ※上記の論拠は、行と列を言い換えても成立する。
+            // ※上記の排除対象について、ブロック内の他のセルについてはX-ウィングで除外しなくても、その後で別の手法「ボックスライン・リダクション」で排除可能であるので、この実装では除外しない。
 
             for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
             {
@@ -102,11 +103,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         digit,
                                         cellNoteBitSet,
                                         rowHouse12,
+                                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column1),
+                                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column2),
                                         rowHouse34,
-                                        () => $"{row12.ToFriendlyString()}の行ハウス",
-                                        () => $"{column1.ToFriendlyString()}の列ハウス",
-                                        () => $"{column2.ToFriendlyString()}の列ハウス",
-                                        () => $"{row34.ToFriendlyString()}の行ハウス",
+                                        () => $"{row12.ToFriendlyString()}の行",
+                                        () => $"{column1.ToFriendlyString()}の列",
+                                        () => $"{column2.ToFriendlyString()}の列",
+                                        () => $"{row34.ToFriendlyString()}の行",
                                         cellIndex1,
                                         cellIndex2,
                                         cellIndex3,
@@ -168,11 +171,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         digit,
                                         cellNoteBitSet,
                                         columnHouse12,
+                                        SudokuBoardCellGeometry.GetRowCellsBitSet(row1),
+                                        SudokuBoardCellGeometry.GetRowCellsBitSet(row2),
                                         columnHouse34,
-                                        () => $"{column12.ToFriendlyString()}の列ハウス",
-                                        () => $"{row1.ToFriendlyString()}の行ハウス",
-                                        () => $"{row2.ToFriendlyString()}の行ハウス",
-                                        () => $"{column34.ToFriendlyString()}の列ハウス",
+                                        () => $"{column12.ToFriendlyString()}の列",
+                                        () => $"{row1.ToFriendlyString()}の行",
+                                        () => $"{row2.ToFriendlyString()}の行",
+                                        () => $"{column34.ToFriendlyString()}の列",
                                         cellIndex1,
                                         cellIndex2,
                                         cellIndex3,
@@ -191,6 +196,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                 SudokuBoardCellDigit digit,
                 UInt128 cellNoteBitSet,
                 UInt128 houseMask12,
+                UInt128 houseMask13,
+                UInt128 houseMask24,
                 UInt128 houseMask34,
                 Func<string> houseName12Getter,
                 Func<string> houseName13Getter,
@@ -201,19 +208,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                 SudokuBoardCellIndex cellIndex3,
                 SudokuBoardCellIndex cellIndex4)
             {
-                var allKeyCells = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet();
-                var visibleCellsFromCellIndex1 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex1);
-                var visibleCellsFromCellIndex2 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex2);
-                var visibleCellsFromCellIndex3 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex3);
-                var visibleCellsFromCellIndex4 = SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex4);
-
-                // cellIndex1, cellIndex2. cellIndex3. cellIndex4 を除き、cellIndex1, cellIndex2 とハウスを共有するセルの候補からは digit を排除する
-                var notKeyCells = cellNoteBitSet & ~allKeyCells;
-                var excludedCellsBitSetA = notKeyCells & visibleCellsFromCellIndex1 & visibleCellsFromCellIndex2;
-                var excludedCellsBitSetB = notKeyCells & visibleCellsFromCellIndex1 & visibleCellsFromCellIndex3;
-                var excludedCellsBitSetC = notKeyCells & visibleCellsFromCellIndex2 & visibleCellsFromCellIndex4;
-                var excludedCellsBitSetD = notKeyCells & visibleCellsFromCellIndex3 & visibleCellsFromCellIndex4;
-                var excludedCellsBitSet = excludedCellsBitSetA | excludedCellsBitSetB | excludedCellsBitSetC | excludedCellsBitSetD;
+                var allKeyCellBitSet = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet();
+                var excludedCellsBitSet = cellNoteBitSet & (houseMask13 | houseMask24) & ~allKeyCellBitSet;
                 if (excludedCellsBitSet == 0)
                     return null;
 
@@ -229,22 +225,19 @@ namespace Game.SudokuSolver.Operations.HardClass
                 var cell3PositionText = cellIndex3.ToFriendlyString();
                 var cell4PositionText = cellIndex4.ToFriendlyString();
                 var description =
-                    $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のセルにしか存在しないので、どちらかのセルだけが必ず数字 {digitText} になります。\n" +
-                    $"同様に、{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} のセルにしか存在しないので、どちらかのセルだけが必ず数字 {digitText} になります。\n" +
-                    $"一方、{cell1PositionText} と {cell3PositionText} のセルは同じ{houseName13}に存在し、両方が数字 {digit} になることはあり得ません。\n" +
-                    $"これらのことから、{cell2PositionText} と {cell4PositionText} のセルは必ずどちらかだけが数字 {digitText} になります。\n" +
-                    $"更に、{cell1PositionText} と {cell3PositionText} のセルも必ずどちらかだけが数字 {digitText} になります。\n" +
-                    $"したがって、{cell1PositionText}, {cell2PositionText}, {cell3PositionText}, {cell4PositionText} を除く以下のセルの数字の候補からは数字 {digit} を排除できます。\n" +
-                    $"・{cell1PositionText} と {cell2PositionText} とハウスを共有するセル\n" +
-                    $"・{cell1PositionText} と {cell3PositionText} とハウスを共有するセル\n" +
-                    $"・{cell2PositionText} と {cell4PositionText} とハウスを共有するセル\n" +
-                    $"・{cell3PositionText} と {cell4PositionText} とハウスを共有するセル";
+                    $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。\n" +
+                    $"同様に、{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。\n" +
+                    $"一方、{cell1PositionText} と {cell3PositionText} のマスは同じ{houseName13}に存在するので、両方のマスに数字 {digitText} が入ることはあり得ません。\n" +
+                    $"これらのことから、{cell2PositionText} と {cell4PositionText} のマスは必ずどちらかだけが数字 {digitText} になります。\n" +
+                    $"更に、{cell1PositionText} と {cell3PositionText} のマスも必ずどちらかだけが数字 {digitText} になります。\n" +
+                    $"したがって、{cell1PositionText}, {cell2PositionText}, {cell3PositionText}, {cell4PositionText} を除く{houseName13}と{houseName24}のマスの数字の候補からは数字 {digitText} を排除できます。";
                 return
                     new XWingOperation(
                         excludedCellsBitSet.EnumerateAsCellNotes(digit),
-                        (houseMask12 | houseMask34).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                            .Concat((((visibleCellsFromCellIndex1 & visibleCellsFromCellIndex2) | (visibleCellsFromCellIndex1 & visibleCellsFromCellIndex3) | (visibleCellsFromCellIndex2 & visibleCellsFromCellIndex4) | (visibleCellsFromCellIndex3 & visibleCellsFromCellIndex4)) & ~houseMask12 & ~houseMask34).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
-                        allKeyCells.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                        allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                            .Concat(((houseMask12 | houseMask34) & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat(((houseMask13 | houseMask24) & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        allKeyCellBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         description);
             }
         }

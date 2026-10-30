@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "フルハウス",
+                  "フルハウス (Full House)",
                   SudokuBoardDifficultyLevel.Beginner,
                   determinedCell,
                   excludedCellNotes,
@@ -92,17 +92,17 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     house switch
                     {
                         SudokuBoardHouseType.Row =>
-                            $"{determinedCellRow.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellRow.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
-                            $"{determinedCellColumn.ToFriendlyString()}の行のセルのうち{determinedCellPositionText}以外のセルが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellColumn.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
-                            $"{determinedCellBlock.ToFriendlyString()}のブロックのセルのうち{determinedCellPositionText}以外のセルが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellBlock.ToFriendlyString()}のブロックのマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         _ => throw new ApplicationException(),
                     };
 #if DEBUG
@@ -113,7 +113,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         new SudokuBoardCellPositionDigit(undeterminedCellIndex, foundCellDigit),
                         excludedCellNotes,
                         houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex) & ~houseMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
 
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)

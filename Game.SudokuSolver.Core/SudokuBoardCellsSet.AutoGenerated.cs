@@ -1,4 +1,6 @@
-﻿namespace Game.SudokuSolver
+﻿using System.Runtime.CompilerServices;
+
+namespace Game.SudokuSolver
 {
     internal sealed partial class SudokuBoardCellsSet
     {
@@ -86,5 +88,182 @@
             [ 07, 16, 25, 34, 43, 52, 60, 61, 62, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 80 ],
             [ 08, 17, 26, 35, 44, 53, 60, 61, 62, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79 ],
         ];
+
+        /// <summary>
+        /// 全ての未確定セルの数字のメモの数の合計値を求めます。
+        /// </summary>
+        /// <returns>
+        /// 全ての未確定セルの数字のメモの数の合計値を示す <see cref="int"/> 値です。
+        /// </returns>
+        /// <remarks>
+        /// 未確定セルの数字のメモの数の合計値は定石が適用される度に減少して盤面が完了すれば 0 になるので、進捗確認などの目的で使用することが出来ます。
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public int GetTotalCellNoteCount()
+        {
+            var cellValue = _cells[0];
+            var totalCellNoteCount = ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[1];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[2];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[3];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[4];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[5];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[6];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[7];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[8];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[9];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[10];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[11];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[12];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[13];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[14];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[15];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[16];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[17];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[18];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[19];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[20];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[21];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[22];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[23];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[24];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[25];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[26];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[27];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[28];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[29];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[30];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[31];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[32];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[33];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[34];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[35];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[36];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[37];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[38];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[39];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[40];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[41];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[42];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[43];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[44];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[45];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[46];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[47];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[48];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[49];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[50];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[51];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[52];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[53];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[54];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[55];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[56];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[57];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[58];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[59];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[60];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[61];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[62];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[63];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[64];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[65];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[66];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[67];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[68];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[69];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[70];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[71];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[72];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[73];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[74];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[75];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[76];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[77];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[78];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[79];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            cellValue = _cells[80];
+            totalCellNoteCount += ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));
+            return totalCellNoteCount;
+        }
     }
 }

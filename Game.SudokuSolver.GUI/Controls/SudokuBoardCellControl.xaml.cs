@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using Game.SudokuSolver.GUI.Models;
 
 namespace Game.SudokuSolver.GUI.Controls
@@ -66,7 +65,7 @@ namespace Game.SudokuSolver.GUI.Controls
                     c.AnimationBackground.Visibility = Visibility.Visible;
                     break;
                 case SudokuBoardCellBackgroundEffect.NegativelyHighlighted:
-                    c.CellContainer.Background = Brushes.HotPink;
+                    c.CellContainer.Background = Brushes.LightPink;
                     c.AnimationBackground.Visibility = Visibility.Collapsed;
                     break;
                 default:

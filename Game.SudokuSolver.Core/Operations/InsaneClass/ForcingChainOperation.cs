@@ -17,7 +17,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "強制チェーン",
+                  "強制チェーン (Forcing Chain)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -90,10 +90,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                         var excludedCellNotePosiionText = cellIndex.ToFriendlyString();
                         var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitText();
                         var description =
-                            $"{excludedCellNotePosiionText}のセルの数字が {excludedCellNoteDigitText} と仮定して解答を求めようとしたところ失敗しました。\n" +
-                            $"失敗の原因は{excludedCellNotePosiionText}のセルの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
-                            $"{excludedCellNotePosiionText}のセルの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
-                            $"したがって、{excludedCellNotePosiionText}のセルの数字の候補から {excludedCellNoteDigitText} を排除します。";
+                            $"{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定して解答を求めようとしたところ失敗しました。\n" +
+                            $"失敗の原因は{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
+                            $"{excludedCellNotePosiionText}のマスの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
+                            $"したがって、{excludedCellNotePosiionText}のマスの数字の候補から {excludedCellNoteDigitText} を排除します。";
                         yield return
                             new ForcingChainOperation(
                                 Enumerable.Empty<SudokuBoardCellPositionDigit>().Append(excludedCellNote),

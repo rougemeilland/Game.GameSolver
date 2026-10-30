@@ -9,8 +9,6 @@ namespace SourceGenerator
 {
     internal static class Program
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "非公開の内部コマンドのMainメソッドであり、将来パラメタが使用される可能性があるため。")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0079:不要な抑制を削除します", Justification = "パラメタが追加された場合にIDE0060が発生してしまうため。")]
         private static void Main()
         {
             var baseDirectoryPath = new FileInfo(typeof(Program).Assembly.Location).Directory?.Parent?.Parent?.Parent?.Parent ?? throw new Exception();
@@ -496,6 +494,8 @@ namespace SourceGenerator
                 try
                 {
                     using var sourceWriter = new StreamWriter(outputPath, false, Encoding.UTF8);
+                    sourceWriter.WriteLine("using System.Runtime.CompilerServices;");
+                    sourceWriter.WriteLine();
                     sourceWriter.WriteLine("namespace Game.SudokuSolver");
                     sourceWriter.WriteLine("{");
                     sourceWriter.WriteLine("    internal sealed partial class SudokuBoardCellsSet");
@@ -554,6 +554,27 @@ namespace SourceGenerator
                     }
 
                     sourceWriter.WriteLine("        ];");
+                    sourceWriter.WriteLine();
+                    sourceWriter.WriteLine("        /// <summary>");
+                    sourceWriter.WriteLine("        /// 全ての未確定セルの数字のメモの数の合計値を求めます。");
+                    sourceWriter.WriteLine("        /// </summary>");
+                    sourceWriter.WriteLine("        /// <returns>");
+                    sourceWriter.WriteLine("        /// 全ての未確定セルの数字のメモの数の合計値を示す <see cref=\"int\"/> 値です。");
+                    sourceWriter.WriteLine("        /// </returns>");
+                    sourceWriter.WriteLine("        /// <remarks>");
+                    sourceWriter.WriteLine("        /// 未確定セルの数字のメモの数の合計値は定石が適用される度に減少して盤面が完了すれば 0 になるので、進捗確認などの目的で使用することが出来ます。");
+                    sourceWriter.WriteLine("        /// </remarks>");
+                    sourceWriter.WriteLine("        [MethodImpl(MethodImplOptions.AggressiveOptimization)]");
+                    sourceWriter.WriteLine("        public int GetTotalCellNoteCount()");
+                    sourceWriter.WriteLine("        {");
+                    for (var n = 0; n < 81; ++n)
+                    {
+                        sourceWriter.WriteLine($"            {(n <= 0 ? "var " : "")}cellValue = _cells[{n}];");
+                        sourceWriter.WriteLine($"            {(n <= 0 ? "var " : "")}totalCellNoteCount {(n <= 0 ? "=" : "+=")} ushort.PopCount((ushort)(cellValue & (((cellValue & _IS_DETERMINED) >> 9) - 1)));");
+                    }
+
+                    sourceWriter.WriteLine("            return totalCellNoteCount;");
+                    sourceWriter.WriteLine("        }");
                     sourceWriter.WriteLine("    }");
                     sourceWriter.WriteLine("}");
                 }
@@ -802,18 +823,18 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}                .OrderBy(digit => digit)");
                     sourceWriter.WriteLine($"            {indent}                .Select(digit => digit.ToCellDigitText()));");
                     sourceWriter.WriteLine($"            {indent}        var description =");
-                    sourceWriter.WriteLine($"            {indent}            $\"{{blockHouseName}}と{{lineHouseName}}において、{nameOfPiecesNumber}のセル ({{keyCellPositionsText}}) を選びます。\\n\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"このうち、交差部 ({{blockHouseName}}と{{lineHouseName}}が重なっている部分) のセル ({{intersectionKeyCellPositionsText}}) の候補の数字は {{intersectionKeyDigitsText}} で、\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"ブロックウィング ({{blockHouseName}}のうち{{lineHouseName}}ではない部分) のセル ({{blockWingKeyCellPositionsText}}) の候補の数字は {{blockWingKeyDigitsText}}、\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"ラインウィング ({{lineHouseName}}のうち{{blockHouseName}}のセル ({{lineWingKeyCellPositionsText}}) の候補の数字は {{lineWingKeyDigitsText}} です。\\n\" +");
+                    sourceWriter.WriteLine($"            {indent}            $\"{{blockHouseName}}と{{lineHouseName}}において、{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) を選びます。\\n\" +");
+                    sourceWriter.WriteLine($"            {indent}            $\"このうち、交差部 ({{blockHouseName}}と{{lineHouseName}}が重なっている部分) のマス ({{intersectionKeyCellPositionsText}}) の候補の数字は {{intersectionKeyDigitsText}} で、\" +");
+                    sourceWriter.WriteLine($"            {indent}            $\"ブロックウィング ({{blockHouseName}}のうち{{lineHouseName}}ではない部分) のマス ({{blockWingKeyCellPositionsText}}) の候補の数字は {{blockWingKeyDigitsText}}、\" +");
+                    sourceWriter.WriteLine($"            {indent}            $\"ラインウィング ({{lineHouseName}}のうち{{blockHouseName}}のマス ({{lineWingKeyCellPositionsText}}) の候補の数字は {{lineWingKeyDigitsText}} です。\\n\" +");
                     sourceWriter.WriteLine($"            {indent}            $\"{{(");
                     sourceWriter.WriteLine($"            {indent}                bothWingKeyigitsText.Length > 0");
-                    sourceWriter.WriteLine($"            {indent}                ? $\"ブロックウィングのセル {{blockWingKeyCellPositionsText}} とラインウィングのセル {{lineWingKeyCellPositionsText}} には同一の数字の候補 {{bothWingKeyigitsText}} が含まれていますが、これらの数字は交差部のセル {{intersectionKeyCellPositionsText}} の候補には含まれておらず、数字 {{bothWingKeyigitsText}} がどこに入るかはブロックウィングのセルとライトウィングのセルの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、そのため{nameOfPiecesNumber}のセル ({{keyCellPositionsText}}) には{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) の何れかが重複せず入ると言えます。\\n\"");
-                    sourceWriter.WriteLine($"            {indent}                : $\"ブロックウィングのセル {{blockWingKeyCellPositionsText}} とラインウィングのセル {{lineWingKeyCellPositionsText}} には同一の数字の候補が存在しないため、{nameOfPiecesNumber}のセル ({{keyCellPositionsText}}) には{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) の何れかが重複せず入ります。\\n\"");
+                    sourceWriter.WriteLine($"            {indent}                ? $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補 {{bothWingKeyigitsText}} が含まれていますが、これらの数字は交差部のマス {{intersectionKeyCellPositionsText}} の候補には含まれておらず、数字 {{bothWingKeyigitsText}} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) は重複せず{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) の何れかにしか入り得ないと言えます。\\n\"");
+                    sourceWriter.WriteLine($"            {indent}                : $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補が存在しないため、{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) は重複せず{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) の何れかにしか入り得ません。\\n\"");
                     sourceWriter.WriteLine($"            {indent}            )}}\" +");
                     sourceWriter.WriteLine($"            {indent}            $\"したがって、\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"ブロック内の {{blockKeyCellPositionsText}} のセルにしか数字の候補がない数字 ({{blockOnlyKeyDigitsText}}) をブロック内の他のセルの候補から排除し、\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"ライン内の {{lineKeyCellPositionsText}} のセルにしか数字の候補がない数字 ({{lineOnlyKeyDigitsText}}) をライン内の他のセルの候補から排除します。\";");
+                    sourceWriter.WriteLine($"            {indent}            $\"ラインウィング内のマス {{lineWingKeyCellPositionsText}} にしか出現しない数字の候補を除いた数字 ({{blockOnlyKeyDigitsText}}) を {{blockKeyCellPositionsText}} を除くブロック内のマスの数字の候補から排除し、\" +");
+                    sourceWriter.WriteLine($"            {indent}            $\"ラインウィング内のマス {{blockWingKeyCellPositionsText}} のマスにしか出現しない数字の候補を除いた数字 ({{lineOnlyKeyDigitsText}}) をライン内の {{lineKeyCellPositionsText}} 以外のマスの数字の候補から排除します。\";");
                     sourceWriter.WriteLine($"            {indent}        return");
                     sourceWriter.WriteLine($"            {indent}            new SueDeCoqOperation(");
                     sourceWriter.WriteLine($"            {indent}                excludedCellNotes,");

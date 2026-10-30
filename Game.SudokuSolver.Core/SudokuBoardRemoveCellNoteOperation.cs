@@ -49,24 +49,7 @@ namespace Game.SudokuSolver
                    null,
                    excludedCellNotes,
                    cellBackgroundEffects,
-                   cellNoteEffects
-#if DEBUG
-                    .Select(item =>
-                    {
-                        switch (item.effect)
-                        {
-                            case SudokuBoardCellNoteEffect.PositivelyHilightedType3:
-                            case SudokuBoardCellNoteEffect.PositivelyHilightedType2:
-                            case SudokuBoardCellNoteEffect.PositivelyHilightedType1:
-                                break;
-                            default:
-                                throw new ApplicationException();
-                        }
-
-                        return item;
-                    })
-#endif
-                    .Concat(excludedCellNotes.Select(cellNote => (cellNote, SudokuBoardCellNoteEffect.NegativelyHighlighted))),
+                   cellNoteEffects,
                    description)
         {
         }

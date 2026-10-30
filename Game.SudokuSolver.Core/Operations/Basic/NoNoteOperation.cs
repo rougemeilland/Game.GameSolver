@@ -15,7 +15,7 @@ namespace Game.SudokuSolver.Operations.Basic
             string description)
             : base(
                   GameBoardStatus.Failed,
-                  "数字の候補が存在しない",
+                  "失敗 (Failed)",
                   SudokuBoardDifficultyLevel.Basic,
                   null,
                   [],
@@ -38,7 +38,7 @@ namespace Game.SudokuSolver.Operations.Basic
             var notNoteCellIndexes = notNoteCellIndexBitSet.EnumerateAsCellIndexes();
             var cellPositionListText = string.Join(", ", notNoteCellIndexes.ToCellPositionTexts());
             var description =
-                $"{cellPositionListText}のセルの数字の候補が存在しないため、" +
+                $"{cellPositionListText}のマスの数字の候補が存在しないため、" +
                 $"解答は存在しません。";
             return new NoNoteOperation(notNoteCellIndexes, description);
         }

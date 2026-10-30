@@ -26,7 +26,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "Su de Coq",
+                  "スー・デ・コック (Su de Coq)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
                   cellBackgroundEffects,

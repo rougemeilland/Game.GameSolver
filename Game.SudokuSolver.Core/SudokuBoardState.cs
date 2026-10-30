@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Game.GameSolver;
 using Game.SudokuSolver.Operations.Basic;
 using Game.SudokuSolver.Operations.BeginnerClass;
@@ -94,6 +95,9 @@ namespace Game.SudokuSolver
                 if (_cells.IsDetermined(cellIndex))
                     _isInitialDigitsBitSet |= cellIndex.ToCellIndexBitSet();
             }
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine($"SudokuBoardState: step={StepCount}, totalNoteCount={GetTotalCellNoteCount()}");
+#endif
         }
 
         internal SudokuBoardState(SudokuBoardState state, UInt128 isInitialDigitsBitSet, SudokuBoardOperation operation)
@@ -101,6 +105,9 @@ namespace Game.SudokuSolver
         {
             _cells = operation.Execute(state._cells);
             _isInitialDigitsBitSet = isInitialDigitsBitSet;
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine($"SudokuBoardState: step={StepCount}, totalNoteCount={GetTotalCellNoteCount()}");
+#endif
         }
 
         /// <summary>
@@ -158,6 +165,18 @@ namespace Game.SudokuSolver
             return new CellCollection(cellsBuffer);
         }
 
+        /// <summary>
+        /// この盤面の全ての未確定セルの数字のメモの数の合計値を求めます。
+        /// </summary>
+        /// <returns>
+        /// 全ての未確定セルの数字のメモの数の合計値を示す <see cref="int"/> 値です。
+        /// </returns>
+        /// <remarks>
+        /// 未確定セルの数字のメモの数の合計値は定石が適用される度に減少して盤面が完了すれば 0 になるので、進捗確認などの目的で使用することが出来ます。
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetTotalCellNoteCount() => _cells.GetTotalCellNoteCount();
+
         /// <inheritdoc/>
         protected override ReadOnlyMemory<uint> GenerateUniqueKeySource()
         {
@@ -176,6 +195,12 @@ namespace Game.SudokuSolver
             var operation =
                 CompleteOperation.MatchPattern(workspace)
                 ?? NoNoteOperation.MatchPattern(workspace);
+            if (operation is not null)
+                return [operation];
+
+            operation =
+                XWingOperation.MatchPattern(workspace)
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
@@ -240,7 +265,16 @@ namespace Game.SudokuSolver
 
             operation =
                 SueDeCoqOperation.MatchPattern(workspace)
-                .Concat(ForcingChainOperation.MatchPattern(workspace))
+                .MaxBy(operation => operation.ExcludedCellNotes.Length);
+            if (operation is not null)
+                return [operation];
+
+            #endregion
+
+            #region InsaneClass (Last resort)
+
+            operation =
+                ForcingChainOperation.MatchPattern(workspace)
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];

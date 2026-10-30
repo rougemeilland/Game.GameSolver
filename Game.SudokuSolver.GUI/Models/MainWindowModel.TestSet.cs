@@ -38,7 +38,7 @@ namespace Game.SudokuSolver.GUI.Models
             "000000800" +
             "000000900";
 
-        #region Fullhouse
+        #region Full House
 
         private const string sourceArray_Fullhouse =
             "170906500" +
@@ -358,6 +358,166 @@ namespace Game.SudokuSolver.GUI.Models
 
         #endregion
 
+        #region Hidden Pair
+
+        private const string sourceArray_HiddenPair1 =
+            "000009021" +
+            "000000038" +
+            "030004056" +
+            "942513687" +
+            "785926314" +
+            "163748295" +
+            "316897542" +
+            "000462173" +
+            "427000869";
+
+        private const string sourceArray_HiddenPair2 =
+            "070051089" +
+            "089000013" +
+            "001000207" +
+            "800600901" +
+            "095130800" +
+            "100000300" +
+            "010980736" +
+            "768010090" +
+            "900006108";
+
+        private const string sourceArray_HiddenPair3 =
+            "730600045" +
+            "006047230" +
+            "080000671" +
+            "067000000" +
+            "000080006" +
+            "300206090" +
+            "600010007" +
+            "003002060" +
+            "000065080";
+
+        #endregion
+
+        #region Hidden Triple
+
+        // 別の定石により 8行1列 と 8行3列 の候補から 2, 3 を排除しておかないと隠れ三国同盟は動作しない
+        private const string sourceArray_HiddenTriple1 =
+            "460591820" +
+            "005000410" +
+            "810047065" +
+            "070435198" +
+            "100700530" +
+            "358010074" +
+            "901802700" +
+            "080100000" +
+            "500070081";
+
+        private const string sourceArray_HiddenTriple2 =
+            "350000041" +
+            "460000800" +
+            "128940700" +
+            "283400597" +
+            "705300610" +
+            "601700080" +
+            "970100008" +
+            "010070020" +
+            "032600170";
+
+        private const string sourceArray_HiddenTriple3 =
+            "040050029" +
+            "000009604" +
+            "100640800" +
+            "020080001" +
+            "700430080" +
+            "004006000" +
+            "457190000" +
+            "003060070" +
+            "000070000";
+
+        #endregion
+
+        #region Hidden Quad
+
+        private const string sourceArray_HiddenQuad1 =
+            "875136294" +
+            "002805010" +
+            "000020538" +
+            "900501400" +
+            "721000000" +
+            "540203100" +
+            "000000000" +
+            "680019000" +
+            "000600801";
+
+        private const string sourceArray_HiddenQuad2 =
+            "460017800" +
+            "010006040" +
+            "879452300" +
+            "000769500" +
+            "200548000" +
+            "700231400" +
+            "600104200" +
+            "020603180" +
+            "000025630";
+
+        private const string sourceArray_HiddenQuad3 =
+            "064208000" +
+            "039417000" +
+            "081506000" +
+            "156842379" +
+            "372159846" +
+            "498763000" +
+            "843625917" +
+            "905370000" +
+            "607980530";
+
+        #endregion
+
+        #region X-Wing
+
+        private const string sourceArray_XWing1 =
+            "261897534" +
+            "007300060" +
+            "300600700" +
+            "126479385" +
+            "400158627" +
+            "785236149" +
+            "000704006" +
+            "670901453" +
+            "900563270";
+
+        private const string sourceArray_XWing2 =
+            "360701090" +
+            "754692813" +
+            "019003070" +
+            "437206109" +
+            "590074030" +
+            "080039407" +
+            "123968745" +
+            "970415320" +
+            "045327901";
+
+        private const string sourceArray_Extra1 =
+            "153798426" +
+            "600030000" +
+            "840256103" +
+            "700643985" +
+            "538917264" +
+            "496000731" +
+            "005000610" +
+            "060070000" +
+            "304060009";
+
+        private const string sourceArray_Extra2 =
+            "300457861" +
+            "060930405" +
+            "405680003" +
+            "000096207" +
+            "670014539" +
+            "000073608" +
+            "006729104" +
+            "001368002" +
+            "900145306";
+
+        #endregion
+
         #region Sue de Coq
 
         private const string sourceArray_SueDeCoq1 =
@@ -415,7 +575,7 @@ namespace Game.SudokuSolver.GUI.Models
             "007891263" +
             "000426517";
 
-        private const string sourceArray_SueDeCoq7 =
+        private const string sourceArray_SueDeCoq6 =
             "238641759" +
             "154729863" +
             "679000412" +
@@ -427,7 +587,7 @@ namespace Game.SudokuSolver.GUI.Models
             "302000605";
 
         // 別の定石で 1行9列 の数字の候補 4 をあらかじめ消しておかないと Su de Coq が適用されない。
-        private const string sourceArray_SueDeCoq8 =
+        private const string sourceArray_SueDeCoq7 =
             "001000000" +
             "000140580" +
             "050000070" +
@@ -442,7 +602,7 @@ namespace Game.SudokuSolver.GUI.Models
 
         private static string[] CreateInitialBoard()
             => [..
-                sourceArray_Hard
+                sourceArray_Extra2
                 .Select(c => c is < '0' or > '9' ? throw new ApplicationException() : c == '0' ? string.Empty : c.ToString())
             ];
     }

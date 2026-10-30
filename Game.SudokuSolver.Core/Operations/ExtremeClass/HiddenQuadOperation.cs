@@ -19,7 +19,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "隠れ四国同盟",
+                  "隠れ四国同盟 (Hidden Quadruple)",
                   SudokuBoardDifficultyLevel.Extreme,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -79,39 +79,39 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 var keyCellIndexBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
                 try
                 {
-                    for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA < SudokuBoardCellDigit.MaxValue - 3; ++keyCellDigitA)
+                    for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA <= SudokuBoardCellDigit.MaxValue - 3; ++keyCellDigitA)
                     {
-                        var keyCellNoteBitSetA = ws.GetNoteBitSet(keyCellDigitA) & houseMask;
-                        if (keyCellNoteBitSetA != 0)
+                        var keyCellBitSetA = ws.GetNoteBitSet(keyCellDigitA) & houseMask;
+                        if (keyCellBitSetA != 0)
                         {
                             // 指定されたハウスにおいて、keyCellDigitA が何れかのセルの数字の候補に存在する
-                            for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB < SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitB)
+                            for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB <= SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitB)
                             {
-                                var keyCellNoteBitSetB = ws.GetNoteBitSet(keyCellDigitB) & houseMask;
-                                if (keyCellNoteBitSetB != 0)
+                                var keyCellBitSetB = ws.GetNoteBitSet(keyCellDigitB) & houseMask;
+                                if (keyCellBitSetB != 0)
                                 {
                                     // 指定されたハウスにおいて、keyCellDigitB が何れかのセルの数字の候補に存在する
-                                    for (var keyCellDigitC = keyCellDigitB + 1; keyCellDigitC < SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitC)
+                                    for (var keyCellDigitC = keyCellDigitB + 1; keyCellDigitC <= SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitC)
                                     {
-                                        var keyCellNoteBitSetC = ws.GetNoteBitSet(keyCellDigitC) & houseMask;
-                                        if (keyCellNoteBitSetC != 0)
+                                        var keyCellBitSetC = ws.GetNoteBitSet(keyCellDigitC) & houseMask;
+                                        if (keyCellBitSetC != 0)
                                         {
                                             // 指定されたハウスにおいて、keyCellDigitC が何れかのセルの数字の候補に存在する
-                                            for (var keyCellDigitD = keyCellDigitC + 1; keyCellDigitD < SudokuBoardCellDigit.MaxValue; ++keyCellDigitD)
+                                            for (var keyCellDigitD = keyCellDigitC + 1; keyCellDigitD <= SudokuBoardCellDigit.MaxValue; ++keyCellDigitD)
                                             {
-                                                var keyCellNoteBitSetD = ws.GetNoteBitSet(keyCellDigitD) & houseMask;
-                                                if (keyCellNoteBitSetD != 0)
+                                                var keyCellBitSetD = ws.GetNoteBitSet(keyCellDigitD) & houseMask;
+                                                if (keyCellBitSetD != 0)
                                                 {
                                                     // 指定されたハウスにおいて、keyCellDigitD が何れかのセルの数字の候補に存在する
-                                                    var keyCellNoteBitSet = keyCellNoteBitSetA | keyCellNoteBitSetB | keyCellNoteBitSetC | keyCellNoteBitSetD;
-                                                    if (UInt128.PopCount(keyCellNoteBitSet) == 4)
+                                                    var keyCellBitSet = keyCellBitSetA | keyCellBitSetB | keyCellBitSetC | keyCellBitSetD;
+                                                    if (UInt128.PopCount(keyCellBitSet) == 4)
                                                     {
                                                         // あるハウスにおいて、ある四つの数字が四つのセルのみの候補に存在する
                                                         // => 隠れ四国同盟が成立している
                                                         // ただし、隠れ四国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                                                         // 隠れ四国同盟のセルの位置を求める
-                                                        var keyCellIndexes = keyCellNoteBitSet.EnumerateAsCellIndexes(keyCellIndexBuffer);
+                                                        var keyCellIndexes = keyCellBitSet.EnumerateAsCellIndexes(keyCellIndexBuffer);
 #if DEBUG
                                                         System.Diagnostics.Debug.Assert(keyCellIndexes.Length == 4);
 #endif
@@ -157,13 +157,14 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                     (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet())
                                                                         .EnumerateAsCellPositionTexts());
                                                             var description =
-                                                                $"{houseName}において、四つの数字 {keyCellDigitCharsText} を候補として含むセルは {keyCellPositionsText} の四つしかないので、" +
-                                                                $"これらのセルの数字は必ず {keyCellDigitCharsText} の何れかです。\n" +
-                                                                $"したがって、四つのセル {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
+                                                                $"{houseName}において、四つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の四つしかないので、" +
+                                                                $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
+                                                                $"したがって、四つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
                                                             yield return
                                                                 new HiddenQuadOperation(
                                                                     excludedCellNotes,
-                                                                    houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted),
+                                                                    keyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                                                                        .Concat((houseMask & ~keyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2)),
                                                                     highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                                     description);
                                                         }

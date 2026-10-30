@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
             string description)
             : base(
                   GameBoardStatus.Solving,
-                  "隠れシングル",
+                  "隠れシングル (Hidden Single)",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
                   excludedCellNotes,
@@ -96,17 +96,17 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     house switch
                     {
                         SudokuBoardHouseType.Row =>
-                            $"{determinedCellRow.ToFriendlyString()}のセルのうち {determinedCellDigitText} であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellRow.ToFriendlyString()}のマスのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
-                            $"{determinedCellColumn.ToFriendlyString()}のセルのうち {determinedCellDigitText} であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellColumn.ToFriendlyString()}のマスのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
-                            $"{determinedCellBlock.ToFriendlyString()}のセルが属しているブロックのうち {determinedCellDigitText} であり得るセルが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のセルの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したセルと同じハウスに属する別のセルの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellBlock.ToFriendlyString()}のマスが属しているブロックのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };
 
@@ -120,7 +120,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
                         excludedCellNotes,
                         houseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex) & ~houseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
             }
         }
