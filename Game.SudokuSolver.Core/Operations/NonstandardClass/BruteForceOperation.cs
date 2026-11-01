@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.NonstandardClass
 {
@@ -17,7 +16,6 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "総当たり (Brute Force)",
                   SudokuBoardDifficultyLevel.Nonstandard,
                   determinedCell,
@@ -40,8 +38,8 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
             var targetItems =
                 (~ws.DeterminedCellBitSet & SudokuBoardWorkspace.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
-                .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex)))
-                .SelectMany(cell => ws.GetNoteBitSet(cell.cellIndex).EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, excludedCellNoteCount: (int)UInt128.PopCount(ws.GetNoteBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
+                .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex)))
+                .SelectMany(cell => ws.GetCellNoteDigitBitSet(cell.cellIndex).EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
                 .OrderByDescending(item => item.excludedCellNoteCount)
                 .ThenBy(item => item.cellIndex)
                 .ThenBy(item => item.cellNoteDigit)
@@ -53,7 +51,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                     .EnumerateAsCellNotes(cellNoteDigit)
                     .ToArray();
                 var determinedCellPosiionText = cellIndex.ToFriendlyString();
-                var undeterminedCellDigitsText = string.Join(", ", ws.GetNoteBitSet(cellIndex).EnumerateAsCellDigitTexts());
+                var undeterminedCellDigitsText = string.Join(", ", ws.GetCellNoteDigitBitSet(cellIndex).EnumerateAsCellDigitTexts());
                 var determinedCellDigitText = cellNoteDigit.ToCellDigitText();
                 var description =
                     $"適用できる定石がないため、{determinedCellPosiionText}のマスの数字の候補 {undeterminedCellDigitsText} のうち、" +
@@ -66,7 +64,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                         new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit),
                         excludedCellNotes,
                         Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>()
-                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex).EnumerateAsCellIndexes().Select(cellIndex => (cellIndex, SudokuBoardCellBackgroundEffect.NegativelyHighlighted))),
+                            .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex).EnumerateAsCellIndexes().Select(cellIndex => (cellIndex, SudokuBoardCellBackgroundEffect.NegativelyHighlighted))),
                         description);
 
             }

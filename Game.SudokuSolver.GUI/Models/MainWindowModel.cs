@@ -7,7 +7,7 @@ namespace Game.SudokuSolver.GUI.Models
     {
         public MainWindowModel()
         {
-            var game = new SudokuGameBoard(CreateInitialBoard());
+            var game = CreateModelForTest();
             var solution = game.Solve().Solutions.First();
 
             SlideShow = new SudokuBoardSolutionModel(solution);

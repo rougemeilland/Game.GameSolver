@@ -17,7 +17,6 @@ namespace Game.SudokuSolver.Operations.HardClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "四国同盟 (Naked Quadruple)",
                   SudokuBoardDifficultyLevel.Hard,
                   excludedCellNotes,
@@ -40,7 +39,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 var operation =
                     MatchPatternByHouse(
                         ws,
-                        SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
+                        SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
                         () => $"{block.ToFriendlyString()}のブロック",
                         SudokuBoardCellGeometry.GetCellIndexes(block).Span);
                 if (operation is not null)
@@ -53,7 +52,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 var operation =
                     MatchPatternByHouse(
                         ws,
-                        SudokuBoardCellGeometry.GetRowCellsBitSet(row),
+                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
                         () => $"{row.ToFriendlyString()}の行",
                         SudokuBoardCellGeometry.GetCellIndexes(row).Span);
                 if (operation is not null)
@@ -66,7 +65,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 var operation =
                     MatchPatternByHouse(
                         ws,
-                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
+                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
                         () => $"{column.ToFriendlyString()}の列",
                         SudokuBoardCellGeometry.GetCellIndexes(column).Span);
                 if (operation is not null)
@@ -93,19 +92,19 @@ namespace Game.SudokuSolver.Operations.HardClass
                 for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 3; ++keyIndex1)
                 {
                     var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                    var keyCellDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                    var keyCellDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 2; ++keyIndex2)
                     {
                         var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                        var keyCellDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                        var keyCellDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                         for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 1; ++keyIndex3)
                         {
                             var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                            var keyCellDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                            var keyCellDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                             for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length; ++keyIndex4)
                             {
                                 var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                                var keyCellDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                                var keyCellDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
 
                                 var keyCellDigitBitSet = keyCellDigitBitSet1 | keyCellDigitBitSet2 | keyCellDigitBitSet3 | keyCellDigitBitSet4;
                                 if (keyCellDigitBitSet.GetPopCount() == 4)
@@ -128,22 +127,22 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     var keyCellDigitD = foundCellDigits[3];
 
                                     // 四国同盟によって排除されるセルの数字の候補を求める
-                                    var keyCellBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
-                                    var excludedCellNoteBitSetA = houseMask & ws.GetNoteBitSet(keyCellDigitA) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetB = houseMask & ws.GetNoteBitSet(keyCellDigitB) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetC = houseMask & ws.GetNoteBitSet(keyCellDigitC) & ~keyCellBitSet;
-                                    var excludedCellNoteBitSetD = houseMask & ws.GetNoteBitSet(keyCellDigitD) & ~keyCellBitSet;
+                                    var keyCellIndexBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
+                                    var excludedCellIndexBitSetA = houseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetB = houseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetC = houseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetD = houseMask & ws.GetCellIndexBitSet(keyCellDigitD) & ~keyCellIndexBitSet;
 
-                                    var excludedCellNoteBitSet = excludedCellNoteBitSetA | excludedCellNoteBitSetB | excludedCellNoteBitSetC | excludedCellNoteBitSetD;
+                                    var excludedCellNoteBitSet = excludedCellIndexBitSetA | excludedCellIndexBitSetB | excludedCellIndexBitSetC | excludedCellIndexBitSetD;
                                     if (excludedCellNoteBitSet != 0)
                                     {
                                         // この時点で、四国同盟によって排除されるセルの数字の候補が存在する
 
                                         // 四国同盟に含まれるセルの位置と数字を求める
-                                        var highlightedCellNoteBitSetA = houseNoteMask & ws.GetNoteBitSet(keyCellDigitA) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetB = houseNoteMask & ws.GetNoteBitSet(keyCellDigitB) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetC = houseNoteMask & ws.GetNoteBitSet(keyCellDigitC) & keyCellBitSet;
-                                        var highlightedCellNoteBitSetD = houseNoteMask & ws.GetNoteBitSet(keyCellDigitD) & keyCellBitSet;
+                                        var highlightedCellNoteBitSetA = houseNoteMask & ws.GetCellIndexBitSet(keyCellDigitA) & keyCellIndexBitSet;
+                                        var highlightedCellNoteBitSetB = houseNoteMask & ws.GetCellIndexBitSet(keyCellDigitB) & keyCellIndexBitSet;
+                                        var highlightedCellNoteBitSetC = houseNoteMask & ws.GetCellIndexBitSet(keyCellDigitC) & keyCellIndexBitSet;
+                                        var highlightedCellNoteBitSetD = houseNoteMask & ws.GetCellIndexBitSet(keyCellDigitD) & keyCellIndexBitSet;
                                         var highlightedCellNotes =
                                             highlightedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
                                             .Concat(highlightedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB))
@@ -155,20 +154,20 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                                         // 四国同盟によって排除されるセルの位置と数字の候補を求める
                                         var excludedCellNotes =
-                                            excludedCellNoteBitSetA.EnumerateAsCellNotes(keyCellDigitA)
-                                            .Concat(excludedCellNoteBitSetB.EnumerateAsCellNotes(keyCellDigitB))
-                                            .Concat(excludedCellNoteBitSetC.EnumerateAsCellNotes(keyCellDigitC))
-                                            .Concat(excludedCellNoteBitSetD.EnumerateAsCellNotes(keyCellDigitD));
+                                            excludedCellIndexBitSetA.EnumerateAsCellNotes(keyCellDigitA)
+                                            .Concat(excludedCellIndexBitSetB.EnumerateAsCellNotes(keyCellDigitB))
+                                            .Concat(excludedCellIndexBitSetC.EnumerateAsCellNotes(keyCellDigitC))
+                                            .Concat(excludedCellIndexBitSetD.EnumerateAsCellNotes(keyCellDigitD));
 #if DEBUG
                                         System.Diagnostics.Debug.Assert(excludedCellNotes.Any());
 #endif
 
                                         var houseName = houseNameGetter();
-                                        var keyCellPositionsText = string.Join(", ", keyCellBitSet.EnumerateAsCellPositionTexts());
+                                        var keyCellPositionsText = string.Join(", ", keyCellIndexBitSet.EnumerateAsCellPositionTexts());
                                         var keyCellDigitCharsText =
                                             string.Join(
                                                 ", ",
-                                                (keyCellDigitA.ToCellNoteBitSet() | keyCellDigitB.ToCellNoteBitSet() | keyCellDigitC.ToCellNoteBitSet() | keyCellDigitD.ToCellNoteBitSet())
+                                                (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet() | keyCellDigitD.ToCellDigitBitSet())
                                                     .EnumerateAsCellDigitTexts());
                                         var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                         var description =
@@ -179,8 +178,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         return
                                             new NakedQuadOperation(
                                                 excludedCellNotes,
-                                                keyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                                    .Concat((houseMask & ~keyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                                keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
+                                                    .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                 highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                 description);
                                     }
@@ -198,7 +197,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                     var length = 0;
                     for (var index = 0; index < houseCellIndexes.Length; ++index)
                     {
-                        if (!ws.IsDetermined(houseCellIndexes[index]) && ws.GetNoteBitSet(houseCellIndexes[index]).GetPopCount() <= 4)
+                        if (!ws.IsDetermined(houseCellIndexes[index]) && ws.GetCellNoteDigitBitSet(houseCellIndexes[index]).GetPopCount() <= 4)
                             keyCellIIndexesBuffer[length++] = houseCellIndexes[index];
                     }
 

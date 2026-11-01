@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.InsaneClass
 {
@@ -25,7 +24,6 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "スー・デ・コック (Su de Coq)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
@@ -96,8 +94,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 ws,
                                 numberOfAlliance,
                                 block,
-                                SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
-                                SudokuBoardCellGeometry.GetRowCellsBitSet(row),
+                                SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
+                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
                                 () => $"{block.ToFriendlyString()}のブロック",
                                 () => $"{row.ToFriendlyString()}の行");
                         foreach (var operation in operations)
@@ -113,8 +111,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 ws,
                                 numberOfAlliance,
                                 block,
-                                SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
-                                SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
+                                SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
+                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
                                 () => $"{block.ToFriendlyString()}のブロック",
                                 () => $"{column.ToFriendlyString()}の列");
                         foreach (var operation in operations)
@@ -200,7 +198,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             while (cellBitSet != 0)
             {
                 var cellIndex = cellBitSet.GetOneCellIndex();
-                if (!ws.IsDetermined(cellIndex) && ws.GetNoteBitSet(cellIndex).GetPopCount() <= maxCellNoteCount)
+                if (!ws.IsDetermined(cellIndex) && ws.GetCellNoteDigitBitSet(cellIndex).GetPopCount() <= maxCellNoteCount)
                     keyCellIIndexesBuffer[length++] = cellIndex;
                 cellBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
@@ -218,18 +216,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <returns>
-        /// 指定されたセルの何れかの候補である数字のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> です。
+        /// 指定されたセルの何れかの候補である数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> です。
         /// </returns>
-        private static SudokuBoardCellNoteBitSet GetUnionDigitBitSet(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet)
+        private static SudokuBoardCellDigitBitSet GetUnionDigitBitSet(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet)
         {
-            var digitBitSet = SudokuBoardCellNoteBitSet.None;
+            var digitBitSet = SudokuBoardCellDigitBitSet.None;
             while (cellIndexBitSet != 0)
             {
                 var cellIndex = cellIndexBitSet.GetOneCellIndex();
 #if DEBUG
                 System.Diagnostics.Debug.Assert(!ws.IsDetermined(cellIndex));
 #endif
-                digitBitSet |= ws.GetNoteBitSet(cellIndex);
+                digitBitSet |= ws.GetCellNoteDigitBitSet(cellIndex);
                 cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
 
@@ -246,7 +244,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="cellNoteDigitBitSet">
-        /// セルの数字の候補のビット集合を示す <see cref="SudokuBoardCellNoteBitSet"/> 値です。
+        /// セルの数字の候補のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
         /// </param>
         /// <param name="cellNoteDigitsBuffer">
         /// セルの位置と数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値の格納先の配列です。
@@ -254,19 +252,19 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <returns>
         /// セルの位置を格納した配列とその実際の長さを示す <see cref="Span{T}"/> 値です。
         /// </returns>
-        private static Span<SudokuBoardCellPositionDigit> SearchCellNotes(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet, SudokuBoardCellNoteBitSet cellNoteDigitBitSet, Span<SudokuBoardCellPositionDigit> cellNoteDigitsBuffer)
+        private static Span<SudokuBoardCellPositionDigit> SearchCellNotes(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet, SudokuBoardCellDigitBitSet cellNoteDigitBitSet, Span<SudokuBoardCellPositionDigit> cellNoteDigitsBuffer)
         {
             var length = 0;
             cellIndexBitSet &= ~ws.DeterminedCellBitSet;
             while (cellIndexBitSet != 0)
             {
                 var cellIndex = cellIndexBitSet.GetOneCellIndex();
-                var digitBitSet = cellNoteDigitBitSet & ws.GetNoteBitSet(cellIndex);
+                var digitBitSet = cellNoteDigitBitSet & ws.GetCellNoteDigitBitSet(cellIndex);
                 while (digitBitSet != 0)
                 {
-                    var digit = digitBitSet.GetOneCellNoteDigit();
+                    var digit = digitBitSet.GetOneCellDigit();
                     cellNoteDigitsBuffer[length++] = new SudokuBoardCellPositionDigit(cellIndex, digit);
-                    digitBitSet &= ~digit.ToCellNoteBitSet();
+                    digitBitSet &= ~digit.ToCellDigitBitSet();
                 }
 
                 cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();

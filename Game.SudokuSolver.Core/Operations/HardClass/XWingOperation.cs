@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.HardClass
 {
@@ -17,7 +16,6 @@ namespace Game.SudokuSolver.Operations.HardClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "X-ウィング (X-Wing)",
                   SudokuBoardDifficultyLevel.Hard,
                   excludedCellNotes,
@@ -52,13 +50,13 @@ namespace Game.SudokuSolver.Operations.HardClass
 
             for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
             {
-                var cellNoteBitSet = ws.GetNoteBitSet(digit);
+                var allCellIndexBitSet = ws.GetCellIndexBitSet(digit);
 
                 // 行ハウスに含まれる数字が 2 個のみの場合
                 for (var row12 = SudokuBoardCellRow.MinValue; row12 <= SudokuBoardCellRow.MaxValue - 1; ++row12)
                 {
-                    var rowHouse12 = SudokuBoardCellGeometry.GetRowCellsBitSet(row12);
-                    var keyCells12 = cellNoteBitSet & rowHouse12;
+                    var rowHouse12 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row12);
+                    var keyCells12 = allCellIndexBitSet & rowHouse12;
                     if (UInt128.PopCount(keyCells12) == 2)
                     {
                         var cellIndex1 = keyCells12.GetOneCellIndex();
@@ -72,8 +70,8 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                         for (var row34 = row12 + 1; row34 <= SudokuBoardCellRow.MaxValue; ++row34)
                         {
-                            var rowHouse34 = SudokuBoardCellGeometry.GetRowCellsBitSet(row34);
-                            var keyCells34 = cellNoteBitSet & rowHouse34;
+                            var rowHouse34 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34);
+                            var keyCells34 = allCellIndexBitSet & rowHouse34;
                             if (UInt128.PopCount(keyCells34) == 2)
                             {
                                 var cellIndex3 = keyCells34.GetOneCellIndex();
@@ -98,22 +96,23 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     // 4) cellIndex2 のセルのブロックと cellIndex3 のセルのブロックは等しくない。
                                     // => X-Wing が成立している。
 
-                                    var operation = MatchPatternByHouse(
-                                        ws,
-                                        digit,
-                                        cellNoteBitSet,
-                                        rowHouse12,
-                                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column1),
-                                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column2),
-                                        rowHouse34,
-                                        () => $"{row12.ToFriendlyString()}の行",
-                                        () => $"{column1.ToFriendlyString()}の列",
-                                        () => $"{column2.ToFriendlyString()}の列",
-                                        () => $"{row34.ToFriendlyString()}の行",
-                                        cellIndex1,
-                                        cellIndex2,
-                                        cellIndex3,
-                                        cellIndex4);
+                                    var operation =
+                                        MatchPatternByHouse(
+                                            ws,
+                                            digit,
+                                            allCellIndexBitSet,
+                                            rowHouse12,
+                                            SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column1),
+                                            SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column2),
+                                            rowHouse34,
+                                            () => $"{row12.ToFriendlyString()}の行",
+                                            () => $"{column1.ToFriendlyString()}の列",
+                                            () => $"{column2.ToFriendlyString()}の列",
+                                            () => $"{row34.ToFriendlyString()}の行",
+                                            cellIndex1,
+                                            cellIndex2,
+                                            cellIndex3,
+                                            cellIndex4);
                                     if (operation is not null)
                                         yield return operation;
                                 }
@@ -125,8 +124,8 @@ namespace Game.SudokuSolver.Operations.HardClass
                 // 列ハウスに含まれる数字が 2 個のみの場合
                 for (var column12 = SudokuBoardCellColumn.MinValue; column12 <= SudokuBoardCellColumn.MaxValue - 1; ++column12)
                 {
-                    var columnHouse12 = SudokuBoardCellGeometry.GetColumnCellsBitSet(column12);
-                    var keyCells12 = cellNoteBitSet & columnHouse12;
+                    var columnHouse12 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column12);
+                    var keyCells12 = allCellIndexBitSet & columnHouse12;
                     if (UInt128.PopCount(keyCells12) == 2)
                     {
                         var cellIndex1 = keyCells12.GetOneCellIndex();
@@ -140,8 +139,8 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                         for (var column34 = column12 + 1; column34 <= SudokuBoardCellColumn.MaxValue; ++column34)
                         {
-                            var columnHouse34 = SudokuBoardCellGeometry.GetColumnCellsBitSet(column34);
-                            var keyCells34 = cellNoteBitSet & columnHouse34;
+                            var columnHouse34 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34);
+                            var keyCells34 = allCellIndexBitSet & columnHouse34;
                             if (UInt128.PopCount(keyCells34) == 2)
                             {
                                 var cellIndex3 = keyCells34.GetOneCellIndex();
@@ -166,22 +165,23 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     // 4) cellIndex2 のセルのブロックと cellIndex3 のセルのブロックは等しくない。
                                     // => X-Wing が成立している。
 
-                                    var operation = MatchPatternByHouse(
-                                        ws,
-                                        digit,
-                                        cellNoteBitSet,
-                                        columnHouse12,
-                                        SudokuBoardCellGeometry.GetRowCellsBitSet(row1),
-                                        SudokuBoardCellGeometry.GetRowCellsBitSet(row2),
-                                        columnHouse34,
-                                        () => $"{column12.ToFriendlyString()}の列",
-                                        () => $"{row1.ToFriendlyString()}の行",
-                                        () => $"{row2.ToFriendlyString()}の行",
-                                        () => $"{column34.ToFriendlyString()}の列",
-                                        cellIndex1,
-                                        cellIndex2,
-                                        cellIndex3,
-                                        cellIndex4);
+                                    var operation =
+                                        MatchPatternByHouse(
+                                            ws,
+                                            digit,
+                                            allCellIndexBitSet,
+                                            columnHouse12,
+                                            SudokuBoardCellGeometry.GetRowCellIndexBitSet(row1),
+                                            SudokuBoardCellGeometry.GetRowCellIndexBitSet(row2),
+                                            columnHouse34,
+                                            () => $"{column12.ToFriendlyString()}の列",
+                                            () => $"{row1.ToFriendlyString()}の行",
+                                            () => $"{row2.ToFriendlyString()}の行",
+                                            () => $"{column34.ToFriendlyString()}の列",
+                                            cellIndex1,
+                                            cellIndex2,
+                                            cellIndex3,
+                                            cellIndex4);
                                     if (operation is not null)
                                         yield return operation;
                                 }
@@ -194,7 +194,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             static XWingOperation? MatchPatternByHouse(
                 SudokuBoardWorkspace ws,
                 SudokuBoardCellDigit digit,
-                UInt128 cellNoteBitSet,
+                UInt128 allCellIndexBitSet,
                 UInt128 houseMask12,
                 UInt128 houseMask13,
                 UInt128 houseMask24,
@@ -209,7 +209,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 SudokuBoardCellIndex cellIndex4)
             {
                 var allKeyCellBitSet = cellIndex1.ToCellIndexBitSet() | cellIndex2.ToCellIndexBitSet() | cellIndex3.ToCellIndexBitSet() | cellIndex4.ToCellIndexBitSet();
-                var excludedCellsBitSet = cellNoteBitSet & (houseMask13 | houseMask24) & ~allKeyCellBitSet;
+                var excludedCellsBitSet = allCellIndexBitSet & (houseMask13 | houseMask24) & ~allKeyCellBitSet;
                 if (excludedCellsBitSet == 0)
                     return null;
 
@@ -230,7 +230,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                     $"一方、{cell1PositionText} と {cell3PositionText} のマスは同じ{houseName13}に存在するので、両方のマスに数字 {digitText} が入ることはあり得ません。\n" +
                     $"これらのことから、{cell2PositionText} と {cell4PositionText} のマスは必ずどちらかだけが数字 {digitText} になります。\n" +
                     $"更に、{cell1PositionText} と {cell3PositionText} のマスも必ずどちらかだけが数字 {digitText} になります。\n" +
-                    $"したがって、{cell1PositionText}, {cell2PositionText}, {cell3PositionText}, {cell4PositionText} を除く{houseName13}と{houseName24}のマスの数字の候補からは数字 {digitText} を排除できます。";
+                    $"したがって、{cell1PositionText}, {cell2PositionText}, {cell3PositionText}, {cell4PositionText} を除く{houseName13}と{houseName24}のマスの数字の候補から数字 {digitText} を排除します。";
                 return
                     new XWingOperation(
                         excludedCellsBitSet.EnumerateAsCellNotes(digit),

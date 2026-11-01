@@ -27,7 +27,7 @@ namespace Game.SudokuSolver
                 }
                 else
                 {
-                    foreach (var cellDigit in cells.GetNoteBitSet(cellIndex).EnumerateAsCellDigits())
+                    foreach (var cellDigit in cells.GetCellNoteDigitBitSet(cellIndex).EnumerateAsCellDigits())
                         _cellIndexBittSetByDigit[cellDigit - SudokuBoardCellDigit.One] |= cellIndexBitSet;
                 }
             }
@@ -98,7 +98,7 @@ namespace Game.SudokuSolver
         /// セルのビット集合を示す <see cref="UInt128"/> 値です。
         /// </value>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public UInt128 GetNoteBitSet(SudokuBoardCellDigit digit)
+        public UInt128 GetCellIndexBitSet(SudokuBoardCellDigit digit)
         {
 #if DEBUG
             if (digit is < SudokuBoardCellDigit.MinValue or > SudokuBoardCellDigit.MaxValue)
@@ -114,10 +114,10 @@ namespace Game.SudokuSolver
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値です。
         /// </param>
         /// <value>
-        /// 指定されたセルの数字の候補を示す <see cref="SudokuBoardCellNoteBitSet"/> 値を返します。
+        /// 指定されたセルの数字の候補を示す <see cref="SudokuBoardCellDigitBitSet"/> 値を返します。
         /// </value>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SudokuBoardCellNoteBitSet GetNoteBitSet(SudokuBoardCellIndex cellIndex) => _cellsSource.GetNoteBitSet(cellIndex);
+        public SudokuBoardCellDigitBitSet GetCellNoteDigitBitSet(SudokuBoardCellIndex cellIndex) => _cellsSource.GetCellNoteDigitBitSet(cellIndex);
 
         /// <summary>
         /// 盤面に数字の候補が存在しないセルの位置を取得します。
@@ -151,8 +151,8 @@ namespace Game.SudokuSolver
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt128 GetCellIndexBitSetForExcludedNoteDigit(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit)
             => ~DeterminedCellBitSet
-                & GetNoteBitSet(cellNoteDigit)
-                & SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex)
+                & GetCellIndexBitSet(cellNoteDigit)
+                & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex)
                 & ~cellIndex.ToCellIndexBitSet();
 
         /// <summary>

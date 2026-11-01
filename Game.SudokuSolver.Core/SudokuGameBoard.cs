@@ -36,8 +36,25 @@ namespace Game.SudokuSolver
         /// </list>
         /// </para>
         /// </param>
-        public SudokuGameBoard(ReadOnlySpan<string> initialCellDigits)
-            : base(CreateInitialState(initialCellDigits))
+        /// <param name="highPriorityOperation">
+        /// 優先的に適用される手順を示す <see cref="SudokuBoardOperationType"/> 値です。
+        /// 通常は、このパラメタには <see cref="SudokuBoardOperationType.None"/> を指定します。
+        /// 省略時の既定値は <see cref="SudokuBoardOperationType.None"/> です。
+        /// </param>
+        /// <param name="initialExcludedCellNotes">
+        /// <para>
+        /// 初期配置と同時に排除しておかなければならないセルの数字の候補のリストを示す <see cref="string"/> オブジェクトです。省略時の既定値は空文字列です。
+        /// </para>
+        /// <para>
+        /// この文字列のフォーマットは、"&lt;行&gt;&lt;列&gt;&lt;数字&gt;" の三つの数字をそのまま連結したものをセミコロン ';' で区切ったものです。
+        /// 行、列、数字は何れも 1 から 9 までの値です。
+        /// 指定するセルの数字の候補が特にない場合には空文字列を指定します。
+        /// </para>
+        /// </param>
+        public SudokuGameBoard(ReadOnlySpan<string> initialCellDigits,
+            SudokuBoardOperationType highPriorityOperation = SudokuBoardOperationType.None,
+            string initialExcludedCellNotes = "")
+            : base(CreateInitialState(initialCellDigits, highPriorityOperation, initialExcludedCellNotes))
         {
         }
 
@@ -53,10 +70,12 @@ namespace Game.SudokuSolver
         public SudokuSolutionCollection Solve(int maxSolutionCount = 100)
             => new(SolveCore(maxSolutionCount));
 
-        private static Lazy<SudokuBoardState> CreateInitialState(ReadOnlySpan<string> initialCellDigits)
+        private static Lazy<SudokuBoardState> CreateInitialState(ReadOnlySpan<string> initialCellDigits,
+            SudokuBoardOperationType highPriorityOperation = SudokuBoardOperationType.None,
+            string initialExcludedCellNotes = "")
         {
             var copyOfInitialCellDigits = initialCellDigits.ToArray();
-            return new Lazy<SudokuBoardState>(() => new SudokuBoardState(copyOfInitialCellDigits));
+            return new Lazy<SudokuBoardState>(() => new SudokuBoardState(copyOfInitialCellDigits, highPriorityOperation, initialExcludedCellNotes));
         }
     }
 }

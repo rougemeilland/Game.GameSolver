@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.GameSolver;
 
 namespace Game.SudokuSolver
@@ -14,9 +13,6 @@ namespace Game.SudokuSolver
         /// <summary>
         /// コンストラクタです。
         /// </summary>
-        /// <param name="status">
-        /// 定石を適用した結果の盤面の状態を示す <see cref="GameBoardStatus"/> 値です。
-        /// </param>
         /// <param name="title">
         /// 定石の名前を示す <see cref="string"/> オブジェクトです。
         /// </param>
@@ -36,21 +32,21 @@ namespace Game.SudokuSolver
         /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
         /// </param>
         protected SudokuBoardRemoveCellNoteOperation(
-            GameBoardStatus status,
             string title,
             SudokuBoardDifficultyLevel difficulty,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
-            : base(status,
-                   title,
-                   difficulty,
-                   null,
-                   excludedCellNotes,
-                   cellBackgroundEffects,
-                   cellNoteEffects,
-                   description)
+            : base(
+                  GameBoardStatus.Solving,
+                  title,
+                  difficulty,
+                  null,
+                  excludedCellNotes,
+                  cellBackgroundEffects,
+                  cellNoteEffects,
+                  description)
         {
         }
 

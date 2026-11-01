@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.MediumClass
 {
@@ -17,7 +16,6 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "ポインティング (Locked Candidates (Pointing))",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
@@ -36,10 +34,10 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
             for (var cellDigit = SudokuBoardCellDigit.MinValue; cellDigit <= SudokuBoardCellDigit.MaxValue; cellDigit++)
             {
-                var cellIndexBitSet = ws.GetNoteBitSet(cellDigit);
+                var allCellIndexBitSet = ws.GetCellIndexBitSet(cellDigit);
                 for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
                 {
-                    var blockHouseBitMask = SudokuBoardCellGeometry.GetBlockCellsBitSet(block);
+                    var blockHouseBitMask = SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block);
 
                     // 行ハウスの検索
                     for (var blockRowOffset = SudokuBoardCellBlockRow.MinValue; blockRowOffset <= SudokuBoardCellBlockRow.MaxValue; ++blockRowOffset)
@@ -49,10 +47,10 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                SudokuBoardCellGeometry.GetRowCellsBitSet(row),
+                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
                                 row.ToFriendlyString(),
                                 cellDigit,
-                                cellIndexBitSet);
+                                allCellIndexBitSet);
                         if (operation is not null)
                             yield return operation;
                     }
@@ -65,21 +63,21 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             MatchPatternByHouse(
                                 block,
                                 blockHouseBitMask,
-                                SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
+                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
                                 column.ToFriendlyString(),
                                 cellDigit,
-                                cellIndexBitSet);
+                                allCellIndexBitSet);
                         if (operation is not null)
                             yield return operation;
                     }
                 }
             }
 
-            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 cellIndexBitSet)
+            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 allCellIndexBitSet)
             {
-                var KeyCellIndexBitSet = cellIndexBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
-                var excludedCellNoteBitSet = cellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
-                if (KeyCellIndexBitSet != 0 && (cellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && excludedCellNoteBitSet != 0)
+                var KeyCellIndexBitSet = allCellIndexBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
+                var excludedCellNoteBitSet = allCellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
+                if (KeyCellIndexBitSet != 0 && (allCellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && excludedCellNoteBitSet != 0)
                 {
                     var blockName = block.ToFriendlyString();
                     var cellDigitChar = cellDigit.ToCellDigitText();

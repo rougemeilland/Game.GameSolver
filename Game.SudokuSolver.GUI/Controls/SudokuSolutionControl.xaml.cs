@@ -49,10 +49,7 @@ namespace Game.SudokuSolver.GUI.Controls
                     throw new ApplicationException();
                 if ((int)childControl.Tag >= model.CurrentStepCount - 5)
                     break;
-                if (childControl.DataContext is not SudokuBoardModel childControlModel)
-                    throw new ApplicationException();
-                childControlModel.ClearPropertyChangedEventRegistration();
-                childControl.DataContext = null;
+                ReleaseChildControlModel(childControl);
                 c.BoardListPanel.Children.RemoveAt(0);
             }
 
@@ -63,10 +60,7 @@ namespace Game.SudokuSolver.GUI.Controls
                     throw new ApplicationException();
                 if ((int)childControl.Tag <= model.CurrentStepCount + 5)
                     break;
-                if (childControl.DataContext is not SudokuBoardModel childControlModel)
-                    throw new ApplicationException();
-                childControlModel.ClearPropertyChangedEventRegistration();
-                childControl.DataContext = null;
+                ReleaseChildControlModel(childControl);
                 c.BoardListPanel.Children.RemoveAt(c.BoardListPanel.Children.Count - 1);
             }
 
@@ -125,14 +119,33 @@ namespace Game.SudokuSolver.GUI.Controls
 
         private static void InitializeUserControlByModel(SudokuSolutionControl c, SudokuBoardSolutionModel model)
         {
-            c.BoardListPanel.Children.Clear();
+            ClearChildren(c);
             RefreshBoardList(c, model);
+        }
+
+        private static void ClearChildren(SudokuSolutionControl c)
+        {
+            foreach (var child in c.BoardListPanel.Children)
+            {
+                if (child is SudokuBoardControl childControl)
+                    ReleaseChildControlModel(childControl);
+            }
+
+            c.BoardListPanel.Children.Clear();
+        }
+
+        private static void ReleaseChildControlModel(SudokuBoardControl childControl)
+        {
+            if (childControl.DataContext is not SudokuBoardModel childControlModel)
+                throw new ApplicationException();
+            childControlModel.ClearPropertyChangedEventRegistration();
+            childControl.DataContext = null;
         }
 
         private static void DataContextChangedEventHandler(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (sender is SudokuSolutionControl c)
-                InitializeUserControl(c, e.OldValue);
+                InitializeUserControl(c, e.NewValue);
         }
 
         private void PropertyChangedEventHandler(object? sender, PropertyChangedEventArgs e)

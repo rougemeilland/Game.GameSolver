@@ -7,19 +7,26 @@ namespace Experiment.CUI
     {
         private static void Main()
         {
-            var columnHouseBitmask = new UInt128[81];
+            var bitSet = UInt128.Zero;
             for (var row = 0; row < 9; ++row)
+                bitSet |= UInt128.One << (row * 9);
+
+            for (var column = 0; column < 9; ++column)
             {
-                var bitSet = UInt128.Zero;
-                for (var column = 0; column < 9; ++column)
-                    bitSet |= UInt128.One << (row * 9 + column);
-                for (var column = 0; column < 9; ++column)
-                    columnHouseBitmask[row * 9 + column] = bitSet;
+                var value = bitSet << column;
+                Console.WriteLine($"private static readonly UInt128 _column{column}BitMask = new (0x{(value >> 64) & ulong.MaxValue:x16}, 0x{value & ulong.MaxValue:x16});");
             }
+
+            Console.WriteLine();
+
+            bitSet = UInt128.Zero;
+            for (var column = 0; column < 9; ++column)
+                bitSet |= UInt128.One << column;
 
             for (var row = 0; row < 9; ++row)
             {
-                Console.WriteLine($"{string.Join(", ", Enumerable.Range(0, 9).Select(column => $"new UInt128(0x{columnHouseBitmask[row * 9 + column] >> 64:x8}, 0x{columnHouseBitmask[row * 9 + column] & ulong.MaxValue:x8})"))},");
+                var value = bitSet << (row * 9);
+                Console.WriteLine($"private static readonly UInt128 _row{row}BitMask = new (0x{(value >> 64) & ulong.MaxValue:x16}, 0x{value & ulong.MaxValue:x16});");
             }
 
             Console.WriteLine();

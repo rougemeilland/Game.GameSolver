@@ -51,6 +51,7 @@ namespace Game.SudokuSolver.GUI.Models
         private bool _showOPeration;
         private bool _showOPerationDetail;
         private string _operationName;
+        private string _difficultyName;
         private Visibility _operationNameVisibility;
         private string _description;
         private Visibility _operationVisibility;
@@ -70,6 +71,7 @@ namespace Game.SudokuSolver.GUI.Models
             _showOPeration = false;
             _showOPerationDetail = false;
             _operationName = string.Empty;
+            _difficultyName = string.Empty;
             _operationNameVisibility = (Visibility)255;
             _description = string.Empty;
             _operationVisibility = (Visibility)255;
@@ -96,7 +98,8 @@ namespace Game.SudokuSolver.GUI.Models
                 _latestOperationIsNotNull = true;
                 ShowOperation = true;
                 ShowOperationDetail = _latestOperationIsNotNull;
-                OperationName = $"{latestOperation.Title} ({latestOperation.Difficulty.ToFriendlyString()})";
+                OperationName = latestOperation.Title;
+                DifficultyName = latestOperation.Difficulty.ToFriendlyString();
                 OperationNameVisibility = Visibility.Visible;
                 Description = latestOperation.Description;
             }
@@ -181,6 +184,18 @@ namespace Game.SudokuSolver.GUI.Models
                     return;
                 _operationName = value;
                 RaisePropertyChangedEvent(nameof(OperationName));
+            }
+        }
+
+        public string DifficultyName
+        {
+            get => _difficultyName;
+            private set
+            {
+                if (value == _difficultyName)
+                    return;
+                _difficultyName = value;
+                RaisePropertyChangedEvent(nameof(DifficultyName));
             }
         }
 

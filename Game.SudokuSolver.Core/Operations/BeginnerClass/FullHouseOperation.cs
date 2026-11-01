@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.BeginnerClass
 {
@@ -17,7 +16,6 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "フルハウス (Full House)",
                   SudokuBoardDifficultyLevel.Beginner,
                   determinedCell,
@@ -39,7 +37,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     MatchPatternByHouse(
                         ws,
                         SudokuBoardHouseType.Block,
-                        SudokuBoardCellGeometry.GetBlockCellsBitSet(block));
+                        SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block));
                 if (operation is not null)
                     yield return operation;
             }
@@ -50,7 +48,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     MatchPatternByHouse(
                         ws,
                         SudokuBoardHouseType.Column,
-                        SudokuBoardCellGeometry.GetColumnCellsBitSet(column));
+                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column));
                 if (operation is not null)
                     yield return operation;
             }
@@ -60,7 +58,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 var operation =
                     MatchPatternByHouse(
                         ws, SudokuBoardHouseType.Row,
-                        SudokuBoardCellGeometry.GetRowCellsBitSet(row));
+                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(row));
                 if (operation is not null)
                     yield return operation;
             }
@@ -93,16 +91,16 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     {
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
                             $"{determinedCellBlock.ToFriendlyString()}のブロックのマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         _ => throw new ApplicationException(),
                     };
 #if DEBUG
@@ -113,7 +111,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         new SudokuBoardCellPositionDigit(undeterminedCellIndex, foundCellDigit),
                         excludedCellNotes,
                         houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellsBitSet(undeterminedCellIndex) & ~houseMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(undeterminedCellIndex) & ~houseMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
 
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)
@@ -121,7 +119,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
 #if DEBUG
                     System.Diagnostics.Debug.Assert(UInt128.PopCount(determinedCellBitSetByHouse) == 8);
 #endif
-                    var undeterminedCellDigitBitSet = SudokuBoardCellNoteBitSet.AllCells;
+                    var undeterminedCellDigitBitSet = SudokuBoardCellDigitBitSet.AllCellDigits;
                     while (determinedCellBitSetByHouse != 0)
                     {
                         var cellIndex = determinedCellBitSetByHouse.GetOneCellIndex();
@@ -129,14 +127,14 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         System.Diagnostics.Debug.Assert(ws.IsDetermined(cellIndex));
 #endif
                         var cellDigit = ws.GetDeterminedCellDigit(cellIndex);
-                        undeterminedCellDigitBitSet &= ~cellDigit.ToCellNoteBitSet();
+                        undeterminedCellDigitBitSet &= ~cellDigit.ToCellDigitBitSet();
                         determinedCellBitSetByHouse &= ~cellIndex.ToCellIndexBitSet();
                     }
 
 #if DEBUG
                     System.Diagnostics.Debug.Assert(undeterminedCellDigitBitSet.IsSingleBit());
 #endif
-                    return undeterminedCellDigitBitSet.GetOneCellNoteDigit();
+                    return undeterminedCellDigitBitSet.GetOneCellDigit();
                 }
             }
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.EasyClass
 {
@@ -17,7 +16,6 @@ namespace Game.SudokuSolver.Operations.EasyClass
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "隠れシングル (Hidden Single)",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
@@ -36,7 +34,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
 
             for (var cellDigit = SudokuBoardCellDigit.MinValue; cellDigit <= SudokuBoardCellDigit.MaxValue; ++cellDigit)
             {
-                var cellNoteBitSet = ws.GetNoteBitSet(cellDigit);
+                var cellIndexBitSet = ws.GetCellIndexBitSet(cellDigit);
 
                 for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
                 {
@@ -44,9 +42,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardHouseType.Block,
-                            SudokuBoardCellGeometry.GetBlockCellsBitSet(block),
+                            SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
                             cellDigit,
-                            cellNoteBitSet);
+                            cellIndexBitSet);
                     if (operation is not null)
                         yield return operation;
                 }
@@ -57,9 +55,9 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardHouseType.Column,
-                            SudokuBoardCellGeometry.GetColumnCellsBitSet(column),
+                            SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
                             cellDigit,
-                            cellNoteBitSet);
+                            cellIndexBitSet);
                     if (operation is not null)
                         yield return operation;
                 }
@@ -70,17 +68,17 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardHouseType.Row,
-                            SudokuBoardCellGeometry.GetRowCellsBitSet(row),
+                            SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
                             cellDigit,
-                            cellNoteBitSet);
+                            cellIndexBitSet);
                     if (operation is not null)
                         yield return operation;
                 }
             }
 
-            static HiddenSingleOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, SudokuBoardHouseType house, UInt128 houseBitMask, SudokuBoardCellDigit cellDigit, UInt128 cellNoteBitSet)
+            static HiddenSingleOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, SudokuBoardHouseType house, UInt128 houseBitMask, SudokuBoardCellDigit cellDigit, UInt128 cellIndexBitSet)
             {
-                var foundBitSet = cellNoteBitSet & houseBitMask;
+                var foundBitSet = cellIndexBitSet & houseBitMask;
                 if (UInt128.PopCount(foundBitSet) != 1)
                     return null;
                 var determinedCellIndex = foundBitSet.GetOneCellIndex();
@@ -97,16 +95,16 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     {
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}のマスのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}のマスのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Block =>
                             $"{determinedCellBlock.ToFriendlyString()}のマスが属しているブロックのうち {determinedCellDigitText} であり得るマスが{determinedCellPosiionText}のみであるため、" +
-                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{determinedCellPosiionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマス ({string.Join(", ", excludedCellNotes.Select(cellNote => new SudokuBoardCellPosition(cellNote.CellIndex).ToFriendlyString()))}) の数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         _ => throw new ArgumentOutOfRangeException(nameof(house)),
                     };
 
@@ -120,7 +118,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         new SudokuBoardCellPositionDigit(determinedCellIndex, cellDigit),
                         excludedCellNotes,
                         houseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellsBitSet(determinedCellIndex) & ~houseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(determinedCellIndex) & ~houseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         description);
             }
         }

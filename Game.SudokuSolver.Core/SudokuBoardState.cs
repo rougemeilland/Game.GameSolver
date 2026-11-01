@@ -51,6 +51,7 @@ namespace Game.SudokuSolver
 
         private readonly SudokuBoardCellsSet _cells;
         private readonly UInt128 _isInitialDigitsBitSet;
+        private readonly SudokuBoardOperationType _highPriorityOperation;
 
         /// <summary>
         /// 指定されたセルの数字のコレクションによって数独の盤面の状態を初期化します。
@@ -79,12 +80,35 @@ namespace Game.SudokuSolver
         /// </list>
         /// </para>
         /// </param>
+        /// <param name="highPriorityOperation">
+        /// 優先的に適用される手順を示す <see cref="SudokuBoardOperationType"/> 値です。
+        /// 通常は、このパラメタには <see cref="SudokuBoardOperationType.None"/> を指定します。
+        /// 省略時の既定値は <see cref="SudokuBoardOperationType.None"/> です。
+        /// </param>
+        /// <param name="initialExcludedCellNotes">
+        /// <para>
+        /// 初期配置と同時に排除しておかなければならないセルの数字の候補のリストを示す <see cref="string"/> オブジェクトです。省略時の既定値は空文字列です。
+        /// </para>
+        /// <para>
+        /// この文字列のフォーマットは、"&lt;行&gt;&lt;列&gt;&lt;数字&gt;" の三つの数字をそのまま連結したものをセミコロン ';' で区切ったものです。
+        /// 行、列、数字は何れも 1 から 9 までの値です。
+        /// 指定するセルの数字の候補が特にない場合には空文字列を指定します。
+        /// </para>
+        /// </param>
         /// <exception cref="ArgumentException">
         /// <paramref name="initialCellDigits"/> のサイズが 81 ではありません。
         /// </exception>
-        internal SudokuBoardState(ReadOnlySpan<string> initialCellDigits)
+        internal SudokuBoardState(
+            ReadOnlySpan<string> initialCellDigits,
+            SudokuBoardOperationType highPriorityOperation = SudokuBoardOperationType.None,
+            string initialExcludedCellNotes = "")
         {
             const int TOTAL_NUMBER_OF_CELLS = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
+
+#if DEBUG
+            _highPriorityOperation = highPriorityOperation;
+#endif
+
             if (initialCellDigits.Length != TOTAL_NUMBER_OF_CELLS)
                 throw new ArgumentException($"The size of the Sudoku cell array must be {TOTAL_NUMBER_OF_CELLS}.", nameof(initialCellDigits));
 
@@ -95,6 +119,20 @@ namespace Game.SudokuSolver
                 if (_cells.IsDetermined(cellIndex))
                     _isInitialDigitsBitSet |= cellIndex.ToCellIndexBitSet();
             }
+
+            if (initialExcludedCellNotes.Length > 0)
+            {
+                foreach (var term in initialExcludedCellNotes.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (term.Length != 3 || term[0] is < '1' or > '9' || term[1] is < '1' or > '9' || term[2] is < '1' or > '9')
+                        throw new ArgumentException($"The format of '{initialExcludedCellNotes}' is incorrect.", nameof(initialExcludedCellNotes));
+                    var row = term[0] - '1' + SudokuBoardCellRow.One;
+                    var column = term[1] - '1' + SudokuBoardCellColumn.One;
+                    var digit = term[2] - '1' + SudokuBoardCellDigit.One;
+                    _ = _cells.RemoveNote(SudokuBoardCellGeometry.GetCellIndex(column, row), digit);
+                }
+            }
+
 #if DEBUG
             System.Diagnostics.Debug.WriteLine($"SudokuBoardState: step={StepCount}, totalNoteCount={GetTotalCellNoteCount()}");
 #endif
@@ -105,6 +143,7 @@ namespace Game.SudokuSolver
         {
             _cells = operation.Execute(state._cells);
             _isInitialDigitsBitSet = isInitialDigitsBitSet;
+            _highPriorityOperation = state._highPriorityOperation;
 #if DEBUG
             System.Diagnostics.Debug.WriteLine($"SudokuBoardState: step={StepCount}, totalNoteCount={GetTotalCellNoteCount()}");
 #endif
@@ -146,7 +185,7 @@ namespace Game.SudokuSolver
                 }
                 else
                 {
-                    var enabledCellNoteBitSet = _cells.GetNoteBitSet(cellIndex);
+                    var enabledCellNoteBitSet = _cells.GetCellNoteDigitBitSet(cellIndex);
                     cellsBuffer[cellIndex - SudokuBoardCellIndex.MinValue] =
                         new SudokuBoardNotDeterminedCell(
                             backgroundEffect,
@@ -154,7 +193,7 @@ namespace Game.SudokuSolver
                             {
                                 if (cellNoteEffects.TryGetValue(cellIndex, cellNoteDigit, out var effect))
                                     return effect;
-                                else if ((enabledCellNoteBitSet & cellNoteDigit.ToCellNoteBitSet()) != SudokuBoardCellNoteBitSet.None)
+                                else if ((enabledCellNoteBitSet & cellNoteDigit.ToCellDigitBitSet()) != SudokuBoardCellDigitBitSet.None)
                                     return SudokuBoardCellNoteEffect.Normal;
                                 else
                                     return SudokuBoardCellNoteEffect.Hidden;
@@ -198,16 +237,48 @@ namespace Game.SudokuSolver
             if (operation is not null)
                 return [operation];
 
-            operation =
-                XWingOperation.MatchPattern(workspace)
+            #region High Priority Operation
+
+            if (_highPriorityOperation != SudokuBoardOperationType.None)
+            {
+                operation =
+                    (_highPriorityOperation switch
+                    {
+                        SudokuBoardOperationType.FullHouse => FullHouseOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.HiddenSingle => HiddenSingleOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.NakedSingle => NakedSingleOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.BoxLineReduction => BoxLineReductionOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.NakedPair => NakedPairOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.NakedTriple => NakedTripleOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.Pointing => PointingOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.HiddenPair => HiddenPairOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.NakedQuad => NakedQuadOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.Swordfish => SwordfishOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.XWing => XWingOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.HiddenQuad => HiddenQuadOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.HiddenTriple => HiddenTripleOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.Jellyfish => JellyfishOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.SueDeCoq => SueDeCoqOperation.MatchPattern(workspace),
+                        _ => [],
+                    })
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
-            if (operation is not null)
-                return [operation];
+                if (operation is not null)
+                    return [operation];
+            }
+
+            #endregion
 
             #region BeginnerClass
 
             operation =
                 FullHouseOperation.MatchPattern(workspace)
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Beginner);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -219,6 +290,13 @@ namespace Game.SudokuSolver
             operation =
                 NakedSingleOperation.MatchPattern(workspace)
                 .Concat(HiddenSingleOperation.MatchPattern(workspace))
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Easy);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -232,6 +310,13 @@ namespace Game.SudokuSolver
                 .Concat(BoxLineReductionOperation.MatchPattern(workspace))
                 .Concat(NakedPairOperation.MatchPattern(workspace))
                 .Concat(NakedTripleOperation.MatchPattern(workspace))
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Medium);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -244,6 +329,14 @@ namespace Game.SudokuSolver
                 NakedQuadOperation.MatchPattern(workspace)
                 .Concat(HiddenPairOperation.MatchPattern(workspace))
                 .Concat(XWingOperation.MatchPattern(workspace))
+                .Concat(SwordfishOperation.MatchPattern(workspace))
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Hard);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -255,6 +348,14 @@ namespace Game.SudokuSolver
             operation =
                 HiddenTripleOperation.MatchPattern(workspace)
                 .Concat(HiddenQuadOperation.MatchPattern(workspace))
+                .Concat(JellyfishOperation.MatchPattern(workspace))
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Extreme);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -265,6 +366,13 @@ namespace Game.SudokuSolver
 
             operation =
                 SueDeCoqOperation.MatchPattern(workspace)
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Insane);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
@@ -275,15 +383,21 @@ namespace Game.SudokuSolver
 
             operation =
                 ForcingChainOperation.MatchPattern(workspace)
+#if DEBUG
+                .Select(operation =>
+                {
+                    System.Diagnostics.Debug.Assert(operation.Difficulty == SudokuBoardDifficultyLevel.Insane);
+                    System.Diagnostics.Debug.Assert(operation is ForcingChainOperation);
+                    return operation;
+                })
+#endif
                 .MaxBy(operation => operation.ExcludedCellNotes.Length);
             if (operation is not null)
                 return [operation];
 
             #endregion
 
-            return operation is not null
-                ? Enumerable.Empty<SudokuBoardOperation>().Append(operation)
-                : BruteForceOperation.MatchPattern(workspace);
+            return BruteForceOperation.MatchPattern(workspace);
         }
 
         /// <inheritdoc/>

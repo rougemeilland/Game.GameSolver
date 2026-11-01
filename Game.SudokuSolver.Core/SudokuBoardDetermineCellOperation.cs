@@ -13,9 +13,6 @@ namespace Game.SudokuSolver
         /// <summary>
         /// コンストラクタです。
         /// </summary>
-        /// <param name="status">
-        /// 定石を適用した結果の盤面の状態を示す <see cref="GameBoardStatus"/> 値です。
-        /// </param>
         /// <param name="title">
         /// 定石の名前を示す <see cref="string"/> オブジェクトです。
         /// </param>
@@ -35,14 +32,13 @@ namespace Game.SudokuSolver
         /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
         /// </param>
         protected SudokuBoardDetermineCellOperation(
-            GameBoardStatus status,
             string title,
             SudokuBoardDifficultyLevel difficulty,
             SudokuBoardCellPositionDigit determinedCell,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
-            : base(status,
+            : base(GameBoardStatus.Solving,
                    title,
                    difficulty,
                    determinedCell,

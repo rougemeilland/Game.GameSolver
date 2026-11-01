@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.EasyClass
 {
@@ -16,7 +15,6 @@ namespace Game.SudokuSolver.Operations.EasyClass
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "一択マス (Naked Single)",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
@@ -37,10 +35,10 @@ namespace Game.SudokuSolver.Operations.EasyClass
             {
                 if (!ws.IsDetermined(cellIndex))
                 {
-                    var cellNoteBitSet = ws.GetNoteBitSet(cellIndex);
-                    if (!ws.IsDetermined(cellIndex) && cellNoteBitSet.IsSingleBit())
+                    var cellNoteDigitBitSet = ws.GetCellNoteDigitBitSet(cellIndex);
+                    if (!ws.IsDetermined(cellIndex) && cellNoteDigitBitSet.IsSingleBit())
                     {
-                        var cellDigit = cellNoteBitSet.GetOneCellNoteDigit();
+                        var cellDigit = cellNoteDigitBitSet.GetOneCellDigit();
                         var excludedCellNotes =
                             ws.GetCellIndexBitSetForExcludedNoteDigit(cellIndex, cellDigit)
                             .EnumerateAsCellNotes(cellDigit)
@@ -49,8 +47,8 @@ namespace Game.SudokuSolver.Operations.EasyClass
                         var determinedCellDigitText = cellDigit.ToCellDigitText();
                         var description =
                             $"{determinedCellPositionText}のマスの数字の候補は {determinedCellDigitText} しかないため、" +
-                            $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。\n" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
+                            $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。" +
+                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif
@@ -59,7 +57,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                                 new SudokuBoardCellPositionDigit(cellIndex, cellDigit),
                                 excludedCellNotes,
                                 Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>()
-                                    .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                    .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                 description);
                     }
                 }

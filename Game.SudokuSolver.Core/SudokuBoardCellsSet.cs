@@ -129,17 +129,17 @@ namespace Game.SudokuSolver
         /// 指定されたセルの番号です。列は 0 から 80 までの整数です。
         /// </param>
         /// <value>
-        /// 指定されたセルの数字の候補の集合をを示す <see cref="SudokuBoardCellNoteBitSet"/> 値を返します。
+        /// 指定されたセルの数字の候補の集合をを示す <see cref="SudokuBoardCellDigitBitSet"/> 値を返します。
         /// </value>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public SudokuBoardCellNoteBitSet GetNoteBitSet(SudokuBoardCellIndex cellIndex)
+        public SudokuBoardCellDigitBitSet GetCellNoteDigitBitSet(SudokuBoardCellIndex cellIndex)
         {
 #if DEBUG
             if (cellIndex is < SudokuBoardCellIndex.MinValue or > SudokuBoardCellIndex.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(cellIndex));
             System.Diagnostics.Debug.Assert(!IsDetermined(cellIndex), $"{cellIndex.ToFriendlyString()} is determined cell.");
 #endif
-            return (SudokuBoardCellNoteBitSet)(_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
+            return (SudokuBoardCellDigitBitSet)(_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & ~_IS_DETERMINED);
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace Game.SudokuSolver
             if ((_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & _IS_DETERMINED) != 0)
                 return false;
             var determinedCellElement = (ushort)(_IS_DETERMINED | (ushort)digit);
-            var cellNoteBitMask = digit.ToCellNoteBitSet();
+            var cellNoteBitMask = digit.ToCellDigitBitSet();
             var otherCellsIndexes = _visibleCellsIndexes[cellIndex - SudokuBoardCellIndex.FirstValue];
             for (var index = 0; index < otherCellsIndexes.Length; ++index)
             {
@@ -357,7 +357,7 @@ namespace Game.SudokuSolver
                 if ((_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & _IS_DETERMINED) != 0)
                     return false;
 
-                var targetDigitMask = digit.ToCellNoteBitSet();
+                var targetDigitMask = digit.ToCellDigitBitSet();
 
                 // 削除対象の数字が候補に存在することの確認
                 if ((_cells[cellIndex - SudokuBoardCellIndex.FirstValue] & (ushort)targetDigitMask) == 0)

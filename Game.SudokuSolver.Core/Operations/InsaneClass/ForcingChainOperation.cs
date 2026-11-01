@@ -16,7 +16,6 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             string description)
             : base(
-                  GameBoardStatus.Solving,
                   "強制チェーン (Forcing Chain)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
@@ -44,8 +43,8 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var targetItems =
                 (~ws.DeterminedCellBitSet & SudokuBoardWorkspace.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
-                .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellsBitSet(cellIndex), notes: ws.GetNoteBitSet(cellIndex)))
-                .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), excludedCellNoteCount: (int)UInt128.PopCount(ws.GetNoteBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
+                .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex), notes: ws.GetCellNoteDigitBitSet(cellIndex)))
+                .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
                 .OrderBy(item => item.cellNoteCount)
                 .ThenByDescending(item => item.excludedCellNoteCount)
                 .ThenBy(item => item.cellIndex)

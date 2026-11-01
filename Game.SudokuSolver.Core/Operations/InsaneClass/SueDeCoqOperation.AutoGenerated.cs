@@ -73,19 +73,19 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 3; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 2; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 1; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
 
                             // キーとなるすべてのセルの位置の和集合
                             var allKeyCellBitSet =
@@ -122,7 +122,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                             if (intersectionKeyCellBitSet != 0
                                 && blockWingKeyCellBitSet != 0
                                 && lineWingKeyCellBitSet != 0
-                                && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                 && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 4)
                             {
                                 // この時点でスー・デ・コック法の条件が成立している。
@@ -191,7 +191,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                         )}" +
                                         $"したがって、" +
                                         $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                        $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                        $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                     return
                                         new SueDeCoqOperation(
                                             excludedCellNotes,
@@ -283,23 +283,23 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 4; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 3; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 2; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 1; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
                             for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
-                                var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
+                                var keyDigitBitSet5 = ws.GetCellNoteDigitBitSet(keyCellIndex5);
 
                                 // キーとなるすべてのセルの位置の和集合
                                 var allKeyCellBitSet =
@@ -337,7 +337,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 if (intersectionKeyCellBitSet != 0
                                     && blockWingKeyCellBitSet != 0
                                     && lineWingKeyCellBitSet != 0
-                                    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                     && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 5)
                                 {
                                     // この時点でスー・デ・コック法の条件が成立している。
@@ -406,7 +406,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             )}" +
                                             $"したがって、" +
                                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                            $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                            $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                         return
                                             new SueDeCoqOperation(
                                                 excludedCellNotes,
@@ -499,27 +499,27 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 5; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 4; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 3; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 2; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
                             for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 1; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
-                                var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
+                                var keyDigitBitSet5 = ws.GetCellNoteDigitBitSet(keyCellIndex5);
                                 for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
-                                    var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
+                                    var keyDigitBitSet6 = ws.GetCellNoteDigitBitSet(keyCellIndex6);
 
                                     // キーとなるすべてのセルの位置の和集合
                                     var allKeyCellBitSet =
@@ -558,7 +558,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                     if (intersectionKeyCellBitSet != 0
                                         && blockWingKeyCellBitSet != 0
                                         && lineWingKeyCellBitSet != 0
-                                        && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                        && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                         && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 6)
                                     {
                                         // この時点でスー・デ・コック法の条件が成立している。
@@ -627,7 +627,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 )}" +
                                                 $"したがって、" +
                                                 $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                                $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                                $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                             return
                                                 new SueDeCoqOperation(
                                                     excludedCellNotes,
@@ -721,31 +721,31 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 6; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 5; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 4; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 3; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
                             for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 2; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
-                                var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
+                                var keyDigitBitSet5 = ws.GetCellNoteDigitBitSet(keyCellIndex5);
                                 for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 1; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
-                                    var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
+                                    var keyDigitBitSet6 = ws.GetCellNoteDigitBitSet(keyCellIndex6);
                                     for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length; ++keyIndex7)
                                     {
                                         var keyCellIndex7 = keyCellIIndexes[keyIndex7];
-                                        var keyDigitBitSet7 = ws.GetNoteBitSet(keyCellIndex7);
+                                        var keyDigitBitSet7 = ws.GetCellNoteDigitBitSet(keyCellIndex7);
 
                                         // キーとなるすべてのセルの位置の和集合
                                         var allKeyCellBitSet =
@@ -785,7 +785,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                         if (intersectionKeyCellBitSet != 0
                                             && blockWingKeyCellBitSet != 0
                                             && lineWingKeyCellBitSet != 0
-                                            && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                            && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                             && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 7)
                                         {
                                             // この時点でスー・デ・コック法の条件が成立している。
@@ -854,7 +854,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                     )}" +
                                                     $"したがって、" +
                                                     $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                                    $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                                    $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                 return
                                                     new SueDeCoqOperation(
                                                         excludedCellNotes,
@@ -949,35 +949,35 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 7; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 6; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 5; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 4; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
                             for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 3; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
-                                var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
+                                var keyDigitBitSet5 = ws.GetCellNoteDigitBitSet(keyCellIndex5);
                                 for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 2; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
-                                    var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
+                                    var keyDigitBitSet6 = ws.GetCellNoteDigitBitSet(keyCellIndex6);
                                     for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 1; ++keyIndex7)
                                     {
                                         var keyCellIndex7 = keyCellIIndexes[keyIndex7];
-                                        var keyDigitBitSet7 = ws.GetNoteBitSet(keyCellIndex7);
+                                        var keyDigitBitSet7 = ws.GetCellNoteDigitBitSet(keyCellIndex7);
                                         for (var keyIndex8 = keyIndex7 + 1; keyIndex8 < keyCellIIndexes.Length; ++keyIndex8)
                                         {
                                             var keyCellIndex8 = keyCellIIndexes[keyIndex8];
-                                            var keyDigitBitSet8 = ws.GetNoteBitSet(keyCellIndex8);
+                                            var keyDigitBitSet8 = ws.GetCellNoteDigitBitSet(keyCellIndex8);
 
                                             // キーとなるすべてのセルの位置の和集合
                                             var allKeyCellBitSet =
@@ -1018,7 +1018,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                             if (intersectionKeyCellBitSet != 0
                                                 && blockWingKeyCellBitSet != 0
                                                 && lineWingKeyCellBitSet != 0
-                                                && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                                && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                                 && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 8)
                                             {
                                                 // この時点でスー・デ・コック法の条件が成立している。
@@ -1087,7 +1087,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                         )}" +
                                                         $"したがって、" +
                                                         $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                                        $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                                        $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                     return
                                                         new SueDeCoqOperation(
                                                             excludedCellNotes,
@@ -1183,39 +1183,39 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 8; ++keyIndex1)
             {
                 var keyCellIndex1 = keyCellIIndexes[keyIndex1];
-                var keyDigitBitSet1 = ws.GetNoteBitSet(keyCellIndex1);
+                var keyDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                 for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 7; ++keyIndex2)
                 {
                     var keyCellIndex2 = keyCellIIndexes[keyIndex2];
-                    var keyDigitBitSet2 = ws.GetNoteBitSet(keyCellIndex2);
+                    var keyDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                     for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 6; ++keyIndex3)
                     {
                         var keyCellIndex3 = keyCellIIndexes[keyIndex3];
-                        var keyDigitBitSet3 = ws.GetNoteBitSet(keyCellIndex3);
+                        var keyDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                         for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length - 5; ++keyIndex4)
                         {
                             var keyCellIndex4 = keyCellIIndexes[keyIndex4];
-                            var keyDigitBitSet4 = ws.GetNoteBitSet(keyCellIndex4);
+                            var keyDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
                             for (var keyIndex5 = keyIndex4 + 1; keyIndex5 < keyCellIIndexes.Length - 4; ++keyIndex5)
                             {
                                 var keyCellIndex5 = keyCellIIndexes[keyIndex5];
-                                var keyDigitBitSet5 = ws.GetNoteBitSet(keyCellIndex5);
+                                var keyDigitBitSet5 = ws.GetCellNoteDigitBitSet(keyCellIndex5);
                                 for (var keyIndex6 = keyIndex5 + 1; keyIndex6 < keyCellIIndexes.Length - 3; ++keyIndex6)
                                 {
                                     var keyCellIndex6 = keyCellIIndexes[keyIndex6];
-                                    var keyDigitBitSet6 = ws.GetNoteBitSet(keyCellIndex6);
+                                    var keyDigitBitSet6 = ws.GetCellNoteDigitBitSet(keyCellIndex6);
                                     for (var keyIndex7 = keyIndex6 + 1; keyIndex7 < keyCellIIndexes.Length - 2; ++keyIndex7)
                                     {
                                         var keyCellIndex7 = keyCellIIndexes[keyIndex7];
-                                        var keyDigitBitSet7 = ws.GetNoteBitSet(keyCellIndex7);
+                                        var keyDigitBitSet7 = ws.GetCellNoteDigitBitSet(keyCellIndex7);
                                         for (var keyIndex8 = keyIndex7 + 1; keyIndex8 < keyCellIIndexes.Length - 1; ++keyIndex8)
                                         {
                                             var keyCellIndex8 = keyCellIIndexes[keyIndex8];
-                                            var keyDigitBitSet8 = ws.GetNoteBitSet(keyCellIndex8);
+                                            var keyDigitBitSet8 = ws.GetCellNoteDigitBitSet(keyCellIndex8);
                                             for (var keyIndex9 = keyIndex8 + 1; keyIndex9 < keyCellIIndexes.Length; ++keyIndex9)
                                             {
                                                 var keyCellIndex9 = keyCellIIndexes[keyIndex9];
-                                                var keyDigitBitSet9 = ws.GetNoteBitSet(keyCellIndex9);
+                                                var keyDigitBitSet9 = ws.GetCellNoteDigitBitSet(keyCellIndex9);
 
                                                 // キーとなるすべてのセルの位置の和集合
                                                 var allKeyCellBitSet =
@@ -1257,7 +1257,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                 if (intersectionKeyCellBitSet != 0
                                                     && blockWingKeyCellBitSet != 0
                                                     && lineWingKeyCellBitSet != 0
-                                                    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None
+                                                    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None
                                                     && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == 9)
                                                 {
                                                     // この時点でスー・デ・コック法の条件が成立している。
@@ -1326,7 +1326,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                                             )}" +
                                                             $"したがって、" +
                                                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
-                                                            $"ラインウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
+                                                            $"ブロックウィング内のマス {blockWingKeyCellPositionsText} のマスにしか出現しない数字の候補を除いた数字 ({lineOnlyKeyDigitsText}) をライン内の {lineKeyCellPositionsText} 以外のマスの数字の候補から排除します。";
                                                         return
                                                             new SueDeCoqOperation(
                                                                 excludedCellNotes,

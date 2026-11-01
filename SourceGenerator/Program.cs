@@ -721,7 +721,7 @@ namespace SourceGenerator
                         sourceWriter.WriteLine($"            {indent}for (var keyIndex{n + 1} = {(n <= 0 ? $"0" : $"keyIndex{n} + 1")}; keyIndex{n + 1} < keyCellIIndexes.Length{(n < numberOfAlliance - 1 ? $" - {numberOfAlliance - 1 - n}" : "")}; ++keyIndex{n + 1})");
                         sourceWriter.WriteLine($"            {indent}{{");
                         sourceWriter.WriteLine($"            {indent}    var keyCellIndex{n + 1} = keyCellIIndexes[keyIndex{n + 1}];");
-                        sourceWriter.WriteLine($"            {indent}    var keyDigitBitSet{n + 1} = ws.GetNoteBitSet(keyCellIndex{n + 1});");
+                        sourceWriter.WriteLine($"            {indent}    var keyDigitBitSet{n + 1} = ws.GetCellNoteDigitBitSet(keyCellIndex{n + 1});");
                         indentCount += 4;
                         indent = new string(' ', indentCount);
                     }
@@ -765,7 +765,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}if (intersectionKeyCellBitSet != 0");
                     sourceWriter.WriteLine($"            {indent}    && blockWingKeyCellBitSet != 0");
                     sourceWriter.WriteLine($"            {indent}    && lineWingKeyCellBitSet != 0");
-                    sourceWriter.WriteLine($"            {indent}    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellNoteBitSet.None");
+                    sourceWriter.WriteLine($"            {indent}    && (intersectionKeyDigitBitSet & blockWingKeyDigitBitSet & lineWingKeyDigitBitSet) == SudokuBoardCellDigitBitSet.None");
                     sourceWriter.WriteLine($"            {indent}    && intersectionKeyDigitBitSet.GetPopCount() + (blockWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() + (lineWingKeyDigitBitSet & ~intersectionKeyDigitBitSet).GetPopCount() == {numberOfAlliance})");
                     sourceWriter.WriteLine($"            {indent}{{");
                     sourceWriter.WriteLine($"            {indent}    // この時点でスー・デ・コック法の条件が成立している。");
@@ -834,7 +834,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}            )}}\" +");
                     sourceWriter.WriteLine($"            {indent}            $\"したがって、\" +");
                     sourceWriter.WriteLine($"            {indent}            $\"ラインウィング内のマス {{lineWingKeyCellPositionsText}} にしか出現しない数字の候補を除いた数字 ({{blockOnlyKeyDigitsText}}) を {{blockKeyCellPositionsText}} を除くブロック内のマスの数字の候補から排除し、\" +");
-                    sourceWriter.WriteLine($"            {indent}            $\"ラインウィング内のマス {{blockWingKeyCellPositionsText}} のマスにしか出現しない数字の候補を除いた数字 ({{lineOnlyKeyDigitsText}}) をライン内の {{lineKeyCellPositionsText}} 以外のマスの数字の候補から排除します。\";");
+                    sourceWriter.WriteLine($"            {indent}            $\"ブロックウィング内のマス {{blockWingKeyCellPositionsText}} のマスにしか出現しない数字の候補を除いた数字 ({{lineOnlyKeyDigitsText}}) をライン内の {{lineKeyCellPositionsText}} 以外のマスの数字の候補から排除します。\";");
                     sourceWriter.WriteLine($"            {indent}        return");
                     sourceWriter.WriteLine($"            {indent}            new SueDeCoqOperation(");
                     sourceWriter.WriteLine($"            {indent}                excludedCellNotes,");
