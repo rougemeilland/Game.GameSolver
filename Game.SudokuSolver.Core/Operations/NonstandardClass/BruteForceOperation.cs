@@ -36,7 +36,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
             // 配列の順番は、その数字の候補が確定することによって排除出来る数字の候補の数が多いものを優先とする。
             // ※ excludedCellNoteCount には確定される数字の候補自身も含まれているが、excludedCellNoteCount 同士の比較にしか使用されないため、特に除外はしていない。
             var targetItems =
-                (~ws.DeterminedCellBitSet & SudokuBoardWorkspace.AllCellIndexBitSet)
+                (~ws.DeterminedCellBitSet & SudokuBoardCellGeometry.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
                 .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex)))
                 .SelectMany(cell => ws.GetCellNoteDigitBitSet(cell.cellIndex).EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,86 +73,73 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
             static IEnumerable<SudokuBoardOperation> MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
             {
-                var keyCellIndexBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
-                try
+                for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA <= SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitA)
                 {
-                    for (var keyCellDigitA = SudokuBoardCellDigit.MinValue; keyCellDigitA <= SudokuBoardCellDigit.MaxValue - 2; ++keyCellDigitA)
+                    var keyCellIndexBitSetA = ws.GetCellIndexBitSet(keyCellDigitA) & houseMask;
+                    if (keyCellIndexBitSetA != 0)
                     {
-                        var keyCellIndexBitSetA = ws.GetCellIndexBitSet(keyCellDigitA) & houseMask;
-                        if (keyCellIndexBitSetA != 0)
+                        // 指定されたハウスにおいて、keyCellDigitA が何れかのセルの数字の候補に存在する
+                        for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB <= SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitB)
                         {
-                            // 指定されたハウスにおいて、keyCellDigitA が何れかのセルの数字の候補に存在する
-                            for (var keyCellDigitB = keyCellDigitA + 1; keyCellDigitB <= SudokuBoardCellDigit.MaxValue - 1; ++keyCellDigitB)
+                            var keyCellIndexBitSetB = ws.GetCellIndexBitSet(keyCellDigitB) & houseMask;
+                            if (keyCellIndexBitSetB != 0)
                             {
-                                var keyCellIndexBitSetB = ws.GetCellIndexBitSet(keyCellDigitB) & houseMask;
-                                if (keyCellIndexBitSetB != 0)
+                                // 指定されたハウスにおいて、keyCellDigitB が何れかのセルの数字の候補に存在する
+                                for (var keyCellDigitC = keyCellDigitB + 1; keyCellDigitC <= SudokuBoardCellDigit.MaxValue; ++keyCellDigitC)
                                 {
-                                    // 指定されたハウスにおいて、keyCellDigitB が何れかのセルの数字の候補に存在する
-                                    for (var keyCellDigitC = keyCellDigitB + 1; keyCellDigitC <= SudokuBoardCellDigit.MaxValue; ++keyCellDigitC)
+                                    var keyCellIndexBitSetC = ws.GetCellIndexBitSet(keyCellDigitC) & houseMask;
+                                    if (keyCellIndexBitSetC != 0)
                                     {
-                                        var keyCellIndexBitSetC = ws.GetCellIndexBitSet(keyCellDigitC) & houseMask;
-                                        if (keyCellIndexBitSetC != 0)
+                                        // 指定されたハウスにおいて、keyCellDigitC が何れかのセルの数字の候補に存在する
+                                        var keyCellIndexBitSet = keyCellIndexBitSetA | keyCellIndexBitSetB | keyCellIndexBitSetC;
+                                        if (UInt128.PopCount(keyCellIndexBitSet) == 3)
                                         {
-                                            // 指定されたハウスにおいて、keyCellDigitC が何れかのセルの数字の候補に存在する
-                                            var keyCellIndexBitSet = keyCellIndexBitSetA | keyCellIndexBitSetB | keyCellIndexBitSetC;
-                                            if (UInt128.PopCount(keyCellIndexBitSet) == 3)
+                                            // あるハウスにおいて、ある三つの数字が三つのセルのみの候補に存在する
+                                            // => 隠れ三国同盟が成立している
+                                            // ただし、隠れ三国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
+
+                                            // 隠れ三国同盟のセルの位置を求める
+                                            var (keyCellIndex1, keyCellIndex2, keyCellIndex3) = keyCellIndexBitSet.SplitAsTripleCellIndexes();
+
+                                            var keyCellDigitBitSet = keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet();
+                                            var keyCellNoteDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
+                                            var keyCellNoteDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
+                                            var keyCellNoteDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
+                                            var excludedCellDigitBitSet1 = keyCellNoteDigitBitSet1 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet2 = keyCellNoteDigitBitSet2 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet3 = keyCellNoteDigitBitSet3 & ~keyCellDigitBitSet;
+                                            var excludedCellDigitBitSet = excludedCellDigitBitSet1 | excludedCellDigitBitSet2 | excludedCellDigitBitSet3;
+                                            if (excludedCellDigitBitSet != 0)
                                             {
-                                                // あるハウスにおいて、ある三つの数字が三つのセルのみの候補に存在する
-                                                // => 隠れ三国同盟が成立している
-                                                // ただし、隠れ三国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
+                                                // この時点で、隠れ三国同盟によって排除される数字の候補が存在する
 
-                                                // 隠れ三国同盟のセルの位置を求める
-                                                var keyCellIndexes = keyCellIndexBitSet.EnumerateAsCellIndexes(keyCellIndexBuffer);
-#if DEBUG
-                                                System.Diagnostics.Debug.Assert(keyCellIndexes.Length == 3);
-#endif
-                                                // 隠れ三国同盟に含まれるセル 1
-                                                var keyCellIndex1 = keyCellIndexes[0];
-                                                // 隠れ三国同盟に含まれるセル 2
-                                                var keyCellIndex2 = keyCellIndexes[1];
-                                                // 隠れ三国同盟に含まれるセル 3
-                                                var keyCellIndex3 = keyCellIndexes[2];
-
-                                                var keyCellDigitBitSet = keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet();
-                                                var keyCellNoteDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
-                                                var keyCellNoteDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
-                                                var keyCellNoteDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
-                                                var excludedCellDigitBitSet1 = keyCellNoteDigitBitSet1 & ~keyCellDigitBitSet;
-                                                var excludedCellDigitBitSet2 = keyCellNoteDigitBitSet2 & ~keyCellDigitBitSet;
-                                                var excludedCellDigitBitSet3 = keyCellNoteDigitBitSet3 & ~keyCellDigitBitSet;
-                                                var excludedCellDigitBitSet = excludedCellDigitBitSet1 | excludedCellDigitBitSet2 | excludedCellDigitBitSet3;
-                                                if (excludedCellDigitBitSet != 0)
-                                                {
-                                                    // この時点で、隠れ三国同盟によって排除される数字の候補が存在する
-
-                                                    var highlightedCellNotes =
-                                                        (keyCellNoteDigitBitSet1 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex1)
-                                                        .Concat((keyCellNoteDigitBitSet2 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex2))
-                                                        .Concat((keyCellNoteDigitBitSet3 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex3));
-                                                    var excludedCellNotes =
-                                                        excludedCellDigitBitSet1.EnumerateAsCellNotes(keyCellIndex1)
-                                                        .Concat(excludedCellDigitBitSet2.EnumerateAsCellNotes(keyCellIndex2))
-                                                        .Concat(excludedCellDigitBitSet3.EnumerateAsCellNotes(keyCellIndex3));
-                                                    var houseName = houseNameGetter();
-                                                    var excludedDigitChars = string.Join(", ", excludedCellDigitBitSet.EnumerateAsCellDigitTexts());
-                                                    var keyCellDigitCharsText = string.Join(", ", keyCellDigitBitSet.EnumerateAsCellDigitTexts());
-                                                    var keyCellPositionsText =
-                                                        string.Join(
-                                                            ", ",
-                                                            (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet())
-                                                                .EnumerateAsCellPositionTexts());
-                                                    var description =
-                                                        $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の三つしかないので、" +
-                                                        $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
-                                                        $"したがって、三つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
-                                                    yield return
-                                                        new HiddenTripleOperation(
-                                                            excludedCellNotes,
-                                                            keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                                                                .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2)),
-                                                            highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                                                            description);
-                                                }
+                                                var highlightedCellNotes =
+                                                    (keyCellNoteDigitBitSet1 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex1)
+                                                    .Concat((keyCellNoteDigitBitSet2 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex2))
+                                                    .Concat((keyCellNoteDigitBitSet3 & keyCellDigitBitSet).EnumerateAsCellNotes(keyCellIndex3));
+                                                var excludedCellNotes =
+                                                    excludedCellDigitBitSet1.EnumerateAsCellNotes(keyCellIndex1)
+                                                    .Concat(excludedCellDigitBitSet2.EnumerateAsCellNotes(keyCellIndex2))
+                                                    .Concat(excludedCellDigitBitSet3.EnumerateAsCellNotes(keyCellIndex3));
+                                                var houseName = houseNameGetter();
+                                                var excludedDigitChars = string.Join(", ", excludedCellDigitBitSet.EnumerateAsCellDigitTexts());
+                                                var keyCellDigitCharsText = string.Join(", ", keyCellDigitBitSet.EnumerateAsCellDigitTexts());
+                                                var keyCellPositionsText =
+                                                    string.Join(
+                                                        ", ",
+                                                        (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet())
+                                                            .EnumerateAsCellPositionTexts());
+                                                var description =
+                                                    $"{houseName}において、三つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の三つしかないので、" +
+                                                    $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
+                                                    $"したがって、三つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
+                                                yield return
+                                                    new HiddenTripleOperation(
+                                                        excludedCellNotes,
+                                                        keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                                                            .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2)),
+                                                        highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                                                        description);
                                             }
                                         }
                                     }
@@ -161,10 +147,6 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             }
                         }
                     }
-                }
-                finally
-                {
-                    ArrayPool<SudokuBoardCellIndex>.Shared.Return(keyCellIndexBuffer);
                 }
             }
         }

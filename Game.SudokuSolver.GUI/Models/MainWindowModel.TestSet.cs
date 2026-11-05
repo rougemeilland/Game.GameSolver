@@ -5,6 +5,11 @@ namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
+        // TODO: フィン付きX-Wingのループ回数の削減
+        // TODO: Descriptionの遅延評価化
+        // TODO: フィン付きX-Wingのテスト。
+        //#error
+
         private static SudokuGameBoard CreateModelForTest()
             => CreateModelForTest_Jellyfish3();
 
@@ -428,7 +433,9 @@ namespace Game.SudokuSolver.GUI.Models
                     "000410006" +
                     "005600704" +
                     "640730080"),
-                 SudokuBoardOperationType.NakedQuad);
+                 SudokuBoardOperationType.NakedQuad,
+                 // 別の定石により 4行6列 の候補から 1 を排除しておかないと四国同盟は動作しない
+                 "461");
 
         private static SudokuGameBoard CreateModelForTest_NakedQuad3()
             => new(

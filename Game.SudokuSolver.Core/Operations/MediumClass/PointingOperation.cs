@@ -16,7 +16,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  "ポインティング (Locked Candidates (Pointing))",
+                  "ポインティング (Pointing)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -73,29 +73,36 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 }
             }
 
-            static PointingOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 allCellIndexBitSet)
+            static PointingOperation? MatchPatternByHouse(
+                SudokuBoardCellBlock block,
+                UInt128 blockHouseBitMask,
+                UInt128 lineHouseBitMask,
+                string lineName,
+                SudokuBoardCellDigit cellDigit,
+                UInt128 allCellIndexBitSet)
             {
-                var KeyCellIndexBitSet = allCellIndexBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
-                var excludedCellNoteBitSet = allCellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask;
-                if (KeyCellIndexBitSet != 0 && (allCellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask) == 0 && excludedCellNoteBitSet != 0)
-                {
-                    var blockName = block.ToFriendlyString();
-                    var cellDigitChar = cellDigit.ToCellDigitText();
-                    var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
-                    var description
-                        = $"{blockName}のブロックには{lineName}のマスのみに数字の候補 {cellDigitChar} が含まれており、" +
-                        $"必ずこれらのマスの何れかが {cellDigitChar} となります。\n" +
-                        $"そのため、{lineName}にある他のマス {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
-                    return
-                        new PointingOperation(
-                            excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
-                            blockHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                .Concat((columnOrRowHouseBitMask & ~blockHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
-                            KeyCellIndexBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                            description);
-                }
+                var intersectionBitMask = blockHouseBitMask & lineHouseBitMask;
+                var blockWingBitMask = blockHouseBitMask & ~lineHouseBitMask;
+                var lineWingBitMask = ~blockHouseBitMask & lineHouseBitMask;
+                var KeyCellIndexBitSet = allCellIndexBitSet & intersectionBitMask;
+                var excludedCellNoteBitSet = allCellIndexBitSet & lineWingBitMask;
+                if (KeyCellIndexBitSet == 0 || (allCellIndexBitSet & blockWingBitMask) != 0 || excludedCellNoteBitSet == 0)
+                    return null;
 
-                return null;
+                var blockName = block.ToFriendlyString();
+                var cellDigitChar = cellDigit.ToCellDigitText();
+                var description
+                    = $"{blockName}のブロックには{lineName}のマスのみに数字の候補 {cellDigitChar} が含まれており、" +
+                    $"必ずこれらのマスの何れかが {cellDigitChar} となります。\n" +
+                    $"そのため、{lineName}にある他のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
+                return
+                    new PointingOperation(
+                        excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
+                        intersectionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                        .Concat(blockWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat(lineWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        KeyCellIndexBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                        description);
             }
         }
     }

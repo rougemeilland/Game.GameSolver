@@ -68,15 +68,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 var determinedCellBitSetByHouse = ws.DeterminedCellBitSet & houseMask;
                 if (UInt128.PopCount(determinedCellBitSetByHouse) != 8)
                     return null;
-                var foundCellSingleBitSet = ~determinedCellBitSetByHouse & houseMask;
-#if DEBUG
-                System.Diagnostics.Debug.Assert(UInt128.IsPow2(foundCellSingleBitSet));
-#endif
-
-                var undeterminedCellIndex = foundCellSingleBitSet.GetOneCellIndex();
-#if DEBUG
-                System.Diagnostics.Debug.Assert(undeterminedCellIndex is >= SudokuBoardCellIndex.MinValue and <= SudokuBoardCellIndex.MaxValue);
-#endif
+                var undeterminedCellIndex = (~determinedCellBitSetByHouse & houseMask).AsSingleCellIndex();
                 var foundCellDigit = FindMissingCellDigit(ws, determinedCellBitSetByHouse);
 
                 var excludedCellNotes =
@@ -92,7 +84,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         SudokuBoardHouseType.Row =>
                             $"{determinedCellRow.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
                             $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
-                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
+                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
                         SudokuBoardHouseType.Column =>
                             $"{determinedCellColumn.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
                             $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
@@ -134,7 +126,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
 #if DEBUG
                     System.Diagnostics.Debug.Assert(undeterminedCellDigitBitSet.IsSingleBit());
 #endif
-                    return undeterminedCellDigitBitSet.GetOneCellDigit();
+                    return undeterminedCellDigitBitSet.AsSingleCellDigit();
                 }
             }
         }

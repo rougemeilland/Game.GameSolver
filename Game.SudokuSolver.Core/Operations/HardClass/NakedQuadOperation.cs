@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using Game.GameSolver;
 
 namespace Game.SudokuSolver.Operations.HardClass
 {
@@ -32,78 +32,96 @@ namespace Game.SudokuSolver.Operations.HardClass
             // あるハウス H と ある四つの数字 D1, D2, D3, D4 と H 内にある四つのセル C1, C2, C3, C4 に対して、
             // C1, C2, C3, C4 が数字の候補として D1, S2, D3, D4 の何れかだけを持つ場合
             // => C1, C2, C3, C4 の数字はそれぞれ D1, D2, D3, D4 の何れかであるので、H 内の C1, C2, C3, C4 以外のセルは D1, D2, D3, D4 の何れでもあり得ない。
+            // => C1, C2, C3, C4 の数字はそれぞれ D1, D2, D3, D4 の何れかであるので、C1, C2, C3, C4 の全てが共有するハウス (つまりハウス H) 内の C1, C2, C3, C4 以外のセルは D1, D2, D3, D4 の何れでもあり得ない。
 
-            // ブロックハウスの検索
-            for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
+            var keyCellIIndexesBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
+            try
             {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
-                        () => $"{block.ToFriendlyString()}のブロック",
-                        SudokuBoardCellGeometry.GetCellIndexes(block).Span);
-                if (operation is not null)
-                    yield return operation;
+                // ブロックハウスの検索
+                for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
+                {
+                    var operations =
+                        MatchPatternByHouse(
+                            ws,
+                            SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
+                            () => $"{block.ToFriendlyString()}のブロック",
+                            SudokuBoardCellGeometry.GetCellIndexes(block),
+                            keyCellIIndexesBuffer);
+                    foreach (var operation in operations)
+                        yield return operation;
+                }
+
+                // 行ハウスの検索
+                for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
+                {
+                    var operations =
+                        MatchPatternByHouse(
+                            ws,
+                            SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
+                            () => $"{row.ToFriendlyString()}の行",
+                            SudokuBoardCellGeometry.GetCellIndexes(row),
+                            keyCellIIndexesBuffer);
+                    foreach (var operation in operations)
+                        yield return operation;
+                }
+
+                // 列ハウスの検索
+                for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
+                {
+                    var operations =
+                        MatchPatternByHouse(
+                            ws,
+                            SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
+                            () => $"{column.ToFriendlyString()}の列",
+                            SudokuBoardCellGeometry.GetCellIndexes(column),
+                            keyCellIIndexesBuffer);
+                    foreach (var operation in operations)
+                        yield return operation;
+                }
+            }
+            finally
+            {
+                ArrayPool<SudokuBoardCellIndex>.Shared.Return(keyCellIIndexesBuffer);
             }
 
-            // 行ハウスの検索
-            for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
+            static IEnumerable<NakedQuadOperation> MatchPatternByHouse(
+                SudokuBoardWorkspace ws,
+                UInt128 houseMask,
+                Func<string> houseNameGetter,
+                ReadOnlyMemory<SudokuBoardCellIndex> houseCellIndexes,
+                Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
             {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
-                        () => $"{row.ToFriendlyString()}の行",
-                        SudokuBoardCellGeometry.GetCellIndexes(row).Span);
-                if (operation is not null)
-                    yield return operation;
-            }
-
-            // 列ハウスの検索
-            for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
-            {
-                var operation =
-                    MatchPatternByHouse(
-                        ws,
-                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
-                        () => $"{column.ToFriendlyString()}の列",
-                        SudokuBoardCellGeometry.GetCellIndexes(column).Span);
-                if (operation is not null)
-                    yield return operation;
-            }
-
-            static NakedQuadOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, UInt128 houseMask, Func<string> houseNameGetter, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes)
-            {
-                // 四国同盟の可能性があるセルを抽出する
-                Span<SudokuBoardCellIndex> keyCellIIndexesBuffer = stackalloc SudokuBoardCellIndex[houseCellIndexes.Length];
-                var keyCellIIndexes = CopyKeyCellIndexes(ws, houseCellIndexes, keyCellIIndexesBuffer);
-
-                // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、四国同盟が成立する組み合わせは存在しないため、検索を中断する
-                if (keyCellIIndexes.Length < 4)
-                    return null;
-
+#if DEBUG
+                System.Diagnostics.Debug.Assert(houseCellIndexes.Length <= keyCellIIndexesBuffer.Length);
+#endif
                 var houseNoteMask = ~ws.DeterminedCellBitSet & houseMask;
 
                 // ハウス内の未確定セルの数が 5 未満の場合、四国同盟が成立しないかあるいは仮に成立したとしても数字の候補を排除可能な他の未確定セルが存在しないため、検索を中断する
                 if (UInt128.PopCount(houseNoteMask) < 5)
-                    return null;
+                    yield break;
 
-                Span<SudokuBoardCellDigit> keyCellDigitBuffer = stackalloc SudokuBoardCellDigit[9];
+                // 四国同盟の可能性があるセルを抽出する
+                var keyCellIIndexes = ws.ExtractMembersOfAlliance(4, houseCellIndexes, keyCellIIndexesBuffer);
+
+                // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、四国同盟が成立する組み合わせは存在しないため、検索を中断する
+                if (keyCellIIndexes.Length < 4)
+                    yield break;
+
                 for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 3; ++keyIndex1)
                 {
-                    var keyCellIndex1 = keyCellIIndexes[keyIndex1];
+                    var keyCellIndex1 = keyCellIIndexes.Span[keyIndex1];
                     var keyCellDigitBitSet1 = ws.GetCellNoteDigitBitSet(keyCellIndex1);
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyCellIIndexes.Length - 2; ++keyIndex2)
                     {
-                        var keyCellIndex2 = keyCellIIndexes[keyIndex2];
+                        var keyCellIndex2 = keyCellIIndexes.Span[keyIndex2];
                         var keyCellDigitBitSet2 = ws.GetCellNoteDigitBitSet(keyCellIndex2);
                         for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyCellIIndexes.Length - 1; ++keyIndex3)
                         {
-                            var keyCellIndex3 = keyCellIIndexes[keyIndex3];
+                            var keyCellIndex3 = keyCellIIndexes.Span[keyIndex3];
                             var keyCellDigitBitSet3 = ws.GetCellNoteDigitBitSet(keyCellIndex3);
                             for (var keyIndex4 = keyIndex3 + 1; keyIndex4 < keyCellIIndexes.Length; ++keyIndex4)
                             {
-                                var keyCellIndex4 = keyCellIIndexes[keyIndex4];
+                                var keyCellIndex4 = keyCellIIndexes.Span[keyIndex4];
                                 var keyCellDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
 
                                 var keyCellDigitBitSet = keyCellDigitBitSet1 | keyCellDigitBitSet2 | keyCellDigitBitSet3 | keyCellDigitBitSet4;
@@ -113,25 +131,22 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     // ただし、四国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。
 
                                     // 四国同盟に含まれるセルの数字を求める
-                                    var foundCellDigits = keyCellDigitBitSet.EnumerateAsCellDigits(keyCellDigitBuffer);
-#if DEBUG
-                                    System.Diagnostics.Debug.Assert(foundCellDigits.Length == 4);
-#endif
-                                    // 四国同盟に含まれるセルの数字 A
-                                    var keyCellDigitA = foundCellDigits[0];
-                                    // 四国同盟に含まれるセルの数字 B
-                                    var keyCellDigitB = foundCellDigits[1];
-                                    // 四国同盟に含まれるセルの数字 C
-                                    var keyCellDigitC = foundCellDigits[2];
-                                    // 四国同盟に含まれるセルの数字 D
-                                    var keyCellDigitD = foundCellDigits[3];
+                                    var (keyCellDigitA, keyCellDigitB, keyCellDigitC, keyCellDigitD) = keyCellDigitBitSet.SplitAsQuadCellDigits();
 
                                     // 四国同盟によって排除されるセルの数字の候補を求める
                                     var keyCellIndexBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
-                                    var excludedCellIndexBitSetA = houseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetB = houseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetC = houseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetD = houseMask & ws.GetCellIndexBitSet(keyCellDigitD) & ~keyCellIndexBitSet;
+                                    var excludedCellHouseMask =
+                                        SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex1)
+                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex2)
+                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex3)
+                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex4);
+#if DEBUG
+                                    System.Diagnostics.Debug.Assert(excludedCellHouseMask == houseMask, "四国同盟を構成する四つのセルが共有できるハウスは元々のハウスしかない");
+#endif
+                                    var excludedCellIndexBitSetA = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetB = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetC = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetD = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitD) & ~keyCellIndexBitSet;
 
                                     var excludedCellNoteBitSet = excludedCellIndexBitSetA | excludedCellIndexBitSetB | excludedCellIndexBitSetC | excludedCellIndexBitSetD;
                                     if (excludedCellNoteBitSet != 0)
@@ -169,17 +184,17 @@ namespace Game.SudokuSolver.Operations.HardClass
                                                 ", ",
                                                 (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet() | keyCellDigitD.ToCellDigitBitSet())
                                                     .EnumerateAsCellDigitTexts());
-                                        var excludedCellPositionsText = string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings());
                                         var description =
                                             $"{houseName}において、{keyCellPositionsText} の四つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
                                             $"これら四つの数字はこれら四つのマスの何れかにしか入り得ません。、\n" +
+                                            // 二国同盟や三国同盟と異なり、四個のマスが全て共有するハウスは一種類しかありえないので、排除対象のハウスは houseName のみと限定してよい。
                                             $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                            $"他のマス ({excludedCellPositionsText}) の数字の候補から {keyCellDigitCharsText} を排除します。";
-                                        return
+                                            $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
+                                        yield return
                                             new NakedQuadOperation(
                                                 excludedCellNotes,
                                                 keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                                    .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                                    .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                 highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                 description);
                                     }
@@ -187,21 +202,6 @@ namespace Game.SudokuSolver.Operations.HardClass
                             }
                         }
                     }
-                }
-
-                return null;
-
-                static Span<SudokuBoardCellIndex> CopyKeyCellIndexes(SudokuBoardWorkspace ws, ReadOnlySpan<SudokuBoardCellIndex> houseCellIndexes, Span<SudokuBoardCellIndex> keyCellIIndexesBuffer)
-                {
-                    // ハウス内のセルの番号の配列から、四国同盟の対象となる可能性があるセル (未確定であり、かつ含まれる数字の候補の数が 4 以下) の番号を抽出する
-                    var length = 0;
-                    for (var index = 0; index < houseCellIndexes.Length; ++index)
-                    {
-                        if (!ws.IsDetermined(houseCellIndexes[index]) && ws.GetCellNoteDigitBitSet(houseCellIndexes[index]).GetPopCount() <= 4)
-                            keyCellIIndexesBuffer[length++] = houseCellIndexes[index];
-                    }
-
-                    return keyCellIIndexesBuffer[..length];
                 }
             }
         }

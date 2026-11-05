@@ -41,7 +41,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
 
             // 全ての未確定セルと数字の候補を洗い出して配列化する。
             var targetItems =
-                (~ws.DeterminedCellBitSet & SudokuBoardWorkspace.AllCellIndexBitSet)
+                (~ws.DeterminedCellBitSet & SudokuBoardCellGeometry.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
                 .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex), notes: ws.GetCellNoteDigitBitSet(cellIndex)))
                 .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
@@ -89,7 +89,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                         var excludedCellNotePosiionText = cellIndex.ToFriendlyString();
                         var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitText();
                         var description =
-                            $"{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定して解答を求めようとしたところ失敗しました。\n" +
+                            $"{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} であると仮定して解答を求めようとしたところ失敗しました。\n" +
                             $"失敗の原因は{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
                             $"{excludedCellNotePosiionText}のマスの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
                             $"したがって、{excludedCellNotePosiionText}のマスの数字の候補から {excludedCellNoteDigitText} を排除します。";

@@ -70,6 +70,134 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
+        /// 指定したセルの数字のビット集合から 1 個のセルの数字を取得します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// <para>
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellDigitBitSet"/> は 1 のビットを 1 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> です。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static SudokuBoardCellDigit AsSingleCellDigit(this SudokuBoardCellDigitBitSet cellDigitBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellDigitBitSet != 0 && cellDigitBitSet.GetPopCount() == 1);
+#endif
+
+            var cellDigit = cellDigitBitSet.GetOneCellDigit();
+#if DEBUG
+            cellDigitBitSet &= ~cellDigit.ToCellDigitBitSet();
+            System.Diagnostics.Debug.Assert(cellDigitBitSet == SudokuBoardCellDigitBitSet.None);
+#endif
+            return cellDigit;
+        }
+
+        /// <summary>
+        /// 指定したセルの数字のビット集合から 2 個のセルの数字を取得します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// <para>
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellDigitBitSet"/> は 1 のビットを 2 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> の 2 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellDigit firstCellDigit, SudokuBoardCellDigit secondCellDigit) SplitAsPairCellDigits(this SudokuBoardCellDigitBitSet cellDigitBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellDigitBitSet != 0 && cellDigitBitSet.GetPopCount() == 2);
+#endif
+
+            var cellDigit1 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit1.ToCellDigitBitSet();
+            var cellDigit2 = cellDigitBitSet.GetOneCellDigit();
+#if DEBUG
+            cellDigitBitSet &= ~cellDigit2.ToCellDigitBitSet();
+            System.Diagnostics.Debug.Assert(cellDigitBitSet == SudokuBoardCellDigitBitSet.None);
+#endif
+            return (cellDigit1, cellDigit2);
+        }
+
+        /// <summary>
+        /// 指定したセルの数字のビット集合から 3 個のセルの数字を取得します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// <para>
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellDigitBitSet"/> は 1 のビットを 3 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> の 3 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellDigit firstCellDigit, SudokuBoardCellDigit secondCellDigit, SudokuBoardCellDigit thirdCellDigit) SplitAsTripleCellDigits(this SudokuBoardCellDigitBitSet cellDigitBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellDigitBitSet != 0 && cellDigitBitSet.GetPopCount() == 3);
+#endif
+
+            var cellDigit1 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit1.ToCellDigitBitSet();
+            var cellDigit2 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit2.ToCellDigitBitSet();
+            var cellDigit3 = cellDigitBitSet.GetOneCellDigit();
+#if DEBUG
+            cellDigitBitSet &= ~cellDigit3.ToCellDigitBitSet();
+            System.Diagnostics.Debug.Assert(cellDigitBitSet == SudokuBoardCellDigitBitSet.None);
+#endif
+            return (cellDigit1, cellDigit2, cellDigit3);
+        }
+
+        /// <summary>
+        /// 指定したセルの数字のビット集合から 4 個のセルの数字を取得します。
+        /// </summary>
+        /// <param name="cellDigitBitSet">
+        /// <para>
+        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellDigitBitSet"/> は 1 のビットを 4 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの数字を示す <see cref="SudokuBoardCellDigit"/> の 4 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellDigit firstCellDigit, SudokuBoardCellDigit secondCellDigit, SudokuBoardCellDigit thirdCellDigit, SudokuBoardCellDigit fourthCellDigit) SplitAsQuadCellDigits(this SudokuBoardCellDigitBitSet cellDigitBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellDigitBitSet != 0 && cellDigitBitSet.GetPopCount() == 4);
+#endif
+
+            var cellDigit1 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit1.ToCellDigitBitSet();
+            var cellDigit2 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit2.ToCellDigitBitSet();
+            var cellDigit3 = cellDigitBitSet.GetOneCellDigit();
+            cellDigitBitSet &= ~cellDigit3.ToCellDigitBitSet();
+            var cellDigit4 = cellDigitBitSet.GetOneCellDigit();
+#if DEBUG
+            cellDigitBitSet &= ~cellDigit4.ToCellDigitBitSet();
+            System.Diagnostics.Debug.Assert(cellDigitBitSet == SudokuBoardCellDigitBitSet.None);
+#endif
+            return (cellDigit1, cellDigit2, cellDigit3, cellDigit4);
+        }
+
+        /// <summary>
         /// 指定されたセルの数字のビット集合からセルの数字のシーケンスを取得します。
         /// </summary>
         /// <param name="cellDigitBitSet">
@@ -115,37 +243,6 @@ namespace Game.SudokuSolver
                 yield return $"'{cellDigit.ToCellDigitChar()}'";
                 cellDigitBitSet &= ~cellDigit.ToCellDigitBitSet();
             }
-        }
-
-        /// <summary>
-        /// 指定されたセルの数字のビット集合から個々の要素を指定されたメモリに格納します。
-        /// </summary>
-        /// <param name="cellDigitBitSet">
-        /// セルの数字のビット集合を示す <see cref="SudokuBoardCellDigitBitSet"/> 値です。
-        /// </param>
-        /// <param name="cellDigitBuffer">
-        /// セルの数字 <see cref="SudokuBoardCellDigit"/> 値の格納先です。
-        /// </param>
-        /// <returns>
-        /// 実際にセルの数字 <see cref="SudokuBoardCellDigit"/> が格納されたメモリを示す <see cref="Span{T}"/> 値です。
-        /// </returns>
-        internal static Span<SudokuBoardCellDigit> EnumerateAsCellDigits(this SudokuBoardCellDigitBitSet cellDigitBitSet, Span<SudokuBoardCellDigit> cellDigitBuffer)
-        {
-#if DEBUG
-            if ((cellDigitBitSet & ~SudokuBoardCellDigitBitSet.AllCellDigits) != 0)
-                throw new ArgumentOutOfRangeException(nameof(cellDigitBitSet));
-            if (cellDigitBuffer.Length < cellDigitBitSet.GetPopCount())
-                throw new ArgumentException("The destination buffer is not long enough.", nameof(cellDigitBuffer));
-#endif
-            var index = 0;
-            while (cellDigitBitSet != 0)
-            {
-                var cellDigit = cellDigitBitSet.GetOneCellDigit();
-                cellDigitBuffer[index++] = cellDigit;
-                cellDigitBitSet &= ~cellDigit.ToCellDigitBitSet();
-            }
-
-            return cellDigitBuffer[..index];
         }
 
         /// <summary>

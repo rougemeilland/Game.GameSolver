@@ -41,158 +41,23 @@ namespace Game.SudokuSolver.Operations.HardClass
             //      b) Row2上において、Col1, Col2, Col3 の何れかとの交差点にあるセルに数字 D が入り、かつ
             //      c) Row3上において、Col1, Col2, Col3 の何れかとの交差点にあるセルに数字 D が入る。
             //    仮に、Col1 上の Row1, Row2, Row3 との何れの交差点にあるセルにも数字 D が入らないとした場合、数字 D が入ることができるセルが足りなくなってしまう。
-            //    そのため、Col1 上の Row1, Row2, Row3 との何れかの交差点にあるセルには必ず数字 D が入るので、Col1 上の Row1, Row2, Row3 との何れの交差点でもないセルの数字は D ではあり得ない。(Col2, Col3 も同様)
+            //    そのため、Col1 上の Row1, Row2, Row3 との何れかの交差点にあるセルには必ず数字 D が入るので、以下の条件を満たす全てのセルから数字の候補 D を排除できる。
+            //      - Col1 上の Row1, Row2, Row3 の何れかの交差点にある全てのセルと何れかのハウスを共有する他のセルであり、かつ
+            //      - Col1, Col2, Col3 と Row1, Row2, Row3 との何れの交差点にもないセル。
+            //    なお、Col2, Col3 についても同様である。
             //     
             // ※ Row1, Row2, Row3 と Col1, Col2, Col3 の合計 9 個の交差点にあるセルには数字の候補に必ず D があるとは限らない。
             // ※上記の論拠は、行と列を言い換えても成立する。
 
-            for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
+            // 行ハウスに含まれる数字が 2 個から 3 個のみの場合
             {
-                var cellIndexBitSet = ws.GetCellIndexBitSet(digit);
-
-                // 行ハウスに含まれる数字が 2 個から 3 個のみの場合
-                foreach (var operation in MatchPatternByRowHouse(digit, cellIndexBitSet))
-                    yield return operation;
-
-                // 列ハウスに含まれる数字が 2 個から 3 個のみの場合
-                foreach (var operation in MatchPatternByColumnHouse(digit, cellIndexBitSet))
-                    yield return operation;
-            }
-
-            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 cellIndexBitSet)
-            {
-                var keyColumnsBuffer = ArrayPool<SudokuBoardCellColumn>.Shared.Rent(3);
+                var keyRowsBuffer = ArrayPool<SudokuBoardCellRow>.Shared.Rent(9);
                 try
                 {
-                    for (var keyRow1 = SudokuBoardCellRow.MinValue; keyRow1 <= SudokuBoardCellRow.MaxValue - 3; ++keyRow1)
+                    for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
                     {
-                        var keyRowHouse1 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1);
-                        var keyRowCellIndexBitSet1 = cellIndexBitSet & keyRowHouse1;
-                        if ((int)UInt128.PopCount(keyRowCellIndexBitSet1) is >= 2 and <= 3)
-                        {
-                            for (var keyRow2 = keyRow1 + 1; keyRow2 <= SudokuBoardCellRow.MaxValue - 2; ++keyRow2)
-                            {
-                                var keyRowHouse2 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2);
-                                var keyRowCellIndexBitSet2 = cellIndexBitSet & keyRowHouse2;
-                                if ((int)UInt128.PopCount(keyRowCellIndexBitSet2) is >= 2 and <= 3)
-                                {
-                                    for (var keyRow3 = keyRow2 + 1; keyRow3 <= SudokuBoardCellRow.MaxValue - 1; ++keyRow3)
-                                    {
-                                        var keyRowHouse3 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3);
-                                        var keyRowCellIndexBitSet3 = cellIndexBitSet & keyRowHouse3;
-                                        if ((int)UInt128.PopCount(keyRowCellIndexBitSet3) is >= 2 and <= 3)
-                                        {
-                                            var keyColumnBitSet = (keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3).GetUnionByColumn();
-                                            if (keyColumnBitSet.GetPopCount() == 3)
-                                            {
-                                                // 各行に 2 個以上 3 個以下の数字の候補 D を持つセルがあり、かつそれらの全てのセルはちょうど 3 個 の列に収まっている。
-                                                // => ソードフィッシュの成立
-
-                                                var keyColumns = keyColumnBitSet.EnumerateAsCellColumns(keyColumnsBuffer);
-#if DEBUG
-                                                System.Diagnostics.Debug.Assert(keyColumns.Length == 3);
-#endif
-                                                var keyColumn1 = keyColumns[0];
-                                                var keyColumn2 = keyColumns[1];
-                                                var keyColumn3 = keyColumns[2];
-                                                var result =
-                                                    MatchPatternByHouse(
-                                                    digit,
-                                                    cellIndexBitSet,
-                                                    keyRowHouse1,
-                                                    keyRowHouse2,
-                                                    keyRowHouse3,
-                                                    keyRowCellIndexBitSet1,
-                                                    keyRowCellIndexBitSet2,
-                                                    keyRowCellIndexBitSet3,
-                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1),
-                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
-                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
-                                                    () => $"{keyRow1.ToFriendlyString()}の行",
-                                                    () => $"{keyRow2.ToFriendlyString()}の行",
-                                                    () => $"{keyRow3.ToFriendlyString()}の行",
-                                                    () => keyColumn1.ToFriendlyString(),
-                                                    () => keyColumn2.ToFriendlyString(),
-                                                    () => keyColumn3.ToFriendlyString());
-                                                if (result is not null)
-                                                    yield return result;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    ArrayPool<SudokuBoardCellColumn>.Shared.Return(keyColumnsBuffer);
-                }
-            }
-
-            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 cellIndexBitSet)
-            {
-                var keyRowsBuffer = ArrayPool<SudokuBoardCellRow>.Shared.Rent(3);
-                try
-                {
-                    for (var keyColumn1 = SudokuBoardCellColumn.MinValue; keyColumn1 <= SudokuBoardCellColumn.MaxValue - 3; ++keyColumn1)
-                    {
-                        var keyColumnHouse1 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1);
-                        var keyColumnCellIndexBitSet1 = cellIndexBitSet & keyColumnHouse1;
-                        if ((int)UInt128.PopCount(keyColumnCellIndexBitSet1) is >= 2 and <= 3)
-                        {
-                            for (var keyColumn2 = keyColumn1 + 1; keyColumn2 <= SudokuBoardCellColumn.MaxValue - 2; ++keyColumn2)
-                            {
-                                var keyColumnHouse2 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2);
-                                var keyColumnCellIndexBitSet2 = cellIndexBitSet & keyColumnHouse2;
-                                if ((int)UInt128.PopCount(keyColumnCellIndexBitSet2) is >= 2 and <= 3)
-                                {
-                                    for (var keyColumn3 = keyColumn2 + 1; keyColumn3 <= SudokuBoardCellColumn.MaxValue - 1; ++keyColumn3)
-                                    {
-                                        var keyColumnHouse3 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3);
-                                        var keyColumnCellIndexBitSet3 = cellIndexBitSet & keyColumnHouse3;
-                                        if ((int)UInt128.PopCount(keyColumnCellIndexBitSet3) is >= 2 and <= 3)
-                                        {
-                                            var keyRowBitSet = (keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3).GetUnionByRow();
-                                            if (keyRowBitSet.GetPopCount() == 3)
-                                            {
-                                                // 各列に 2 個以上 3 個以下の数字の候補 D を持つセルがあり、かつそれらの全てのセルはちょうど 3 個 の行に収まっている。
-                                                // => ソードフィッシュの成立
-
-                                                var keyRows = keyRowBitSet.EnumerateAsCellRows(keyRowsBuffer);
-#if DEBUG
-                                                System.Diagnostics.Debug.Assert(keyRows.Length == 3);
-#endif
-                                                var keyRow1 = keyRows[0];
-                                                var keyRow2 = keyRows[1];
-                                                var keyRow3 = keyRows[2];
-                                                var result =
-                                                    MatchPatternByHouse(
-                                                    digit,
-                                                    cellIndexBitSet,
-                                                    keyColumnHouse1,
-                                                    keyColumnHouse2,
-                                                    keyColumnHouse3,
-                                                    keyColumnCellIndexBitSet1,
-                                                    keyColumnCellIndexBitSet2,
-                                                    keyColumnCellIndexBitSet3,
-                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1),
-                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
-                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
-                                                    () => $"{keyColumn1.ToFriendlyString()}の列",
-                                                    () => $"{keyColumn2.ToFriendlyString()}の列",
-                                                    () => $"{keyColumn3.ToFriendlyString()}の列",
-                                                    () => keyRow1.ToFriendlyString(),
-                                                    () => keyRow2.ToFriendlyString(),
-                                                    () => keyRow3.ToFriendlyString());
-                                                if (result is not null)
-                                                    yield return result;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        foreach (var operation in MatchPatternByRowHouse(digit, ws.GetCellIndexBitSet(digit), keyRowsBuffer))
+                            yield return operation;
                     }
                 }
                 finally
@@ -201,69 +66,237 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
             }
 
+            // 列ハウスに含まれる数字が 2 個から 3 個のみの場合
+            {
+                var keyColumnsBuffer = ArrayPool<SudokuBoardCellColumn>.Shared.Rent(9);
+                try
+                {
+                    for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
+                    {
+                        foreach (var operation in MatchPatternByColumnHouse(digit, ws.GetCellIndexBitSet(digit), keyColumnsBuffer))
+                            yield return operation;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<SudokuBoardCellColumn>.Shared.Return(keyColumnsBuffer);
+                }
+            }
+
+            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellRow> keyRowsBuffer)
+            {
+                // digit を候補に持つセルが 2 個以上 3 個以下ある行を抽出する。
+                var keyRows = allCellIndexBitSet.ExtractRowsByCellCount(keyRowsBuffer, 2, 3);
+
+                // digit を候補に持つセルが 2 個以上 3 個以下ある行が 3 個未満である場合はソードフィッシュが成立しないので、検索を中断する。
+                if (keyRows.Length < 3)
+                    yield break;
+
+                for (var keyIndex1 = 0; keyIndex1 < keyRows.Length - 2; ++keyIndex1)
+                {
+                    var keyRow1 = keyRows.Span[keyIndex1];
+                    var keyRowHouse1 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1);
+                    var keyRowCellIndexBitSet1 = allCellIndexBitSet & keyRowHouse1;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet1) is >= 2 and <= 3);
+#endif
+                    for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyRows.Length - 1; ++keyIndex2)
+                    {
+                        var keyRow2 = keyRows.Span[keyIndex2];
+                        var keyRowHouse2 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2);
+                        var keyRowCellIndexBitSet2 = allCellIndexBitSet & keyRowHouse2;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet2) is >= 2 and <= 3);
+#endif
+                        for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyRows.Length; ++keyIndex3)
+                        {
+                            var keyRow3 = keyRows.Span[keyIndex3];
+                            var keyRowHouse3 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3);
+                            var keyRowCellIndexBitSet3 = allCellIndexBitSet & keyRowHouse3;
+#if DEBUG
+                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet3) is >= 2 and <= 3);
+#endif
+                            var keyColumnBitSet = (keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3).GetUnionByColumn();
+                            if (keyColumnBitSet.GetPopCount() == 3)
+                            {
+                                // 各行に 2 個以上 3 個以下の数字の候補 D を持つセルがあり、かつそれらの全てのセルはちょうど 3 個 の列に収まっている。
+                                // => ソードフィッシュの成立
+
+                                var (keyColumn1, keyColumn2, keyColumn3) = keyColumnBitSet.SplitAsTripleCellColulmns();
+                                var result =
+                                    MatchPatternByHouse(
+                                        digit,
+                                        allCellIndexBitSet,
+                                        keyRowHouse1,
+                                        keyRowHouse2,
+                                        keyRowHouse3,
+                                        keyRowCellIndexBitSet1,
+                                        keyRowCellIndexBitSet2,
+                                        keyRowCellIndexBitSet3,
+                                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1),
+                                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
+                                        SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
+                                        () => $"{keyRow1.ToFriendlyString()}の行",
+                                        () => $"{keyRow2.ToFriendlyString()}の行",
+                                        () => $"{keyRow3.ToFriendlyString()}の行",
+                                        () => keyColumn1.ToFriendlyString(),
+                                        () => keyColumn2.ToFriendlyString(),
+                                        () => keyColumn3.ToFriendlyString(),
+                                        () => $"{keyColumn1.ToFriendlyString()}の列",
+                                        () => $"{keyColumn2.ToFriendlyString()}の列",
+                                        () => $"{keyColumn3.ToFriendlyString()}の列");
+                                if (result is not null)
+                                    yield return result;
+                            }
+                        }
+                    }
+                }
+            }
+
+            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellColumn> keyColumnsBuffer)
+            {
+                // digit を候補に持つセルが 2 個以上 3 個以下ある列を抽出する。
+                var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, 2, 3);
+
+                // digit を候補に持つセルが 2 個以上 3 個以下ある列が 3 個未満である場合はソードフィッシュが成立しないので、検索を中断する。
+                if (keyColumns.Length < 3)
+                    yield break;
+
+                for (var keyIndex1 = 0; keyIndex1 < keyColumns.Length - 2; ++keyIndex1)
+                {
+                    var keyColumn1 = keyColumns.Span[keyIndex1];
+                    var keyColumnHouse1 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1);
+                    var keyColumnCellIndexBitSet1 = allCellIndexBitSet & keyColumnHouse1;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet1) is >= 2 and <= 3);
+#endif
+                    for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyColumns.Length - 1; ++keyIndex2)
+                    {
+                        var keyColumn2 = keyColumns.Span[keyIndex2];
+                        var keyColumnHouse2 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2);
+                        var keyColumnCellIndexBitSet2 = allCellIndexBitSet & keyColumnHouse2;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet2) is >= 2 and <= 3);
+#endif
+                        for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyColumns.Length; ++keyIndex3)
+                        {
+                            var keyColumn3 = keyColumns.Span[keyIndex3];
+                            var keyColumnHouse3 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3);
+                            var keyColumnCellIndexBitSet3 = allCellIndexBitSet & keyColumnHouse3;
+#if DEBUG
+                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet3) is >= 2 and <= 3);
+#endif
+                            var keyRowBitSet = (keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3).GetUnionByRow();
+                            if (keyRowBitSet.GetPopCount() == 3)
+                            {
+                                // 各列に 2 個以上 3 個以下の数字の候補 D を持つセルがあり、かつそれらの全てのセルはちょうど 3 個 の行に収まっている。
+                                // => ソードフィッシュの成立
+
+                                var (keyRow1, keyRow2, keyRow3) = keyRowBitSet.SplitAsTripleCellRows();
+                                var result =
+                                    MatchPatternByHouse(
+                                        digit,
+                                        allCellIndexBitSet,
+                                        keyColumnHouse1,
+                                        keyColumnHouse2,
+                                        keyColumnHouse3,
+                                        keyColumnCellIndexBitSet1,
+                                        keyColumnCellIndexBitSet2,
+                                        keyColumnCellIndexBitSet3,
+                                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1),
+                                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
+                                        SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
+                                        () => $"{keyColumn1.ToFriendlyString()}の列",
+                                        () => $"{keyColumn2.ToFriendlyString()}の列",
+                                        () => $"{keyColumn3.ToFriendlyString()}の列",
+                                        () => keyRow1.ToFriendlyString(),
+                                        () => keyRow2.ToFriendlyString(),
+                                        () => keyRow3.ToFriendlyString(),
+                                        () => $"{keyRow1.ToFriendlyString()}の行",
+                                        () => $"{keyRow2.ToFriendlyString()}の行",
+                                        () => $"{keyRow3.ToFriendlyString()}の行");
+                                if (result is not null)
+                                    yield return result;
+                            }
+                        }
+                    }
+                }
+            }
+
             static SudokuBoardOperation? MatchPatternByHouse(
                 SudokuBoardCellDigit digit,
                 UInt128 cellIndexBitSet,
-                UInt128 keyLineHouse1,
-                UInt128 keyLineHouse2,
-                UInt128 keyLineHouse3,
+                UInt128 keyLineHouseBitMask1,
+                UInt128 keyLineHouseBitMask2,
+                UInt128 keyLineHouseBitMask3,
                 UInt128 keyLineCellIndexBitSet1,
                 UInt128 keyLineCellIndexBitSet2,
                 UInt128 keyLineCellIndexBitSet3,
-                UInt128 keyCrossLineHouse1,
-                UInt128 keyCrossLineHouse2,
-                UInt128 keyCrossLineHouse3,
-                Func<string> keyLine1HouseNameGetter,
-                Func<string> keyLine2HouseNameGetter,
-                Func<string> keyLine3HouseNameGetter,
-                Func<string> keyCrossLine1NameGetter,
-                Func<string> keyCrossLine2NameGetter,
-                Func<string> keyCrossLine3NameGetter)
+                UInt128 keyCrossLineHouseBitMask1,
+                UInt128 keyCrossLineHouseBitMask2,
+                UInt128 keyCrossLineHouseBitMask3,
+                Func<string> keyLineHouseNameGetter1,
+                Func<string> keyLineHouseNameGetter2,
+                Func<string> keyLineHouseNameGetter3,
+                Func<string> keyCrossLineNameGetter1,
+                Func<string> keyCrossLineNameGetter2,
+                Func<string> keyCrossLineNameGetter3,
+                Func<string> keyCrossLineHouseNameGetter1,
+                Func<string> keyCrossLineHouseNameGetter2,
+                Func<string> keyCrossLineHouseNameGetter3)
             {
                 var allKeyCellIndexBitSet = keyLineCellIndexBitSet1 | keyLineCellIndexBitSet2 | keyLineCellIndexBitSet3;
-                var keyCrossLineCellIndexBitSet1 = keyCrossLineHouse1 & allKeyCellIndexBitSet;
-                var keyCrossLineCellIndexBitSet2 = keyCrossLineHouse2 & allKeyCellIndexBitSet;
-                var keyCrossLineCellIndexBitSet3 = keyCrossLineHouse3 & allKeyCellIndexBitSet;
-                var exclucedCellIndexBitSetInCrossLine1 = cellIndexBitSet & keyCrossLineHouse1 & ~allKeyCellIndexBitSet;
-                var exclucedCellIndexBitSetInCrossLine2 = cellIndexBitSet & keyCrossLineHouse2 & ~allKeyCellIndexBitSet;
-                var exclucedCellIndexBitSetInCrossLine3 = cellIndexBitSet & keyCrossLineHouse3 & ~allKeyCellIndexBitSet;
-                var exclucedCellIndexBitSet = exclucedCellIndexBitSetInCrossLine1 | exclucedCellIndexBitSetInCrossLine2 | exclucedCellIndexBitSetInCrossLine3;
+                var keyCrossLineCellIndexBitSet1 = keyCrossLineHouseBitMask1 & allKeyCellIndexBitSet;
+                var keyCrossLineCellIndexBitSet2 = keyCrossLineHouseBitMask2 & allKeyCellIndexBitSet;
+                var keyCrossLineCellIndexBitSet3 = keyCrossLineHouseBitMask3 & allKeyCellIndexBitSet;
+                var excludedCellsBitMask =
+                    keyCrossLineCellIndexBitSet1.ToVisibleCellsIntersectionBitSet()
+                    | keyCrossLineCellIndexBitSet2.ToVisibleCellsIntersectionBitSet()
+                    | keyCrossLineCellIndexBitSet3.ToVisibleCellsIntersectionBitSet();
+                var exclucedCellIndexBitSet = excludedCellsBitMask & ~allKeyCellIndexBitSet & cellIndexBitSet;
                 if (exclucedCellIndexBitSet == 0)
                     return null;
 
                 // 排除対象の数字の候補が存在する
 
-                var keyLine1HouseName = keyLine1HouseNameGetter();
-                var keyLine2HouseName = keyLine2HouseNameGetter();
-                var keyLine3HouseName = keyLine3HouseNameGetter();
-                var keyCrossLine1Name = keyCrossLine1NameGetter();
-                var keyCrossLine2Name = keyCrossLine2NameGetter();
-                var keyCrossLine3Name = keyCrossLine3NameGetter();
+                var keyLineHouseBitMask = keyLineHouseBitMask1 | keyLineHouseBitMask2 | keyLineHouseBitMask3;
+                var keyCrossLineBlockBitSet1 = keyCrossLineCellIndexBitSet1.GetUnionByBlock();
+                var keyCrossLineBlockBitSet2 = keyCrossLineCellIndexBitSet2.GetUnionByBlock();
+                var keyCrossLineBlockBitSet3 = keyCrossLineCellIndexBitSet3.GetUnionByBlock();
+                var keyLineHouseName1 = keyLineHouseNameGetter1();
+                var keyLineHouseName2 = keyLineHouseNameGetter2();
+                var keyLineHouseName3 = keyLineHouseNameGetter3();
+                var keyCrossLineName1 = keyCrossLineNameGetter1();
+                var keyCrossLineName2 = keyCrossLineNameGetter2();
+                var keyCrossLineName3 = keyCrossLineNameGetter3();
+                var keyCrossLineHouseName1 = new Lazy<string>(keyCrossLineHouseNameGetter1);
+                var keyCrossLineHouseName2 = new Lazy<string>(keyCrossLineHouseNameGetter2);
+                var keyCrossLineHouseName3 = new Lazy<string>(keyCrossLineHouseNameGetter3);
                 var digitText = digit.ToCellDigitText();
-                var keyLine1CellPositionsText = string.Join(", ", keyLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
-                var keyLine2CellPositionsText = string.Join(", ", keyLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
-                var keyLine3CellPositionsText = string.Join(", ", keyLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
-                var keyCrossLine1PositionsText = string.Join(", ", keyCrossLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
-                var keyCrossLine2PositionsText = string.Join(", ", keyCrossLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
-                var keyCrossLine3PositionsText = string.Join(", ", keyCrossLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
+                var keyLineCellPositionsText1 = string.Join(", ", keyLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
+                var keyLineCellPositionsText2 = string.Join(", ", keyLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
+                var keyLineCellPositionsText3 = string.Join(", ", keyLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
+                var keyCrossLinePositionsText1 = string.Join(", ", keyCrossLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
+                var keyCrossLinePositionsText2 = string.Join(", ", keyCrossLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
+                var keyCrossLinePositionsText3 = string.Join(", ", keyCrossLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
                 var description =
                     $"この盤面は以下の条件を満たしています。\n" +
-                    $"1) {keyLine1HouseName}内の数字の候補 {digitText} を含むマス ({keyLine1CellPositionsText}) は全て {keyCrossLine1Name}, {keyCrossLine2Name}, {keyCrossLine3Name} の何れかのみに存在し、かつ\n" +
-                    $"2) {keyLine2HouseName}内の数字の候補 {digitText} を含むマス ({keyLine2CellPositionsText}) は全て {keyCrossLine1Name}, {keyCrossLine2Name}, {keyCrossLine3Name} の何れかのみに存在し、かつ\n" +
-                    $"3) {keyLine3HouseName}内の数字の候補 {digitText} を含むマス ({keyLine3CellPositionsText}) は全て {keyCrossLine1Name}, {keyCrossLine2Name}, {keyCrossLine3Name} の何れかのみに存在する。\n" +
-                    $"仮に{keyCrossLine1Name}のマス {keyCrossLine1PositionsText} の何れにも {digitText} が入らないと仮定した場合、" +
+                    $"1) {keyLineHouseName1}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText1}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3} の何れかのみに存在し、かつ\n" +
+                    $"2) {keyLineHouseName2}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText2}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3} の何れかのみに存在し、かつ\n" +
+                    $"3) {keyLineHouseName3}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText3}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3} の何れかのみに存在する。\n" +
+                    $"仮に{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れにも {digitText} が入らないと仮定した場合、" +
                     $"{digitText} が入ることができるマスが足りなくなってしまうので、" +
-                    $"{keyCrossLine1Name}のマス {keyCrossLine1PositionsText} の何れかには必ず {digitText} が入ります。\n" +
-                    $"したがって、{keyCrossLine1Name}の {keyCrossLine1PositionsText} 以外のマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を除外します。\n" +
-                    $"同様の理屈で、以下のマスの数字の候補からも {digitText} を除外します。\n" +
-                    $"・{keyCrossLine2Name}の {keyCrossLine2PositionsText} 以外のマス\n" +
-                    $"・{keyCrossLine3Name}の {keyCrossLine3PositionsText} 以外のマス";
+                    $"{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れかには必ず {digitText} が入ります。\n" +
+                    $"したがって、{(keyCrossLineBlockBitSet1.IsSingleBit() ? $"{keyCrossLinePositionsText1} が共に属するハウス ({keyCrossLineHouseName1.Value}および{keyCrossLineBlockBitSet1.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName1)}の {keyCrossLinePositionsText1} 以外のマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を除外します。\n" +
+                    $"同様の論法で、以下のマスの数字の候補からも {digitText} を除外します。\n" +
+                    $"・{(keyCrossLineBlockBitSet2.IsSingleBit() ? $"{keyCrossLinePositionsText2} が共に属するハウス ({keyCrossLineHouseName2.Value}および{keyCrossLineBlockBitSet2.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName2)}の {keyCrossLinePositionsText2} 以外のマス\n" +
+                    $"・{(keyCrossLineBlockBitSet3.IsSingleBit() ? $"{keyCrossLinePositionsText3} が共に属するハウス ({keyCrossLineHouseName3.Value}および{keyCrossLineBlockBitSet3.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName3)}の {keyCrossLinePositionsText3} 以外のマス";
                 return
                     new SwordfishOperation(
                         exclucedCellIndexBitSet.EnumerateAsCellNotes(digit),
                         allKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                            .Concat(((keyLineHouse1 | keyLineHouse2 | keyLineHouse3) & ~allKeyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
-                            .Concat(((keyCrossLineHouse1 | keyCrossLineHouse2 | keyCrossLineHouse3) & ~(keyLineHouse1 | keyLineHouse2 | keyLineHouse3) & ~allKeyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .Concat(keyLineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat((excludedCellsBitMask & ~keyLineHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         description);
             }

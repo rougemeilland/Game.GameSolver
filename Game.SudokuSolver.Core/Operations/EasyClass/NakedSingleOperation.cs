@@ -38,7 +38,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                     var cellNoteDigitBitSet = ws.GetCellNoteDigitBitSet(cellIndex);
                     if (!ws.IsDetermined(cellIndex) && cellNoteDigitBitSet.IsSingleBit())
                     {
-                        var cellDigit = cellNoteDigitBitSet.GetOneCellDigit();
+                        var cellDigit = cellNoteDigitBitSet.AsSingleCellDigit();
                         var excludedCellNotes =
                             ws.GetCellIndexBitSetForExcludedNoteDigit(cellIndex, cellDigit)
                             .EnumerateAsCellNotes(cellDigit)

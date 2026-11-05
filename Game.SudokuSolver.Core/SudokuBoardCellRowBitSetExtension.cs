@@ -6,15 +6,15 @@ namespace Game.SudokuSolver
 {
     internal static class SudokuBoardCellRowBitSetExtension
     {
-        private static readonly UInt128 _row0BitMask = new(0x0000000000000000, 0x00000000000001ff);
-        private static readonly UInt128 _row1BitMask = new(0x0000000000000000, 0x000000000003fe00);
-        private static readonly UInt128 _row2BitMask = new(0x0000000000000000, 0x0000000007fc0000);
-        private static readonly UInt128 _row3BitMask = new(0x0000000000000000, 0x0000000ff8000000);
-        private static readonly UInt128 _row4BitMask = new(0x0000000000000000, 0x00001ff000000000);
-        private static readonly UInt128 _row5BitMask = new(0x0000000000000000, 0x003fe00000000000);
-        private static readonly UInt128 _row6BitMask = new(0x0000000000000000, 0x7fc0000000000000);
-        private static readonly UInt128 _row7BitMask = new(0x00000000000000ff, 0x8000000000000000);
-        private static readonly UInt128 _row8BitMask = new(0x000000000001ff00, 0x0000000000000000);
+        private static readonly UInt128 _row0BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 0);
+        private static readonly UInt128 _row1BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 1);
+        private static readonly UInt128 _row2BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 2);
+        private static readonly UInt128 _row3BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 3);
+        private static readonly UInt128 _row4BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 4);
+        private static readonly UInt128 _row5BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 5);
+        private static readonly UInt128 _row6BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 6);
+        private static readonly UInt128 _row7BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 7);
+        private static readonly UInt128 _row8BitMask = SudokuBoardCellGeometry.GetRowCellIndexBitSet(SudokuBoardCellRow.One + 8);
 
         /// <summary>
         /// 与えられたセルの行のビット集合の要素が一つだけであるかどうかを調べます。
@@ -77,6 +77,134 @@ namespace Game.SudokuSolver
 #endif
 
             return SudokuBoardCellRow.One + ushort.TrailingZeroCount(value);
+        }
+
+        /// <summary>
+        /// 指定したセルの行のビット集合から 1 個のセルの行を取得します。
+        /// </summary>
+        /// <param name="cellColumnBitSet">
+        /// <para>
+        /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellColumnBitSet"/> は 1 のビットを 1 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの行を示す <see cref="SudokuBoardCellRow"/> です。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static SudokuBoardCellRow AsSingleCellRow(this SudokuBoardCellRowBitSet cellColumnBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellColumnBitSet != 0 && cellColumnBitSet.GetPopCount() == 1);
+#endif
+
+            var cellRow = cellColumnBitSet.GetOneCellRow();
+#if DEBUG
+            cellColumnBitSet &= ~cellRow.ToCellRowBitSet();
+            System.Diagnostics.Debug.Assert(cellColumnBitSet == SudokuBoardCellRowBitSet.None);
+#endif
+            return cellRow;
+        }
+
+        /// <summary>
+        /// 指定したセルの行のビット集合から 2 個のセルの行を取得します。
+        /// </summary>
+        /// <param name="cellRowBitSet">
+        /// <para>
+        /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellRowBitSet"/> は 1 のビットを 2 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの行を示す <see cref="SudokuBoardCellRow"/> の 2 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellRow firstCellRow, SudokuBoardCellRow secondCellRow) SplitAsPairCellRows(this SudokuBoardCellRowBitSet cellRowBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellRowBitSet != 0 && cellRowBitSet.GetPopCount() == 2);
+#endif
+
+            var cellRow1 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow1.ToCellRowBitSet();
+            var cellRow2 = cellRowBitSet.GetOneCellRow();
+#if DEBUG
+            cellRowBitSet &= ~cellRow2.ToCellRowBitSet();
+            System.Diagnostics.Debug.Assert(cellRowBitSet == SudokuBoardCellRowBitSet.None);
+#endif
+            return (cellRow1, cellRow2);
+        }
+
+        /// <summary>
+        /// 指定したセルの行のビット集合から 3 個のセルの行を取得します。
+        /// </summary>
+        /// <param name="cellRowBitSet">
+        /// <para>
+        /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellRowBitSet"/> は 1 のビットを 3 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの行を示す <see cref="SudokuBoardCellRow"/> の 3 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellRow firstCellRow, SudokuBoardCellRow secondCellRow, SudokuBoardCellRow thirdCellRow) SplitAsTripleCellRows(this SudokuBoardCellRowBitSet cellRowBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellRowBitSet != 0 && cellRowBitSet.GetPopCount() == 3);
+#endif
+
+            var cellRow1 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow1.ToCellRowBitSet();
+            var cellRow2 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow2.ToCellRowBitSet();
+            var cellRow3 = cellRowBitSet.GetOneCellRow();
+#if DEBUG
+            cellRowBitSet &= ~cellRow3.ToCellRowBitSet();
+            System.Diagnostics.Debug.Assert(cellRowBitSet == SudokuBoardCellRowBitSet.None);
+#endif
+            return (cellRow1, cellRow2, cellRow3);
+        }
+
+        /// <summary>
+        /// 指定したセルの行のビット集合から 4 個のセルの行を取得します。
+        /// </summary>
+        /// <param name="cellRowBitSet">
+        /// <para>
+        /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </para>
+        /// <para>
+        /// <paramref name="cellRowBitSet"/> は 1 のビットを 4 個だけ含んでいなければなりません。
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// セルの行を示す <see cref="SudokuBoardCellRow"/> の 4 個組のタプルです。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static (SudokuBoardCellRow firstCellRow, SudokuBoardCellRow secondCellRow, SudokuBoardCellRow thirdCellRow, SudokuBoardCellRow fourthCellRow) SplitAsQuadCellRows(this SudokuBoardCellRowBitSet cellRowBitSet)
+        {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(cellRowBitSet != 0 && cellRowBitSet.GetPopCount() == 4);
+#endif
+
+            var cellRow1 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow1.ToCellRowBitSet();
+            var cellRow2 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow2.ToCellRowBitSet();
+            var cellRow3 = cellRowBitSet.GetOneCellRow();
+            cellRowBitSet &= ~cellRow3.ToCellRowBitSet();
+            var cellRow4 = cellRowBitSet.GetOneCellRow();
+#if DEBUG
+            cellRowBitSet &= ~cellRow4.ToCellRowBitSet();
+            System.Diagnostics.Debug.Assert(cellRowBitSet == SudokuBoardCellRowBitSet.None);
+#endif
+            return (cellRow1, cellRow2, cellRow3, cellRow4);
         }
 
         /// <summary>
@@ -162,37 +290,6 @@ namespace Game.SudokuSolver
                 yield return row.ToFriendlyString();
                 cellRowBitSet &= ~row.ToCellRowBitSet();
             }
-        }
-
-        /// <summary>
-        /// 指定されたセルの行の集合の要素を指定されたメモリに格納します。
-        /// </summary>
-        /// <param name="cellRowBitSet">
-        /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
-        /// </param>
-        /// <param name="cellRowBuffer">
-        /// セルの行 <see cref="SudokuBoardCellRow"/> 値の格納先です。
-        /// </param>
-        /// <returns>
-        /// 実際にセルの行 <see cref="SudokuBoardCellRow"/> が格納されたメモリを示す <see cref="Span{T}"/> 値です。
-        /// </returns>
-        internal static Span<SudokuBoardCellRow> EnumerateAsCellRows(this SudokuBoardCellRowBitSet cellRowBitSet, Span<SudokuBoardCellRow> cellRowBuffer)
-        {
-#if DEBUG
-            if ((cellRowBitSet & ~SudokuBoardCellRowBitSet.AllRows) != 0)
-                throw new ArgumentOutOfRangeException(nameof(cellRowBitSet));
-            if (cellRowBuffer.Length < cellRowBitSet.GetPopCount())
-                throw new ArgumentException("The destination buffer is not long enough.", nameof(cellRowBuffer));
-#endif
-            var index = 0;
-            while (cellRowBitSet != 0)
-            {
-                var row = cellRowBitSet.GetOneCellRow();
-                cellRowBuffer[index++] = row;
-                cellRowBitSet &= ~row.ToCellRowBitSet();
-            }
-
-            return cellRowBuffer[..index];
         }
     }
 }

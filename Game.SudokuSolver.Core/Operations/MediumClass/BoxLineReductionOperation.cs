@@ -16,7 +16,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
             string description)
             : base(
-                  "ボックスライン・リダクション (Locked Candidates (Claiming))",
+                  "ボックスライン・リダクション (Claiming)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
@@ -73,25 +73,34 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 }
             }
 
-            static BoxLineReductionOperation? MatchPatternByHouse(SudokuBoardCellBlock block, UInt128 blockHouseBitMask, UInt128 columnOrRowHouseBitMask, string lineName, SudokuBoardCellDigit cellDigit, UInt128 allCellIndexBitSet)
+            static BoxLineReductionOperation? MatchPatternByHouse(
+                SudokuBoardCellBlock block,
+                UInt128 blockHouseBitMask,
+                UInt128 lineHouseBitMask,
+                string lineName,
+                SudokuBoardCellDigit cellDigit,
+                UInt128 allCellIndexBitSet)
             {
-                var highlightedCellNoteBitSet = allCellIndexBitSet & blockHouseBitMask & columnOrRowHouseBitMask;
-                var excludedCellNoteBitSet = allCellIndexBitSet & blockHouseBitMask & ~columnOrRowHouseBitMask;
-                if (highlightedCellNoteBitSet == 0 || (allCellIndexBitSet & ~blockHouseBitMask & columnOrRowHouseBitMask) != 0 || excludedCellNoteBitSet == 0)
+                var intersectionBitMask = blockHouseBitMask & lineHouseBitMask;
+                var blockWingBitMask = blockHouseBitMask & ~lineHouseBitMask;
+                var lineWingBitMask = ~blockHouseBitMask & lineHouseBitMask;
+                var highlightedCellNoteBitSet = allCellIndexBitSet & intersectionBitMask;
+                var excludedCellNoteBitSet = allCellIndexBitSet & blockWingBitMask;
+                if (highlightedCellNoteBitSet == 0 || (allCellIndexBitSet & lineWingBitMask) != 0 || excludedCellNoteBitSet == 0)
                     return null;
 
                 var blockName = block.ToFriendlyString();
                 var cellDigitChar = cellDigit.ToCellDigitText();
-                var excludedCellNotePositionTexts = $"({string.Join(", ", excludedCellNoteBitSet.EnumerateAsCellIndexes().ToFriendlyStrings())})";
                 var description =
                     $"{lineName}には{blockName}のブロックと重なるマスのみに数字の候補 {cellDigitChar} が含まれており、" +
                     $"{cellDigitChar} は必ずこれらのマスの何れかに入ります。\n" +
-                    $"したがって、{blockName}のブロックにある他のマス {excludedCellNotePositionTexts} の数字の候補から {cellDigitChar} を排除します。";
+                    $"したがって、{blockName}のブロックにある他のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
                 return
                     new BoxLineReductionOperation(
                         excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
-                        columnOrRowHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                            .Concat((blockHouseBitMask & ~columnOrRowHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        intersectionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                            .Concat(lineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat(blockWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         highlightedCellNoteBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         description);
             }

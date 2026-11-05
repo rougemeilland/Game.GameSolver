@@ -9,6 +9,11 @@ namespace Game.SudokuSolver
     internal partial class SudokuBoardCellGeometry
     {
         /// <summary>
+        /// 全てのセルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </summary>
+        public static readonly UInt128 AllCellIndexBitSet = new(0x000000000001ffff, 0xffffffffffffffff);
+
+        /// <summary>
         /// 指定された行の行ハウスのビットマスクを取得します。
         /// </summary>
         /// <param name="row">

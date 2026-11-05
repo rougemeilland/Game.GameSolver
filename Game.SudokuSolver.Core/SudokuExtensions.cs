@@ -53,6 +53,27 @@ namespace Game.SudokuSolver
                 }
             }
 
+            for (var block1 = SudokuBoardCellBlock.MinValue; block1 <= SudokuBoardCellBlock.MaxValue; ++block1)
+            {
+                for (var block2 = block1; block2 <= SudokuBoardCellBlock.MaxValue; ++block2)
+                {
+                    for (var block3 = block1; block3 <= SudokuBoardCellBlock.MaxValue; ++block3)
+                    {
+                        var blockBitSet =
+                            block1.ToCellBlockBitSet()
+                            | block2.ToCellBlockBitSet()
+                            | block3.ToCellBlockBitSet();
+                        var actual = blockBitSet.ToCellIndexBitSet();
+                        var desired =
+                            SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block1)
+                            | SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block2)
+                            | SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block3);
+                        if (actual != desired)
+                            throw new ApplicationException();
+                    }
+                }
+            }
+
             for (var cellIndex1 = SudokuBoardCellIndex.MinValue; cellIndex1 <= SudokuBoardCellIndex.MaxValue; ++cellIndex1)
             {
                 for (var cellIndex2 = cellIndex1; cellIndex2 <= SudokuBoardCellIndex.MaxValue; ++cellIndex2)
@@ -64,9 +85,9 @@ namespace Game.SudokuSolver
                             | cellIndex2.ToCellIndexBitSet()
                             | cellIndex3.ToCellIndexBitSet();
 
-                        var (column1, row1, _) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex1);
-                        var (column2, row2, _) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex2);
-                        var (column3, row3, _) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex3);
+                        var (column1, row1, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex1);
+                        var (column2, row2, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex2);
+                        var (column3, row3, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(cellIndex3);
 
                         {
                             var actual = cellIndexBitSet.GetUnionByColumn();
@@ -84,6 +105,16 @@ namespace Game.SudokuSolver
                                 SudokuBoardCellGeometry.GetRow(cellIndex1).ToCellRowBitSet()
                                 | SudokuBoardCellGeometry.GetRow(cellIndex2).ToCellRowBitSet()
                                 | SudokuBoardCellGeometry.GetRow(cellIndex3).ToCellRowBitSet();
+                            if (actual != desired)
+                                throw new ApplicationException();
+                        }
+
+                        {
+                            var actual = cellIndexBitSet.GetUnionByBlock();
+                            var desired =
+                                SudokuBoardCellGeometry.GetBlock(cellIndex1).ToCellBlockBitSet()
+                                | SudokuBoardCellGeometry.GetBlock(cellIndex2).ToCellBlockBitSet()
+                                | SudokuBoardCellGeometry.GetBlock(cellIndex3).ToCellBlockBitSet();
                             if (actual != desired)
                                 throw new ApplicationException();
                         }

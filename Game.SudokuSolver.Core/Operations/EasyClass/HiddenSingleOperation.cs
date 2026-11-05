@@ -81,7 +81,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
                 var foundBitSet = cellIndexBitSet & houseBitMask;
                 if (UInt128.PopCount(foundBitSet) != 1)
                     return null;
-                var determinedCellIndex = foundBitSet.GetOneCellIndex();
+                var determinedCellIndex = foundBitSet.AsSingleCellIndex();
                 var excludedCellNotes =
                     ws.GetCellIndexBitSetForExcludedNoteDigit(determinedCellIndex, cellDigit)
                     .EnumerateAsCellNotes(cellDigit)

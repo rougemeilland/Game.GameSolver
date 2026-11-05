@@ -98,6 +98,11 @@
         /// </summary>
         Jellyfish,
 
+        /// <summary>
+        /// Finned X-Wing
+        /// </summary>
+        FinnedXWing,
+
         #endregion
 
         #region InsaneClass

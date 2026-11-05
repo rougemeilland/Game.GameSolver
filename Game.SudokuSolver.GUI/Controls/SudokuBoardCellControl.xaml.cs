@@ -53,11 +53,11 @@ namespace Game.SudokuSolver.GUI.Controls
                     c.AnimationBackground.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2:
-                    c.CellContainer.Background = Brushes.Cyan;
+                    c.CellContainer.Background = Brushes.GreenYellow;
                     c.AnimationBackground.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3:
-                    c.CellContainer.Background = Brushes.GreenYellow;
+                    c.CellContainer.Background = Brushes.Cyan;
                     c.AnimationBackground.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4:

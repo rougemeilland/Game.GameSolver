@@ -12,7 +12,7 @@ namespace Game.SudokuSolver
         /// セルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
         /// </param>
         /// <returns>
-        /// セルの列のビットマスクを示す <see cref="UInt128"/> 値を返します。
+        /// セルの列のビット集合を示す <see cref="SudokuBoardCellColumnBitSet"/> 値を返します。
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

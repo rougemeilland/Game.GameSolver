@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.Common;
 using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver
@@ -9,7 +8,6 @@ namespace Game.SudokuSolver
     /// </summary>
     internal sealed class SudokuBoardWorkspace
     {
-        public static readonly UInt128 AllCellIndexBitSet = new(0x000000000001ffff, 0xffffffffffffffff);
         private readonly SudokuBoardCellsSet _cellsSource;
         private readonly UInt128[] _cellIndexBittSetByDigit;
 
@@ -40,7 +38,7 @@ namespace Game.SudokuSolver
         /// 盤面が完了しているならば <see langword="true"/>、そうではないならば <see langword="false"/> を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public bool IsCompleted() => DeterminedCellBitSet == AllCellIndexBitSet;
+        public bool IsCompleted() => DeterminedCellBitSet == SudokuBoardCellGeometry.AllCellIndexBitSet;
 
         /// <summary>
         /// 確定済みのセルのビット集合を取得します。
