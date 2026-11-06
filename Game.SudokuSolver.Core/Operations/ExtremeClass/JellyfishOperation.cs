@@ -15,14 +15,14 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "ジェリーフィッシュ (Jellyfish)",
                   SudokuBoardDifficultyLevel.Extreme,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -162,18 +162,18 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4),
-                                            () => $"{keyRow1.ToFriendlyString()}の行",
-                                            () => $"{keyRow2.ToFriendlyString()}の行",
-                                            () => $"{keyRow3.ToFriendlyString()}の行",
-                                            () => $"{keyRow4.ToFriendlyString()}の行",
-                                            () => keyColumn1.ToFriendlyString(),
-                                            () => keyColumn2.ToFriendlyString(),
-                                            () => keyColumn3.ToFriendlyString(),
-                                            () => keyColumn4.ToFriendlyString(),
-                                            () => $"{keyColumn1.ToFriendlyString()}の列",
-                                            () => $"{keyColumn2.ToFriendlyString()}の列",
-                                            () => $"{keyColumn3.ToFriendlyString()}の列",
-                                            () => $"{keyColumn4.ToFriendlyString()}の列");
+                                            keyRow1.ToHouseName(),
+                                            keyRow2.ToHouseName(),
+                                            keyRow3.ToHouseName(),
+                                            keyRow4.ToHouseName(),
+                                            keyColumn1.ToFriendlyString(),
+                                            keyColumn2.ToFriendlyString(),
+                                            keyColumn3.ToFriendlyString(),
+                                            keyColumn4.ToFriendlyString(),
+                                            keyColumn1.ToHouseName(),
+                                            keyColumn2.ToHouseName(),
+                                            keyColumn3.ToHouseName(),
+                                            keyColumn4.ToHouseName());
                                     if (result is not null)
                                         yield return result;
                                 }
@@ -259,18 +259,18 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4),
-                                            () => $"{keyColumn1.ToFriendlyString()}の列",
-                                            () => $"{keyColumn2.ToFriendlyString()}の列",
-                                            () => $"{keyColumn3.ToFriendlyString()}の列",
-                                            () => $"{keyColumn4.ToFriendlyString()}の列",
-                                            () => keyRow1.ToFriendlyString(),
-                                            () => keyRow2.ToFriendlyString(),
-                                            () => keyRow3.ToFriendlyString(),
-                                            () => keyRow4.ToFriendlyString(),
-                                            () => $"{keyRow1.ToFriendlyString()}の行",
-                                            () => $"{keyRow2.ToFriendlyString()}の行",
-                                            () => $"{keyRow3.ToFriendlyString()}の行",
-                                            () => $"{keyRow4.ToFriendlyString()}の行");
+                                            keyColumn1.ToHouseName(),
+                                            keyColumn2.ToHouseName(),
+                                            keyColumn3.ToHouseName(),
+                                            keyColumn4.ToHouseName(),
+                                            keyRow1.ToFriendlyString(),
+                                            keyRow2.ToFriendlyString(),
+                                            keyRow3.ToFriendlyString(),
+                                            keyRow4.ToFriendlyString(),
+                                            keyRow1.ToHouseName(),
+                                            keyRow2.ToHouseName(),
+                                            keyRow3.ToHouseName(),
+                                            keyRow4.ToHouseName());
                                     if (result is not null)
                                         yield return result;
                                 }
@@ -295,18 +295,18 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 UInt128 keyCrossLineHouseBitMask2,
                 UInt128 keyCrossLineHouseBitMask3,
                 UInt128 keyCrossLineHouseBitMask4,
-                Func<string> keyLineHouseNameGetter1,
-                Func<string> keyLineHouseNameGetter2,
-                Func<string> keyLineHouseNameGetter3,
-                Func<string> keyLineHouseNameGetter4,
-                Func<string> keyCrossLineNameGetter1,
-                Func<string> keyCrossLineNameGetter2,
-                Func<string> keyCrossLineNameGetter3,
-                Func<string> keyCrossLineNameGetter4,
-                Func<string> keyCrossLineHouseNameGetter1,
-                Func<string> keyCrossLineHouseNameGetter2,
-                Func<string> keyCrossLineHouseNameGetter3,
-                Func<string> keyCrossLineHouseNameGetter4)
+                string keyLineHouseName1,
+                string keyLineHouseName2,
+                string keyLineHouseName3,
+                string keyLineHouseName4,
+                string keyCrossLineName1,
+                string keyCrossLineName2,
+                string keyCrossLineName3,
+                string keyCrossLineName4,
+                string keyCrossLineHouseName1,
+                string keyCrossLineHouseName2,
+                string keyCrossLineHouseName3,
+                string keyCrossLineHouseName4)
             {
                 var allKeyCellIndexBitSet = keyLineCellIndexBitSet1 | keyLineCellIndexBitSet2 | keyLineCellIndexBitSet3 | keyLineCellIndexBitSet4;
                 var keyCrossLineCellIndexBitSet1 = keyCrossLineHouseBitMask1 & allKeyCellIndexBitSet;
@@ -325,45 +325,6 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 // 排除対象の数字の候補が存在する
 
                 var keyLineHouseBitMask = keyLineHouseBitMask1 | keyLineHouseBitMask2 | keyLineHouseBitMask3 | keyLineHouseBitMask4;
-                var keyCrossLineBlockBitSet1 = keyCrossLineCellIndexBitSet1.GetUnionByBlock();
-                var keyCrossLineBlockBitSet2 = keyCrossLineCellIndexBitSet2.GetUnionByBlock();
-                var keyCrossLineBlockBitSet3 = keyCrossLineCellIndexBitSet3.GetUnionByBlock();
-                var keyCrossLineBlockBitSet4 = keyCrossLineCellIndexBitSet4.GetUnionByBlock();
-                var keyLineHouseName1 = keyLineHouseNameGetter1();
-                var keyLineHouseName2 = keyLineHouseNameGetter2();
-                var keyLineHouseName3 = keyLineHouseNameGetter3();
-                var keyLineHouseName4 = keyLineHouseNameGetter4();
-                var keyCrossLineName1 = keyCrossLineNameGetter1();
-                var keyCrossLineName2 = keyCrossLineNameGetter2();
-                var keyCrossLineName3 = keyCrossLineNameGetter3();
-                var keyCrossLineName4 = keyCrossLineNameGetter4();
-                var keyCrossLineHouseName1 = new Lazy<string>(keyCrossLineHouseNameGetter1);
-                var keyCrossLineHouseName2 = new Lazy<string>(keyCrossLineHouseNameGetter2);
-                var keyCrossLineHouseName3 = new Lazy<string>(keyCrossLineHouseNameGetter3);
-                var keyCrossLineHouseName4 = new Lazy<string>(keyCrossLineHouseNameGetter4);
-                var digitText = digit.ToCellDigitText();
-                var keyLineCellPositionsText1 = string.Join(", ", keyLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
-                var keyLineCellPositionsText2 = string.Join(", ", keyLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
-                var keyLineCellPositionsText3 = string.Join(", ", keyLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
-                var keyLineCellPositionsText4 = string.Join(", ", keyLineCellIndexBitSet4.EnumerateAsCellPositionTexts());
-                var keyCrossLinePositionsText1 = string.Join(", ", keyCrossLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
-                var keyCrossLinePositionsText2 = string.Join(", ", keyCrossLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
-                var keyCrossLinePositionsText3 = string.Join(", ", keyCrossLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
-                var keyCrossLinePositionsText4 = string.Join(", ", keyCrossLineCellIndexBitSet4.EnumerateAsCellPositionTexts());
-                var description =
-                    $"この盤面は以下の条件を満たしています。\n" +
-                    $"1) {keyLineHouseName1}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText1}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
-                    $"2) {keyLineHouseName2}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText2}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
-                    $"3) {keyLineHouseName3}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText3}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
-                    $"4) {keyLineHouseName4}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText4}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在する。\n" +
-                    $"仮に{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れにも {digitText} が入らないと仮定した場合、" +
-                    $"{digitText} が入ることができるマスが足りなくなってしまうので、" +
-                    $"{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れかには必ず {digitText} が入ります。\n" +
-                    $"したがって、{(keyCrossLineBlockBitSet1.IsSingleBit() ? $"{keyCrossLinePositionsText1} が共に属するハウス ({keyCrossLineHouseName1.Value}および{keyCrossLineBlockBitSet1.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName1)}の {keyCrossLinePositionsText1} 以外のマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を除外します。\n" +
-                    $"同様の論法で、以下のマスの数字の候補からも {digitText} を除外します。\n" +
-                    $"・{(keyCrossLineBlockBitSet2.IsSingleBit() ? $"{keyCrossLinePositionsText2} が共に属するハウス ({keyCrossLineHouseName2.Value}および{keyCrossLineBlockBitSet2.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName2)}の {keyCrossLinePositionsText2} 以外のマス\n" +
-                    $"・{(keyCrossLineBlockBitSet3.IsSingleBit() ? $"{keyCrossLinePositionsText3} が共に属するハウス ({keyCrossLineHouseName3.Value}および{keyCrossLineBlockBitSet3.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName3)}の {keyCrossLinePositionsText3} 以外のマス\n" +
-                    $"・{(keyCrossLineBlockBitSet4.IsSingleBit() ? $"{keyCrossLinePositionsText4} が共に属するハウス ({keyCrossLineHouseName4.Value}および{keyCrossLineBlockBitSet4.AsSingleCellBlock().ToFriendlyString()}のブロック) " : keyCrossLineName4)}の {keyCrossLinePositionsText4} 以外のマス";
                 return
                     new JellyfishOperation(
                         exclucedCellIndexBitSet.EnumerateAsCellNotes(digit),
@@ -371,7 +332,84 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             .Concat(keyLineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
                             .Concat((excludedCellsBitMask & ~keyLineHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                        description);
+                        GetDescriptionBuilder(
+                            digit,
+                            keyLineCellIndexBitSet1,
+                            keyLineCellIndexBitSet2,
+                            keyLineCellIndexBitSet3,
+                            keyLineCellIndexBitSet4,
+                            keyLineHouseName1,
+                            keyLineHouseName2,
+                            keyLineHouseName3,
+                            keyLineHouseName4,
+                            keyCrossLineName1,
+                            keyCrossLineName2,
+                            keyCrossLineName3,
+                            keyCrossLineName4,
+                            keyCrossLineHouseName1,
+                            keyCrossLineHouseName2,
+                            keyCrossLineHouseName3,
+                            keyCrossLineHouseName4,
+                            keyCrossLineCellIndexBitSet1,
+                            keyCrossLineCellIndexBitSet2,
+                            keyCrossLineCellIndexBitSet3,
+                            keyCrossLineCellIndexBitSet4));
+
+                static Func<string> GetDescriptionBuilder(
+                    SudokuBoardCellDigit digit,
+                    UInt128 keyLineCellIndexBitSet1,
+                    UInt128 keyLineCellIndexBitSet2,
+                    UInt128 keyLineCellIndexBitSet3,
+                    UInt128 keyLineCellIndexBitSet4,
+                    string keyLineHouseName1,
+                    string keyLineHouseName2,
+                    string keyLineHouseName3,
+                    string keyLineHouseName4,
+                    string keyCrossLineName1,
+                    string keyCrossLineName2,
+                    string keyCrossLineName3,
+                    string keyCrossLineName4,
+                    string keyCrossLineHouseName1,
+                    string keyCrossLineHouseName2,
+                    string keyCrossLineHouseName3,
+                    string keyCrossLineHouseName4,
+                    UInt128 keyCrossLineCellIndexBitSet1,
+                    UInt128 keyCrossLineCellIndexBitSet2,
+                    UInt128 keyCrossLineCellIndexBitSet3,
+                    UInt128 keyCrossLineCellIndexBitSet4)
+                {
+                    return
+                        () =>
+                        {
+                            var keyCrossLineBlockBitSet1 = keyCrossLineCellIndexBitSet1.GetUnionByBlock();
+                            var keyCrossLineBlockBitSet2 = keyCrossLineCellIndexBitSet2.GetUnionByBlock();
+                            var keyCrossLineBlockBitSet3 = keyCrossLineCellIndexBitSet3.GetUnionByBlock();
+                            var keyCrossLineBlockBitSet4 = keyCrossLineCellIndexBitSet4.GetUnionByBlock();
+                            var digitText = digit.ToCellDigitText();
+                            var keyLineCellPositionsText1 = string.Join(", ", keyLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
+                            var keyLineCellPositionsText2 = string.Join(", ", keyLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
+                            var keyLineCellPositionsText3 = string.Join(", ", keyLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
+                            var keyLineCellPositionsText4 = string.Join(", ", keyLineCellIndexBitSet4.EnumerateAsCellPositionTexts());
+                            var keyCrossLinePositionsText1 = string.Join(", ", keyCrossLineCellIndexBitSet1.EnumerateAsCellPositionTexts());
+                            var keyCrossLinePositionsText2 = string.Join(", ", keyCrossLineCellIndexBitSet2.EnumerateAsCellPositionTexts());
+                            var keyCrossLinePositionsText3 = string.Join(", ", keyCrossLineCellIndexBitSet3.EnumerateAsCellPositionTexts());
+                            var keyCrossLinePositionsText4 = string.Join(", ", keyCrossLineCellIndexBitSet4.EnumerateAsCellPositionTexts());
+                            return
+                                $"この盤面は以下の条件を満たしています。\n" +
+                                $"1) {keyLineHouseName1}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText1}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
+                                $"2) {keyLineHouseName2}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText2}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
+                                $"3) {keyLineHouseName3}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText3}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在し、かつ\n" +
+                                $"4) {keyLineHouseName4}内の数字の候補 {digitText} を含むマス ({keyLineCellPositionsText4}) は全て {keyCrossLineName1}, {keyCrossLineName2}, {keyCrossLineName3}, {keyCrossLineName4} の何れかのみに存在する。\n" +
+                                $"仮に{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れにも {digitText} が入らないと仮定した場合、" +
+                                $"{digitText} が入ることができるマスが足りなくなってしまうので、" +
+                                $"{keyCrossLineName1}のマス {keyCrossLinePositionsText1} の何れかには必ず {digitText} が入ります。\n" +
+                                $"したがって、{(keyCrossLineBlockBitSet1.IsSingleBit() ? $"{keyCrossLinePositionsText1} が共に属するハウス ({keyCrossLineHouseName1}および{keyCrossLineBlockBitSet1.AsSingleCellBlock().ToHouseName()}) " : keyCrossLineName1)}の {keyCrossLinePositionsText1} 以外のマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を除外します。\n" +
+                                $"同様の論法で、以下のマスの数字の候補からも {digitText} を除外します。\n" +
+                                $"・{(keyCrossLineBlockBitSet2.IsSingleBit() ? $"{keyCrossLinePositionsText2} が共に属するハウス ({keyCrossLineHouseName2}および{keyCrossLineBlockBitSet2.AsSingleCellBlock().ToHouseName()}) " : keyCrossLineName2)}の {keyCrossLinePositionsText2} 以外のマス\n" +
+                                $"・{(keyCrossLineBlockBitSet3.IsSingleBit() ? $"{keyCrossLinePositionsText3} が共に属するハウス ({keyCrossLineHouseName3}および{keyCrossLineBlockBitSet3.AsSingleCellBlock().ToHouseName()}) " : keyCrossLineName3)}の {keyCrossLinePositionsText3} 以外のマス\n" +
+                                $"・{(keyCrossLineBlockBitSet4.IsSingleBit() ? $"{keyCrossLinePositionsText4} が共に属するハウス ({keyCrossLineHouseName4}および{keyCrossLineBlockBitSet4.AsSingleCellBlock().ToHouseName()}) " : keyCrossLineName4)}の {keyCrossLinePositionsText4} 以外のマス";
+                        };
+                }
             }
         }
     }

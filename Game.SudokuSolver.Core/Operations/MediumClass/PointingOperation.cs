@@ -14,14 +14,14 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "ポインティング (Pointing)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 block,
                                 blockHouseBitMask,
                                 SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
-                                row.ToFriendlyString(),
+                                row.ToHouseName(),
                                 cellDigit,
                                 allCellIndexBitSet);
                         if (operation is not null)
@@ -64,7 +64,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                 block,
                                 blockHouseBitMask,
                                 SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
-                                column.ToFriendlyString(),
+                                column.ToHouseName(),
                                 cellDigit,
                                 allCellIndexBitSet);
                         if (operation is not null)
@@ -77,7 +77,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 SudokuBoardCellBlock block,
                 UInt128 blockHouseBitMask,
                 UInt128 lineHouseBitMask,
-                string lineName,
+                string lineHouseName,
                 SudokuBoardCellDigit cellDigit,
                 UInt128 allCellIndexBitSet)
             {
@@ -89,12 +89,6 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 if (KeyCellIndexBitSet == 0 || (allCellIndexBitSet & blockWingBitMask) != 0 || excludedCellNoteBitSet == 0)
                     return null;
 
-                var blockName = block.ToFriendlyString();
-                var cellDigitChar = cellDigit.ToCellDigitText();
-                var description
-                    = $"{blockName}のブロックには{lineName}のマスのみに数字の候補 {cellDigitChar} が含まれており、" +
-                    $"必ずこれらのマスの何れかが {cellDigitChar} となります。\n" +
-                    $"そのため、{lineName}にある他のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
                 return
                     new PointingOperation(
                         excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
@@ -102,7 +96,22 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         .Concat(blockWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
                             .Concat(lineWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         KeyCellIndexBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                        description);
+                        GetDescriptionBuilder(block, lineHouseName, cellDigit, KeyCellIndexBitSet));
+
+                static Func<string> GetDescriptionBuilder(SudokuBoardCellBlock block, string lineHouseName, SudokuBoardCellDigit cellDigit, UInt128 KeyCellIndexBitSet)
+                {
+                    return
+                        () =>
+                        {
+                            var blockHouseName = block.ToHouseName();
+                            var cellDigitChar = cellDigit.ToCellDigitText();
+                            var keyCellPositionsText = string.Join(", ", KeyCellIndexBitSet.EnumerateAsCellIndexes().ToCellPositionTexts());
+                            return
+                                $"{blockHouseName}には、{lineHouseName}と重なるマス ({keyCellPositionsText}) のみに数字の候補 {cellDigitChar} が含まれているので、" +
+                                $"必ずこれらのマスの何れかに {cellDigitChar} が入ります。\n" +
+                                $"そのため、{lineHouseName}にある {keyCellPositionsText} 以外のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
+                        };
+                }
             }
         }
     }

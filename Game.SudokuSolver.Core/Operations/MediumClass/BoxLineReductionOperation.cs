@@ -14,14 +14,14 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "ボックスライン・リダクション (Claiming)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -77,7 +77,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 SudokuBoardCellBlock block,
                 UInt128 blockHouseBitMask,
                 UInt128 lineHouseBitMask,
-                string lineName,
+                string lineHouseName,
                 SudokuBoardCellDigit cellDigit,
                 UInt128 allCellIndexBitSet)
             {
@@ -89,12 +89,6 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 if (highlightedCellNoteBitSet == 0 || (allCellIndexBitSet & lineWingBitMask) != 0 || excludedCellNoteBitSet == 0)
                     return null;
 
-                var blockName = block.ToFriendlyString();
-                var cellDigitChar = cellDigit.ToCellDigitText();
-                var description =
-                    $"{lineName}には{blockName}のブロックと重なるマスのみに数字の候補 {cellDigitChar} が含まれており、" +
-                    $"{cellDigitChar} は必ずこれらのマスの何れかに入ります。\n" +
-                    $"したがって、{blockName}のブロックにある他のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
                 return
                     new BoxLineReductionOperation(
                         excludedCellNoteBitSet.EnumerateAsCellNotes(cellDigit),
@@ -102,7 +96,21 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             .Concat(lineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
                             .Concat(blockWingBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         highlightedCellNoteBitSet.EnumerateAsCellNoteEffects(cellDigit, SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                        description);
+                        GetDescriptionBuilder(block, lineHouseName, cellDigit));
+
+                static Func<string> GetDescriptionBuilder(SudokuBoardCellBlock block, string lineHouseName, SudokuBoardCellDigit cellDigit)
+                {
+                    return
+                        () =>
+                        {
+                            var blockHouseName = block.ToHouseName();
+                            var cellDigitChar = cellDigit.ToCellDigitText();
+                            return
+                                $"{lineHouseName}には{blockHouseName}と重なるマスのみに数字の候補 {cellDigitChar} が含まれており、" +
+                                $"{cellDigitChar} は必ずこれらのマスの何れかに入ります。\n" +
+                                $"したがって、{blockHouseName}にある他のマスには {cellDigitChar} は入り得ないので、それらのマスの数字の候補から {cellDigitChar} を排除します。";
+                        };
+                }
             }
         }
     }

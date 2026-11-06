@@ -9,7 +9,7 @@ namespace Game.SudokuSolver.Operations.Basic
     internal sealed class CompleteOperation
         : SudokuBoardOperation
     {
-        private CompleteOperation(string description)
+        private CompleteOperation(Func<string> descriptionBuilder)
             : base(
                   GameBoardStatus.Success,
                   "完了 (Complete)",
@@ -18,7 +18,7 @@ namespace Game.SudokuSolver.Operations.Basic
                   [],
                   [],
                   [],
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -31,8 +31,12 @@ namespace Game.SudokuSolver.Operations.Basic
             if (!ws.IsCompleted())
                 return null;
 
-            var description = "盤面のすべてのマスが確定しました。";
-            return new CompleteOperation(description);
+            return new CompleteOperation(GetDescriptionBuilder());
+
+            static Func<string> GetDescriptionBuilder()
+            {
+                return () => "盤面のすべてのマスが確定しました。";
+            }
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

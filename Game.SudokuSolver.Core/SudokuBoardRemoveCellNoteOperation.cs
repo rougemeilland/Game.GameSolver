@@ -28,8 +28,8 @@ namespace Game.SudokuSolver
         /// <param name="cellNoteEffects">
         /// 定石の説明において強調効果を必要とするセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値とその強調効果を示す <see cref="SudokuBoardCellNoteEffect"/> 値のペアのシーケンスです。
         /// </param>
-        /// <param name="description">
-        /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
+        /// <param name="descriptionBuilder">
+        /// 定石の説明のテキストを示す <see cref="string"/> オブジェクトを返すデリゲータです。
         /// </param>
         protected SudokuBoardRemoveCellNoteOperation(
             string title,
@@ -37,7 +37,7 @@ namespace Game.SudokuSolver
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   GameBoardStatus.Solving,
                   title,
@@ -46,7 +46,7 @@ namespace Game.SudokuSolver
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 

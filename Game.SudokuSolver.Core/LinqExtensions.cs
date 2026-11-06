@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Game.SudokuSolver
 {
@@ -94,6 +95,24 @@ namespace Game.SudokuSolver
 
             if (condition)
                 yield return element;
+        }
+
+        /// <summary>
+        /// 指定された <see cref="ReadOnlyMemory{T}"/> 値の全要素のシーケンスを取得します。
+        /// </summary>
+        /// <typeparam name="ELEMENT_T">
+        /// 要素の型です。
+        /// </typeparam>
+        /// <param name="source">
+        /// <see cref="ReadOnlyMemory{T}"/> 値です。
+        /// </param>
+        /// <returns>
+        /// <typeparamref name="ELEMENT_T"/> 型のシーケンスを返します。
+        /// </returns>
+        internal static IEnumerable<ELEMENT_T> AsEnumerable<ELEMENT_T>(this ReadOnlyMemory<ELEMENT_T> source)
+        {
+            for (var index = 0; index < source.Length; ++index)
+                yield return source.Span[index];
         }
     }
 }

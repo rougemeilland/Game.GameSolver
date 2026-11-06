@@ -28,8 +28,8 @@ namespace Game.SudokuSolver
         /// <param name="cellBackgroundEffects">
         /// 定石の説明において背景効果を必要とするセルの位置を <see cref="SudokuBoardCellIndex"/> 値とその背景効果を示す <see cref="SudokuBoardCellBackgroundEffect"/> 値のペアのシーケンスです。
         /// </param>
-        /// <param name="description">
-        /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
+        /// <param name="descriptionBuilder">
+        /// 定石の説明のテキストを示す <see cref="string"/> オブジェクトを返すデリゲータです。
         /// </param>
         protected SudokuBoardDetermineCellOperation(
             string title,
@@ -37,7 +37,7 @@ namespace Game.SudokuSolver
             SudokuBoardCellPositionDigit determinedCell,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(GameBoardStatus.Solving,
                    title,
                    difficulty,
@@ -45,7 +45,7 @@ namespace Game.SudokuSolver
                    excludedCellNotes,
                    cellBackgroundEffects,
                    [],
-                   description)
+                   descriptionBuilder)
         {
         }
 

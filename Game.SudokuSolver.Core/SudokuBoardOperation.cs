@@ -173,6 +173,8 @@ namespace Game.SudokuSolver
             }
         }
 
+        private readonly Lazy<string> _description;
+
         static SudokuBoardOperation()
         {
             EmptyCellBackgroundEffects = new CellBackgroundEffectCollection([]);
@@ -203,8 +205,8 @@ namespace Game.SudokuSolver
         /// <param name="cellNoteEffects">
         /// 定石の説明において強調効果を必要とするセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値とその強調効果を示す <see cref="SudokuBoardCellNoteEffect"/> 値のペアのシーケンスです。
         /// </param>
-        /// <param name="description">
-        /// 定石の説明のテキストを示す <see cref="string"/>オブジェクトです。
+        /// <param name="descriptionBuilder">
+        /// 定石の説明のテキストを示す <see cref="string"/> オブジェクトを返すデリゲータです。
         /// </param>
         protected SudokuBoardOperation(
             GameBoardStatus status,
@@ -214,7 +216,7 @@ namespace Game.SudokuSolver
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(status)
         {
             Title = title;
@@ -242,7 +244,7 @@ namespace Game.SudokuSolver
                     })
 #endif
                     .Concat(excludedCellNotes.Select(cellNote => (cellNote, SudokuBoardCellNoteEffect.NegativelyHighlighted))));
-            Description = description;
+            _description = new Lazy<string>(descriptionBuilder);
         }
 
         /// <summary>
@@ -302,7 +304,7 @@ namespace Game.SudokuSolver
         /// </list>
         /// </para>
         /// </remarks>
-        public string Description { get; }
+        public string Description => _description.Value;
 
         internal static ISudokuBoardCellBackgroundEffectCollection EmptyCellBackgroundEffects { get; }
         internal static ISudokuBoardCellNoteEffectCollection EmptyCellNoteEffects { get; }

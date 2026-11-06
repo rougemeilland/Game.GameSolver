@@ -15,14 +15,14 @@ namespace Game.SudokuSolver.Operations.HardClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "四国同盟 (Naked Quadruple)",
                   SudokuBoardDifficultyLevel.Hard,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
-                            () => $"{block.ToFriendlyString()}のブロック",
+                            block.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(block),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -58,7 +58,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
-                            () => $"{row.ToFriendlyString()}の行",
+                            row.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(row),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -72,7 +72,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
-                            () => $"{column.ToFriendlyString()}の列",
+                            column.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(column),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -87,7 +87,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             static IEnumerable<NakedQuadOperation> MatchPatternByHouse(
                 SudokuBoardWorkspace ws,
                 UInt128 houseMask,
-                Func<string> houseNameGetter,
+                string houseName,
                 ReadOnlyMemory<SudokuBoardCellIndex> houseCellIndexes,
                 Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
             {
@@ -177,31 +177,44 @@ namespace Game.SudokuSolver.Operations.HardClass
                                         System.Diagnostics.Debug.Assert(excludedCellNotes.Any());
 #endif
 
-                                        var houseName = houseNameGetter();
-                                        var keyCellPositionsText = string.Join(", ", keyCellIndexBitSet.EnumerateAsCellPositionTexts());
-                                        var keyCellDigitCharsText =
-                                            string.Join(
-                                                ", ",
-                                                (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet() | keyCellDigitD.ToCellDigitBitSet())
-                                                    .EnumerateAsCellDigitTexts());
-                                        var description =
-                                            $"{houseName}において、{keyCellPositionsText} の四つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                            $"これら四つの数字はこれら四つのマスの何れかにしか入り得ません。、\n" +
-                                            // 二国同盟や三国同盟と異なり、四個のマスが全て共有するハウスは一種類しかありえないので、排除対象のハウスは houseName のみと限定してよい。
-                                            $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                            $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
                                         yield return
                                             new NakedQuadOperation(
                                                 excludedCellNotes,
                                                 keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
                                                     .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                 highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                                                description);
+                                                GetDescriptionBuilder(houseName, keyCellDigitA, keyCellDigitB, keyCellDigitC, keyCellDigitD, keyCellIndexBitSet));
                                     }
                                 }
                             }
                         }
                     }
+                }
+
+                static Func<string> GetDescriptionBuilder(
+                    string houseName,
+                    SudokuBoardCellDigit keyCellDigitA,
+                    SudokuBoardCellDigit keyCellDigitB,
+                    SudokuBoardCellDigit keyCellDigitC,
+                    SudokuBoardCellDigit keyCellDigitD,
+                    UInt128 keyCellIndexBitSet)
+                {
+                    return
+                        () =>
+                        {
+                            var keyCellPositionsText = string.Join(", ", keyCellIndexBitSet.EnumerateAsCellPositionTexts());
+                            var keyCellDigitCharsText =
+                                string.Join(
+                                    ", ",
+                                    (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet() | keyCellDigitD.ToCellDigitBitSet())
+                                        .EnumerateAsCellDigitTexts());
+                            return
+                                $"{houseName}において、{keyCellPositionsText} の四つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
+                                $"これら四つの数字はこれら四つのマスの何れかにしか入り得ません。、\n" +
+                                // 二国同盟や三国同盟と異なり、四個のマスが全て共有するハウスは一種類しかありえないので、排除対象のハウスは houseName のみと限定してよい。
+                                $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
+                        };
                 }
             }
         }

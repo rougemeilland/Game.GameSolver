@@ -15,14 +15,14 @@ namespace Game.SudokuSolver.Operations.MediumClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "三国同盟 (Naked Triple)",
                   SudokuBoardDifficultyLevel.Medium,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -43,7 +43,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
-                            () => $"{block.ToFriendlyString()}のブロック",
+                            block.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(block),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -57,7 +57,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
-                            () => $"{row.ToFriendlyString()}の行",
+                            row.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(row),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -71,7 +71,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                         MatchPatternByHouse(
                             ws,
                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
-                            () => $"{column.ToFriendlyString()}の列",
+                            column.ToHouseName(),
                             SudokuBoardCellGeometry.GetCellIndexes(column),
                             keyCellIIndexesBuffer);
                     foreach (var operation in operations)
@@ -86,7 +86,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             static IEnumerable<NakedTripleOperation> MatchPatternByHouse(
                 SudokuBoardWorkspace ws,
                 UInt128 houseMask,
-                Func<string> houseNameGetter,
+                string houseName,
                 ReadOnlyMemory<SudokuBoardCellIndex> houseCellIndexes,
                 Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
             {
@@ -164,29 +164,46 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     System.Diagnostics.Debug.Assert(excludedCellNotes.Any());
 #endif
 
-                                    var houseName = houseNameGetter();
-                                    var keyCellPositionsText = string.Join(", ", keyCellIndexBitSet.EnumerateAsCellPositionTexts());
-                                    var keyCellDigitCharsText =
-                                        string.Join(
-                                            ", ",
-                                            (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet())
-                                                .EnumerateAsCellDigitTexts());
-                                    var description =
-                                        $"{houseName}において、{keyCellPositionsText} の三つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
-                                        $"これら三つの数字はこれら三つのマスの何れかにしか入り得ません。、\n" +
-                                        $"したがって、{keyCellPositionsText} の三つのマスを共に含むハウスの他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
-                                        $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
                                     yield return
                                         new NakedTripleOperation(
                                             excludedCellNotes,
                                             keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
                                                 .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                             highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                                            description);
+                                            GetDescriptionBuilder(
+                                                houseName,
+                                                keyCellDigitA,
+                                                keyCellDigitB,
+                                                keyCellDigitC,
+                                                keyCellIndexBitSet));
                                 }
                             }
                         }
                     }
+                }
+
+                static Func<string> GetDescriptionBuilder(
+                    string houseName,
+                    SudokuBoardCellDigit keyCellDigitA,
+                    SudokuBoardCellDigit keyCellDigitB,
+                    SudokuBoardCellDigit keyCellDigitC,
+                    UInt128 keyCellIndexBitSet)
+                {
+                    return
+                        () =>
+                        {
+                            var keyCellPositionsText = string.Join(", ", keyCellIndexBitSet.EnumerateAsCellPositionTexts());
+                            var keyCellDigitCharsText =
+                                string.Join(
+                                    ", ",
+                                    (keyCellDigitA.ToCellDigitBitSet() | keyCellDigitB.ToCellDigitBitSet() | keyCellDigitC.ToCellDigitBitSet())
+                                        .EnumerateAsCellDigitTexts());
+                            return
+                                $"{houseName}において、{keyCellPositionsText} の三つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
+                                $"これら三つの数字はこれら三つのマスの何れかにしか入り得ません。、\n" +
+                                $"したがって、{keyCellPositionsText} の三つのマスを共に含むハウスの他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
+                        };
                 }
             }
         }

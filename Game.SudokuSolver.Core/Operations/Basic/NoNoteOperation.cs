@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.GameSolver;
 
@@ -12,7 +13,7 @@ namespace Game.SudokuSolver.Operations.Basic
     {
         private NoNoteOperation(
             IEnumerable<SudokuBoardCellIndex> noNoteCellIndexes,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   GameBoardStatus.Failed,
                   "失敗 (Failed)",
@@ -21,7 +22,7 @@ namespace Game.SudokuSolver.Operations.Basic
                   [],
                   noNoteCellIndexes.Select(cellIndex => (cellIndex, SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                   [],
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -35,12 +36,21 @@ namespace Game.SudokuSolver.Operations.Basic
             if (notNoteCellIndexBitSet == 0)
                 return null;
 
-            var notNoteCellIndexes = notNoteCellIndexBitSet.EnumerateAsCellIndexes();
-            var cellPositionListText = string.Join(", ", notNoteCellIndexes.ToCellPositionTexts());
-            var description =
-                $"{cellPositionListText}のマスの数字の候補が存在しないため、" +
-                $"解答は存在しません。";
-            return new NoNoteOperation(notNoteCellIndexes, description);
+            var notNoteCellIndexes = notNoteCellIndexBitSet.EnumerateAsCellIndexes().ToArray();
+            return new NoNoteOperation(notNoteCellIndexes, GetDescriptionBuilder(notNoteCellIndexes));
+
+            static Func<string> GetDescriptionBuilder(ReadOnlyMemory<SudokuBoardCellIndex> notNoteCellIndexes)
+            {
+                return
+                    () =>
+                    {
+                        var cellPositionListText = string.Join(", ", notNoteCellIndexes.AsEnumerable().ToCellPositionTexts());
+                        return
+                            $"{cellPositionListText}のマスの数字の候補が存在しないため、" +
+                            $"解答は存在しません。";
+
+                    };
+            }
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

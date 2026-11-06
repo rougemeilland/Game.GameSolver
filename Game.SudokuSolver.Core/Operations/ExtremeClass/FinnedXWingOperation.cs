@@ -18,14 +18,14 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "フィン付きX-ウィング (Finned X-Wing)",
                   SudokuBoardDifficultyLevel.Extreme,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -172,10 +172,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 keyCellIndex3,
                                                 keyCellIndex4,
                                                 finCellIndex,
-                                                () => $"{row12.ToFriendlyString()}の行",
-                                                () => $"{column1.ToFriendlyString()}の列",
-                                                () => $"{column2.ToFriendlyString()}の列",
-                                                () => $"{row34.ToFriendlyString()}の行");
+                                                row12.ToHouseName(),
+                                                column1.ToHouseName(),
+                                                column2.ToHouseName(),
+                                                row34.ToHouseName());
                                         if (operation is not null)
                                             yield return operation;
                                     }
@@ -271,10 +271,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 keyCellIndex3,
                                                 keyCellIndex4,
                                                 finCellIndex,
-                                                () => $"{column12.ToFriendlyString()}の列",
-                                                () => $"{row1.ToFriendlyString()}の行",
-                                                () => $"{row2.ToFriendlyString()}の行",
-                                                () => $"{column34.ToFriendlyString()}の列");
+                                                column12.ToHouseName(),
+                                                row1.ToHouseName(),
+                                                row2.ToHouseName(),
+                                                column34.ToHouseName());
                                         if (operation is not null)
                                             yield return operation;
                                     }
@@ -298,10 +298,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 SudokuBoardCellIndex keyCellIndex3,
                 SudokuBoardCellIndex keyCellIndex4,
                 SudokuBoardCellIndex finCellIndex,
-                Func<string> houseName12Getter,
-                Func<string> houseName13Getter,
-                Func<string> houseName24Getter,
-                Func<string> houseName34Getter)
+                string houseName12,
+                string houseName13,
+                string houseName24,
+                string houseName34)
             {
 
                 // 排除対象のセル:
@@ -319,33 +319,6 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                 // 排除対象の数字の候補が存在する
 
-                var houseName12 = houseName12Getter();
-                var houseName13 = houseName13Getter();
-                var houseName24 = houseName24Getter();
-                var houseName34 = houseName34Getter();
-                var digitText = digit.ToCellDigitText();
-                var cell1PositionText = keyCellIndex1.ToFriendlyString();
-                var cell2PositionText = keyCellIndex2.ToFriendlyString();
-                var cell3PositionText = keyCellIndex3.ToFriendlyString();
-                var cell4PositionText = keyCellIndex4.ToFriendlyString();
-                var cellFinPositionText = finCellIndex.ToFriendlyString();
-                var description =
-                    $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。\n" +
-                    $"{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} と {cellFinPositionText} のマスにしか存在しないので、数字 {digitText} は必ず何れかのマスだけに入ります。\n" +
-                    $"そして、" +
-                    $"{cell1PositionText} と {cell3PositionText} は共に {houseName13} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
-                    $"同様に、" +
-                    $"{cell2PositionText} と {cell4PositionText} は共に {houseName24} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
-                    $"ここで、{cellFinPositionText} のマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
-                    $"a) もし、{cellFinPositionText} のマスの数字が {digitText}である場合、" +
-                    $"{cellFinPositionText} のマスとハウスを共有する全てのマスの数字の数字の候補から {digitText} を排除できます。\n" +
-                    $"b) もし、{cellFinPositionText} のマスの数字が {digitText}でない場合、" +
-                    $"X-Wing が成立するので、" +
-                    $"{houseName13}または{houseName24}にある {cell1PositionText},  {cell2PositionText},  {cell3PositionText},  {cell4PositionText} を除くすべてのマスの数字の候補から {digitText} を排除できます。\n" +
-                    $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスは数字 {digitText} ではあり得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                    $"1) {houseName13}または{houseName24}のどちらかに存在し、かつ\n" +
-                    $"2) {cellFinPositionText} のマスと同じハウスを共有しており、かつ\n" +
-                    $"3) {cell1PositionText},  {cell2PositionText},  {cell3PositionText},  {cell4PositionText}, {cellFinPositionText} の何れでもないマス。";
                 return
                     new FinnedXWingOperation(
                         excludedCellIndexBitSet.EnumerateAsCellNotes(digit),
@@ -354,7 +327,58 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             .Concat((houseMask13 | houseMask24).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                             .Concat(excludedCellRegionBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                        description);
+                        GetDescriptionBuilder(
+                            digit,
+                            keyCellIndex1,
+                            keyCellIndex2,
+                            keyCellIndex3,
+                            keyCellIndex4,
+                            finCellIndex,
+                            houseName12,
+                            houseName13,
+                            houseName24,
+                            houseName34));
+
+                static Func<string> GetDescriptionBuilder(
+                    SudokuBoardCellDigit digit,
+                    SudokuBoardCellIndex keyCellIndex1,
+                    SudokuBoardCellIndex keyCellIndex2,
+                    SudokuBoardCellIndex keyCellIndex3,
+                    SudokuBoardCellIndex keyCellIndex4,
+                    SudokuBoardCellIndex finCellIndex,
+                    string houseName12,
+                    string houseName13,
+                    string houseName24,
+                    string houseName34)
+                {
+                    return
+                        () =>
+                        {
+                            var digitText = digit.ToCellDigitText();
+                            var cell1PositionText = keyCellIndex1.ToFriendlyString();
+                            var cell2PositionText = keyCellIndex2.ToFriendlyString();
+                            var cell3PositionText = keyCellIndex3.ToFriendlyString();
+                            var cell4PositionText = keyCellIndex4.ToFriendlyString();
+                            var cellFinPositionText = finCellIndex.ToFriendlyString();
+                            return
+                                $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。\n" +
+                                $"{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} と {cellFinPositionText} のマスにしか存在しないので、数字 {digitText} は必ず何れかのマスだけに入ります。\n" +
+                                $"そして、" +
+                                $"{cell1PositionText} と {cell3PositionText} は共に {houseName13} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
+                                $"同様に、" +
+                                $"{cell2PositionText} と {cell4PositionText} は共に {houseName24} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
+                                $"ここで、{cellFinPositionText} のマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
+                                $"a) もし、{cellFinPositionText} のマスの数字が {digitText}である場合、" +
+                                $"{cellFinPositionText} のマスとハウスを共有する全てのマスの数字の数字の候補から {digitText} を排除できます。\n" +
+                                $"b) もし、{cellFinPositionText} のマスの数字が {digitText}でない場合、" +
+                                $"X-Wing が成立するので、" +
+                                $"{houseName13}または{houseName24}にある {cell1PositionText},  {cell2PositionText},  {cell3PositionText},  {cell4PositionText} を除くすべてのマスの数字の候補から {digitText} を排除できます。\n" +
+                                $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスは数字 {digitText} ではあり得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
+                                $"1) {houseName13}または{houseName24}のどちらかに存在し、かつ\n" +
+                                $"2) {cellFinPositionText} のマスと同じハウスを共有しており、かつ\n" +
+                                $"3) {cell1PositionText},  {cell2PositionText},  {cell3PositionText},  {cell4PositionText}, {cellFinPositionText} の何れでもないマス。";
+                        };
+                }
             }
         }
     }

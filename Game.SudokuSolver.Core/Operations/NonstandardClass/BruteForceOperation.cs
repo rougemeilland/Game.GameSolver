@@ -14,14 +14,14 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
             SudokuBoardCellPositionDigit determinedCell,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "総当たり (Brute Force)",
                   SudokuBoardDifficultyLevel.Nonstandard,
                   determinedCell,
                   excludedCellNotes,
                   cellBackgroundEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -50,12 +50,6 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                     ws.GetCellIndexBitSetForExcludedNoteDigit(cellIndex, cellNoteDigit)
                     .EnumerateAsCellNotes(cellNoteDigit)
                     .ToArray();
-                var determinedCellPosiionText = cellIndex.ToFriendlyString();
-                var undeterminedCellDigitsText = string.Join(", ", ws.GetCellNoteDigitBitSet(cellIndex).EnumerateAsCellDigitTexts());
-                var determinedCellDigitText = cellNoteDigit.ToCellDigitText();
-                var description =
-                    $"適用できる定石がないため、{determinedCellPosiionText}のマスの数字の候補 {undeterminedCellDigitsText} のうち、" +
-                    $"{determinedCellDigitText} を仮に確定します。";
 #if DEBUG
                 System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellNoteDigit));
 #endif
@@ -65,8 +59,22 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                         excludedCellNotes,
                         Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>()
                             .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex).EnumerateAsCellIndexes().Select(cellIndex => (cellIndex, SudokuBoardCellBackgroundEffect.NegativelyHighlighted))),
-                        description);
+                        GetDescriptionBuilder(ws, cellIndex, cellNoteDigit));
 
+            }
+
+            static Func<string> GetDescriptionBuilder(SudokuBoardWorkspace ws, SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit)
+            {
+                return
+                    () =>
+                    {
+                        var determinedCellPosiionText = cellIndex.ToFriendlyString();
+                        var undeterminedCellDigitsText = string.Join(", ", ws.GetCellNoteDigitBitSet(cellIndex).EnumerateAsCellDigitTexts());
+                        var determinedCellDigitText = cellNoteDigit.ToCellDigitText();
+                        return
+                            $"適用できる定石がないため、{determinedCellPosiionText}のマスの数字の候補 {undeterminedCellDigitsText} のうち、" +
+                            $"{determinedCellDigitText} を仮に確定します。";
+                    };
             }
         }
     }

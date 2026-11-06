@@ -5,11 +5,8 @@ namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
-        // TODO: Descriptionの遅延評価化
-        //#error
-
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_FinnedXWing2();
+            => CreateModelForTest_SueDeCoq1();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(

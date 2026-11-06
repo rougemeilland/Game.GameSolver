@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.SudokuSolver.Operations.InsaneClass
 {
@@ -22,14 +24,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
             IEnumerable<(SudokuBoardCellPositionDigit cellNote, SudokuBoardCellNoteEffect effect)> cellNoteEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "スー・デ・コック (Su de Coq)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   cellNoteEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -81,96 +83,80 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             // ブロックハウスから C ∪ Cb を除くセルの数字の候補からは、d ∈ Db ∪ (D ＼ Dr) である全ての数字 d を排除出来る。
             // ラインハウスからから C ∪ Cr を除くセルの数字の候補からは、d ∈ Dr ∪ (D ＼ Db) である全ての数字 d を排除出来る。
 
-            for (var numberOfAlliance = 4; numberOfAlliance <= 9; ++numberOfAlliance)
+            var keyCellIIndexesBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(15);
+            try
             {
-                for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
+                var excludedCellNotesBuffer = ArrayPool<SudokuBoardCellPositionDigit>.Shared.Rent(135);
+                try
                 {
-                    // 行ハウスの検索
-                    for (var rowOffset = SudokuBoardCellBlockRow.MinValue; rowOffset <= SudokuBoardCellBlockRow.MaxValue; ++rowOffset)
+                    for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
                     {
-                        var row = SudokuBoardCellGeometry.GetRow(block, rowOffset);
-                        var operations =
-                            MatchPatternByHouse(
-                                ws,
-                                numberOfAlliance,
-                                block,
-                                SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
-                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
-                                () => $"{block.ToFriendlyString()}のブロック",
-                                () => $"{row.ToFriendlyString()}の行");
-                        foreach (var operation in operations)
-                            yield return operation;
-                    }
+                        // 行ハウスの検索
+                        for (var rowOffset = SudokuBoardCellBlockRow.MinValue; rowOffset <= SudokuBoardCellBlockRow.MaxValue; ++rowOffset)
+                        {
+                            var row = SudokuBoardCellGeometry.GetRow(block, rowOffset);
+                            var operations =
+                                MatchPatternByHouse(
+                                    ws,
+                                    block,
+                                    SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
+                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(row),
+                                    block.ToHouseName(),
+                                    row.ToHouseName(),
+                                    keyCellIIndexesBuffer,
+                                    excludedCellNotesBuffer);
+                            foreach (var operation in operations)
+                                yield return operation;
+                        }
 
-                    // 列ハウスの検索
-                    for (var columnOffset = SudokuBoardCellBlockColumn.MinValue; columnOffset <= SudokuBoardCellBlockColumn.MaxValue; ++columnOffset)
-                    {
-                        var column = SudokuBoardCellGeometry.GetColumn(block, columnOffset);
-                        var operations =
-                            MatchPatternByHouse(
-                                ws,
-                                numberOfAlliance,
-                                block,
-                                SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
-                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
-                                () => $"{block.ToFriendlyString()}のブロック",
-                                () => $"{column.ToFriendlyString()}の列");
-                        foreach (var operation in operations)
-                            yield return operation;
+                        // 列ハウスの検索
+                        for (var columnOffset = SudokuBoardCellBlockColumn.MinValue; columnOffset <= SudokuBoardCellBlockColumn.MaxValue; ++columnOffset)
+                        {
+                            var column = SudokuBoardCellGeometry.GetColumn(block, columnOffset);
+                            var operations =
+                                MatchPatternByHouse(
+                                    ws,
+                                    block,
+                                    SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block),
+                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column),
+                                    block.ToHouseName(),
+                                    column.ToHouseName(),
+                                    keyCellIIndexesBuffer,
+                                    excludedCellNotesBuffer);
+                            foreach (var operation in operations)
+                                yield return operation;
+                        }
                     }
+                }
+                finally
+                {
+                    ArrayPool<SudokuBoardCellPositionDigit>.Shared.Return(excludedCellNotesBuffer);
                 }
             }
-
-            static IEnumerable<SudokuBoardOperation> MatchPatternByHouse(SudokuBoardWorkspace ws, int numberOfAlliance, SudokuBoardCellBlock block, UInt128 blockHouseMask, UInt128 columnOrRowHouseMask, Func<string> blockHouseNameGetter, Func<string> columnOrRowHouseNameGetter)
+            finally
             {
-                switch (numberOfAlliance)
-                {
-                    case 4:
-                    {
-                        var operation = MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
+                ArrayPool<SudokuBoardCellIndex>.Shared.Return(keyCellIIndexesBuffer);
 
-                    case 5:
-                    {
-                        var operation = MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
-                    case 6:
-                    {
-                        var operation = MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
-                    case 7:
-                    {
-                        var operation = MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
-                    case 8:
-                    {
-                        var operation = MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
-                    case 9:
-                    {
-                        var operation = MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseNameGetter, columnOrRowHouseNameGetter);
-                        if (operation is not null)
-                            yield return operation;
-                        break;
-                    }
-                    default:
-                        throw new ApplicationException();
-                }
+            }
+
+            static IEnumerable<SudokuBoardOperation> MatchPatternByHouse(
+                SudokuBoardWorkspace ws,
+                SudokuBoardCellBlock block,
+                UInt128 blockHouseMask,
+                UInt128 columnOrRowHouseMask,
+                string blockHouseName,
+                string columnOrRowHouseName,
+                Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer,
+                Memory<SudokuBoardCellPositionDigit> excludedCellNotesBuffer)
+            {
+                System.Diagnostics.Debug.Assert(block is >= SudokuBoardCellBlock.MinValue and <= SudokuBoardCellBlock.MaxValue);
+                return
+                    MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer)
+                    .Concat(MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    .Concat(MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    .Concat(MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    .Concat(MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    .Concat(MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer));
             }
         }
 
@@ -190,16 +176,18 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値の格納先の配列です。
         /// </param>
         /// <returns>
-        /// セルの位置を格納した配列とその実際の長さを示す <see cref="Span{T}"/> 値です。
+        /// セルの位置を格納した配列とその実際の長さを示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        private static Span<SudokuBoardCellIndex> SearchKeyCells(SudokuBoardWorkspace ws, int maxCellNoteCount, UInt128 cellBitSet, Span<SudokuBoardCellIndex> keyCellIIndexesBuffer)
+        private static ReadOnlyMemory<SudokuBoardCellIndex> SearchKeyCells(SudokuBoardWorkspace ws, int maxCellNoteCount, UInt128 cellBitSet, Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
         {
+            var destinationBuffer = keyCellIIndexesBuffer.Span;
             var length = 0;
             while (cellBitSet != 0)
             {
                 var cellIndex = cellBitSet.GetOneCellIndex();
                 if (!ws.IsDetermined(cellIndex) && ws.GetCellNoteDigitBitSet(cellIndex).GetPopCount() <= maxCellNoteCount)
-                    keyCellIIndexesBuffer[length++] = cellIndex;
+                    destinationBuffer[length++] = cellIndex;
+
                 cellBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
 
@@ -250,9 +238,9 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// セルの位置と数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値の格納先の配列です。
         /// </param>
         /// <returns>
-        /// セルの位置を格納した配列とその実際の長さを示す <see cref="Span{T}"/> 値です。
+        /// セルの位置を格納した配列とその実際の長さを示す <see cref="Memory{T}"/> 値です。
         /// </returns>
-        private static Span<SudokuBoardCellPositionDigit> SearchCellNotes(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet, SudokuBoardCellDigitBitSet cellNoteDigitBitSet, Span<SudokuBoardCellPositionDigit> cellNoteDigitsBuffer)
+        private static ReadOnlyMemory<SudokuBoardCellPositionDigit> SearchCellNotes(SudokuBoardWorkspace ws, UInt128 cellIndexBitSet, SudokuBoardCellDigitBitSet cellNoteDigitBitSet, Memory<SudokuBoardCellPositionDigit> cellNoteDigitsBuffer)
         {
             var length = 0;
             cellIndexBitSet &= ~ws.DeterminedCellBitSet;
@@ -263,7 +251,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                 while (digitBitSet != 0)
                 {
                     var digit = digitBitSet.GetOneCellDigit();
-                    cellNoteDigitsBuffer[length++] = new SudokuBoardCellPositionDigit(cellIndex, digit);
+                    cellNoteDigitsBuffer.Span[length++] = new SudokuBoardCellPositionDigit(cellIndex, digit);
                     digitBitSet &= ~digit.ToCellDigitBitSet();
                 }
 

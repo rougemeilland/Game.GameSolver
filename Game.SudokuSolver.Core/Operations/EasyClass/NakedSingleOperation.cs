@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Game.SudokuSolver.Operations.EasyClass
@@ -13,14 +14,14 @@ namespace Game.SudokuSolver.Operations.EasyClass
             SudokuBoardCellPositionDigit determinedCell,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "一択マス (Naked Single)",
                   SudokuBoardDifficultyLevel.Easy,
                   determinedCell,
                   excludedCellNotes,
                   cellBackgroundEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -43,12 +44,6 @@ namespace Game.SudokuSolver.Operations.EasyClass
                             ws.GetCellIndexBitSetForExcludedNoteDigit(cellIndex, cellDigit)
                             .EnumerateAsCellNotes(cellDigit)
                             .ToArray();
-                        var determinedCellPositionText = cellIndex.ToFriendlyString();
-                        var determinedCellDigitText = cellDigit.ToCellDigitText();
-                        var description =
-                            $"{determinedCellPositionText}のマスの数字の候補は {determinedCellDigitText} しかないため、" +
-                            $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。" +
-                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
 #if DEBUG
                         System.Diagnostics.Debug.Assert(ws.CanCetermineCell(cellIndex, cellDigit));
 #endif
@@ -58,9 +53,23 @@ namespace Game.SudokuSolver.Operations.EasyClass
                                 excludedCellNotes,
                                 Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>()
                                     .ConcatIf(excludedCellNotes.Length > 0, SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
-                                description);
+                                GetDescriptionBuilder(cellIndex, cellDigit, excludedCellNotes.Length > 0));
                     }
                 }
+            }
+
+            static Func<string> GetDescriptionBuilder(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellDigit, bool existExcludedCellNotes)
+            {
+                return
+                    () =>
+                    {
+                        var determinedCellPositionText = cellIndex.ToFriendlyString();
+                        var determinedCellDigitText = cellDigit.ToCellDigitText();
+                        return
+                            $"{determinedCellPositionText}のマスの数字の候補は {determinedCellDigitText} しかないため、" +
+                            $"{determinedCellPositionText}の数字は {determinedCellDigitText} に確定します。" +
+                            $"{(existExcludedCellNotes ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
+                    };
             }
         }
     }

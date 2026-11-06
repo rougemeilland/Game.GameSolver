@@ -14,14 +14,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         private ForcingChainOperation(
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "強制チェーン (Forcing Chain)",
                   SudokuBoardDifficultyLevel.Insane,
                   excludedCellNotes,
                   cellBackgroundEffects,
                   [],
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -86,23 +86,31 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                     {
                         // 論証に失敗した場合
                         var excludedCellNote = new SudokuBoardCellPositionDigit(cellIndex, cellNoteDigit);
-                        var excludedCellNotePosiionText = cellIndex.ToFriendlyString();
-                        var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitText();
-                        var description =
-                            $"{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} であると仮定して解答を求めようとしたところ失敗しました。\n" +
-                            $"失敗の原因は{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
-                            $"{excludedCellNotePosiionText}のマスの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
-                            $"したがって、{excludedCellNotePosiionText}のマスの数字の候補から {excludedCellNoteDigitText} を排除します。";
                         yield return
                             new ForcingChainOperation(
                                 Enumerable.Empty<SudokuBoardCellPositionDigit>().Append(excludedCellNote),
                                 Enumerable.Empty<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)>().Append((cellIndex, SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)),
-                                description);
+                                GetDescriptionBuilder(cellIndex, cellNoteDigit));
 
-                        // コンピュータリソースとパフォーマンスの観点から、強制チェーンは最初のひとつの要素を返して打ち切る。
+                        // パフォーマンスの観点から、強制チェーンは最初のひとつの要素を返して打ち切る。
                         yield break;
                     }
                 }
+            }
+
+            static Func<string> GetDescriptionBuilder(SudokuBoardCellIndex cellIndex, SudokuBoardCellDigit cellNoteDigit)
+            {
+                return
+                    () =>
+                    {
+                        var excludedCellNotePosiionText = cellIndex.ToFriendlyString();
+                        var excludedCellNoteDigitText = cellNoteDigit.ToCellDigitText();
+                        return
+                            $"{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} であると仮定して解答を求めようとしたところ失敗しました。\n" +
+                            $"失敗の原因は{excludedCellNotePosiionText}のマスの数字が {excludedCellNoteDigitText} と仮定したことであるため、" +
+                            $"{excludedCellNotePosiionText}のマスの数字は {excludedCellNoteDigitText} ではあり得ません。\n" +
+                            $"したがって、{excludedCellNotePosiionText}のマスの数字の候補から {excludedCellNoteDigitText} を排除します。";
+                    };
             }
         }
     }

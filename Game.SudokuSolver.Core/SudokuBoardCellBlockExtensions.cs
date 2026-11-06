@@ -1,10 +1,27 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver
 {
     internal static class SudokuBoardCellBlockExtensions
     {
+        private readonly static string[] _friendlyNameTable =
+        [
+            "上段左",
+            "上段中央",
+            "上段右",
+            "中段左",
+            "中段中央",
+            "中段右",
+            "下段左",
+            "下段中央",
+            "下段右",
+        ];
+
+        private readonly static string[] _houseNameTable =
+            [.. Enumerable.Range(0, 9).Select(n => (SudokuBoardCellBlock.MinValue + n).ToHouseNameCore())];
+
         /// <summary>
         /// 与えられたセルのブロックを要素に持つビット集合を取得します。
         /// </summary>
@@ -27,13 +44,13 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// セルのブロックを示す <see cref="SudokuBoardCellBlock"/> 値を読みやすい文字列に変換します。
+        /// セルのブロックを読みやすい文字列に変換します。
         /// </summary>
         /// <param name="block">
-        /// セルの行を示す <see cref="SudokuBoardCellBlock"/> 値です。
+        /// セルのブロックを示す <see cref="SudokuBoardCellBlock"/> 値です。
         /// </param>
         /// <returns>
-        /// セルの行を示す <see cref="string"/> オブジェクトを返します。
+        /// セルのブロックを示す <see cref="string"/> オブジェクトを返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static string ToFriendlyString(this SudokuBoardCellBlock block)
@@ -42,20 +59,30 @@ namespace Game.SudokuSolver
             if (block is < SudokuBoardCellBlock.MinValue or > SudokuBoardCellBlock.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(block));
 #endif
-            return
-                block switch
-                {
-                    SudokuBoardCellBlock.TopLeft => "上段左",
-                    SudokuBoardCellBlock.TopCenter => "上段中央",
-                    SudokuBoardCellBlock.TopRight => "上段右",
-                    SudokuBoardCellBlock.CenterLeft => "中段左",
-                    SudokuBoardCellBlock.CenterCenter => "中段中央",
-                    SudokuBoardCellBlock.CenterRight => "中段右",
-                    SudokuBoardCellBlock.BottomLeft => "下段左",
-                    SudokuBoardCellBlock.BottomCenter => "下段中央",
-                    SudokuBoardCellBlock.BottomRight => "下段右",
-                    _ => throw new ApplicationException(),
-                };
+            return _friendlyNameTable[block - SudokuBoardCellBlock.MinValue];
         }
+
+        /// <summary>
+        /// セルのブロックのハウス名を取得します。
+        /// </summary>
+        /// <param name="block">
+        /// セルのブロックを示す <see cref="SudokuBoardCellBlock"/> 値です。
+        /// </param>
+        /// <returns>
+        /// セルのブロックのハウス名を示す <see cref="string"/> オブジェクトを返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static string ToHouseName(this SudokuBoardCellBlock block)
+        {
+#if DEBUG
+            if (block is < SudokuBoardCellBlock.MinValue or > SudokuBoardCellBlock.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(block));
+#endif
+            return _houseNameTable[block - SudokuBoardCellBlock.MinValue];
+        }
+
+        private static string ToHouseNameCore(this SudokuBoardCellBlock block)
+            => $"{block.ToFriendlyString()}のブロック";
+
     }
 }

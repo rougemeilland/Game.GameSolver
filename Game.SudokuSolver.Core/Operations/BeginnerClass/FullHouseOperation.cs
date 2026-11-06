@@ -14,14 +14,14 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             SudokuBoardCellPositionDigit determinedCell,
             IEnumerable<SudokuBoardCellPositionDigit> excludedCellNotes,
             IEnumerable<(SudokuBoardCellIndex cellIndex, SudokuBoardCellBackgroundEffect effect)> cellBackgroundEffects,
-            string description)
+            Func<string> descriptionBuilder)
             : base(
                   "フルハウス (Full House)",
                   SudokuBoardDifficultyLevel.Beginner,
                   determinedCell,
                   excludedCellNotes,
                   cellBackgroundEffects,
-                  description)
+                  descriptionBuilder)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 var operation =
                     MatchPatternByHouse(
                         ws,
-                        SudokuBoardHouseType.Block,
+                        block.ToHouseName(),
                         SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block));
                 if (operation is not null)
                     yield return operation;
@@ -47,7 +47,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 var operation =
                     MatchPatternByHouse(
                         ws,
-                        SudokuBoardHouseType.Column,
+                        column.ToHouseName(),
                         SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column));
                 if (operation is not null)
                     yield return operation;
@@ -57,13 +57,14 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             {
                 var operation =
                     MatchPatternByHouse(
-                        ws, SudokuBoardHouseType.Row,
+                        ws,
+                        row.ToHouseName(),
                         SudokuBoardCellGeometry.GetRowCellIndexBitSet(row));
                 if (operation is not null)
                     yield return operation;
             }
 
-            static FullHouseOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, SudokuBoardHouseType house, UInt128 houseMask)
+            static FullHouseOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, string houseName, UInt128 houseMask)
             {
                 var determinedCellBitSetByHouse = ws.DeterminedCellBitSet & houseMask;
                 if (UInt128.PopCount(determinedCellBitSetByHouse) != 8)
@@ -75,26 +76,6 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     ws.GetCellIndexBitSetForExcludedNoteDigit(undeterminedCellIndex, foundCellDigit)
                     .EnumerateAsCellNotes(foundCellDigit)
                     .ToArray();
-                var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(undeterminedCellIndex);
-                var determinedCellPositionText = undeterminedCellIndex.ToFriendlyString();
-                var determinedCellDigitText = foundCellDigit.ToCellDigitText();
-                var description =
-                    house switch
-                    {
-                        SudokuBoardHouseType.Row =>
-                            $"{determinedCellRow.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
-                            $"{(excludedCellNotes.Length > 0 ? $"それとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
-                        SudokuBoardHouseType.Column =>
-                            $"{determinedCellColumn.ToFriendlyString()}の行のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
-                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
-                        SudokuBoardHouseType.Block =>
-                            $"{determinedCellBlock.ToFriendlyString()}のブロックのマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
-                            $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
-                            $"{(excludedCellNotes.Length > 0 ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}",
-                        _ => throw new ApplicationException(),
-                    };
 #if DEBUG
                 System.Diagnostics.Debug.Assert(ws.CanCetermineCell(undeterminedCellIndex, foundCellDigit));
 #endif
@@ -104,7 +85,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                         excludedCellNotes,
                         houseMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
                             .ConcatIf(excludedCellNotes.Length > 0, (SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(undeterminedCellIndex) & ~houseMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
-                        description);
+                        GetDescriptionBuilder(houseName, undeterminedCellIndex, foundCellDigit, excludedCellNotes.Length > 0));
 
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)
                 {
@@ -127,6 +108,21 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                     System.Diagnostics.Debug.Assert(undeterminedCellDigitBitSet.IsSingleBit());
 #endif
                     return undeterminedCellDigitBitSet.AsSingleCellDigit();
+                }
+
+                static Func<string> GetDescriptionBuilder(string houseName, SudokuBoardCellIndex undeterminedCellIndex, SudokuBoardCellDigit foundCellDigit, bool existExcludedCellNotes)
+                {
+                    return
+                        () =>
+                        {
+                            var (determinedCellColumn, determinedCellRow, determinedCellBlock) = SudokuBoardCellGeometry.GetColumnRowBlock(undeterminedCellIndex);
+                            var determinedCellPositionText = undeterminedCellIndex.ToFriendlyString();
+                            var determinedCellDigitText = foundCellDigit.ToCellDigitText();
+                            return
+                                $"{houseName}のマスのうち{determinedCellPositionText}以外のマスが {determinedCellDigitText} 以外の数字で確定しているため、" +
+                                $"{determinedCellPositionText}のマスの数字は {determinedCellDigitText} に確定します。" +
+                                $"{(existExcludedCellNotes ? $"\nそれとともに、確定したマスと同じハウスに属する別のマスの数字の候補から {determinedCellDigitText} を排除します。" : "")}";
+                        };
                 }
             }
         }
