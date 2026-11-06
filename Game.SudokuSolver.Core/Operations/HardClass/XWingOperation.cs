@@ -57,7 +57,7 @@ namespace Game.SudokuSolver.Operations.HardClass
 
             // 行ハウスに含まれる数字が 2 個のみの場合
             {
-                var keyRowsBuffer = ArrayPool<SudokuBoardCellRow>.Shared.Rent(9);
+                var keyRowsBuffer = ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Rent(9);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -68,13 +68,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
                 finally
                 {
-                    ArrayPool<SudokuBoardCellRow>.Shared.Return(keyRowsBuffer);
+                    ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Return(keyRowsBuffer);
                 }
             }
 
             // 列ハウスに含まれる数字が 2 個のみの場合
             {
-                var keyColumnsBuffer = ArrayPool<SudokuBoardCellColumn>.Shared.Rent(9);
+                var keyColumnsBuffer = ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Rent(9);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -85,11 +85,11 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
                 finally
                 {
-                    ArrayPool<SudokuBoardCellColumn>.Shared.Return(keyColumnsBuffer);
+                    ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Return(keyColumnsBuffer);
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellRow> keyRowsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> keyRowsBuffer)
             {
                 // digit を候補に持つセルが 2 個以上ある行を抽出する。
                 var keyRows = allCellIndexBitSet.ExtractRowsByCellCount(keyRowsBuffer, 2, 2);
@@ -100,7 +100,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 for (var keyIndex12 = 0; keyIndex12 < keyRows.Length - 1; ++keyIndex12)
                 {
-                    var row12 = keyRows.Span[keyIndex12];
+                    var row12 = keyRows.Span[keyIndex12].row;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(keyRows.Span[keyIndex12].cellCount == 2);
+#endif
                     var rowHouse12 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row12);
                     var keyCellIndexBitSet12 = allCellIndexBitSet & rowHouse12;
 
@@ -112,7 +115,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                     for (var keyIndex34 = keyIndex12 + 1; keyIndex34 < keyRows.Length; ++keyIndex34)
                     {
-                        var row34 = keyRows.Span[keyIndex34];
+                        var row34 = keyRows.Span[keyIndex34].row;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(keyRows.Span[keyIndex34].cellCount == 2);
+#endif
                         var rowHouse34 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34);
                         var keyCellIndexBitSet34 = allCellIndexBitSet & rowHouse34;
 
@@ -122,7 +128,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         // 行 row34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex1 である。
                         var (keyCellIndex3, keyCellIndex4) = keyCellIndexBitSet34.SplitAsPairCellIndexes();
 
-                        if (IsFormedXWingByRow(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var column13, out var column24))
+                        if (IsFormedXWingByRowHouse(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var column13, out var column24))
                         {
                             var operation =
                                 MatchPatternByHouse(
@@ -147,7 +153,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellColumn> keyColumnsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> keyColumnsBuffer)
             {
                 // digit を候補に持つセルが 2 個以上ある列を抽出する。
                 var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, 2, 2);
@@ -158,7 +164,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 for (var keyIndex12 = 0; keyIndex12 < keyColumns.Length - 1; ++keyIndex12)
                 {
-                    var column12 = keyColumns.Span[keyIndex12];
+                    var column12 = keyColumns.Span[keyIndex12].column;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(keyColumns.Span[keyIndex12].cellCount == 2);
+#endif
                     var columnHouse12 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column12);
                     var keyCellIndexBitSet12 = allCellIndexBitSet & columnHouse12;
 
@@ -170,7 +179,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                     for (var keyIndex34 = keyIndex12 + 1; keyIndex34 < keyColumns.Length; ++keyIndex34)
                     {
-                        var column34 = keyColumns.Span[keyIndex34];
+                        var column34 = keyColumns.Span[keyIndex34].column;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(keyColumns.Span[keyIndex34].cellCount == 2);
+#endif
                         var columnHouse34 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34);
                         var keyCellIndexBitSet34 = allCellIndexBitSet & columnHouse34;
 
@@ -180,7 +192,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         // 列 column34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex1 である。
                         var (keyCellIndex3, keyCellIndex4) = keyCellIndexBitSet34.SplitAsPairCellIndexes();
 
-                        if (IsFormedXWingByColumn(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var row13, out var row24))
+                        if (IsFormedXWingByColumnHouse(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var row13, out var row24))
                         {
                             var operation =
                                 MatchPatternByHouse(
@@ -205,7 +217,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
             }
 
-            static bool IsFormedXWingByRow(
+            static bool IsFormedXWingByRowHouse(
                 SudokuBoardCellIndex keyCellIndex1,
                 SudokuBoardCellIndex keyCellIndex2,
                 SudokuBoardCellIndex keyCellIndex3,
@@ -228,7 +240,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 return column1 == column3 && column2 == column4 && block1 != block4 && block2 != block3;
             }
 
-            static bool IsFormedXWingByColumn(
+            static bool IsFormedXWingByColumnHouse(
                 SudokuBoardCellIndex keyCellIndex1,
                 SudokuBoardCellIndex keyCellIndex2,
                 SudokuBoardCellIndex keyCellIndex3,

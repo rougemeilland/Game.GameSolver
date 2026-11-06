@@ -327,13 +327,13 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
-        /// 指定された整数をセルの位置を示すビット集合とみなし、列のセル数が指定された最小値と最大値の範囲内である列を指定されたバッファに格納します。
+        /// 指定された整数をセルの位置を示すビット集合とみなし、列のセル数が指定された最小値と最大値の範囲内である列について、列と列のセル数のタプルを指定されたバッファに格納します。
         /// </summary>
         /// <param name="cellIndexBitSet">
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="columnsBuffer">
-        /// 列を示す <see cref="SudokuBoardCellColumn"/> 値の格納先です。
+        /// 列を示す <see cref="SudokuBoardCellColumn"/> 値と列のセル数を示す <see cref="int"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
         /// 抽出条件のうち、列に含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
@@ -341,8 +341,10 @@ namespace Game.SudokuSolver
         /// <param name="maxCount">
         /// 抽出条件のうち、列に含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
         /// </param>
-        /// <returns></returns>
-        public static ReadOnlyMemory<SudokuBoardCellColumn> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<SudokuBoardCellColumn> columnsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        /// <returns>
+        /// <paramref name="columnsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
+        /// </returns>
+        public static ReadOnlyMemory<(SudokuBoardCellColumn column, int cellCount)> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> columnsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(columnsBuffer.Length >= 9);
@@ -353,20 +355,20 @@ namespace Game.SudokuSolver
             {
                 var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column));
                 if (cellCount >= minCount && cellCount <= maxCount)
-                    destinationBuffer[length++] = column;
+                    destinationBuffer[length++] = (column, cellCount);
             }
 
             return columnsBuffer[..length];
         }
 
         /// <summary>
-        /// 指定された整数をセルの位置を示すビット集合とみなし、行のセル数が指定された最小値と最大値の範囲内である行を指定されたバッファに格納します。
+        /// 指定された整数をセルの位置を示すビット集合とみなし、行のセル数が指定された最小値と最大値の範囲内である行について、行と行のセル数のタプルを指定されたバッファに格納します。
         /// </summary>
         /// <param name="cellIndexBitSet">
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="rowsBuffer">
-        /// 行を示す <see cref="SudokuBoardCellRow"/> 値の格納先です。
+        /// 行を示す <see cref="SudokuBoardCellRow"/> 値と行のセル数を示す <see cref="int"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
         /// 抽出条件のうち、行に含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
@@ -374,8 +376,10 @@ namespace Game.SudokuSolver
         /// <param name="maxCount">
         /// 抽出条件のうち、行に含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
         /// </param>
-        /// <returns></returns>
-        public static ReadOnlyMemory<SudokuBoardCellRow> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<SudokuBoardCellRow> rowsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        /// <returns>
+        /// <paramref name="rowsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
+        /// </returns>
+        public static ReadOnlyMemory<(SudokuBoardCellRow row, int cellCount)> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> rowsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(rowsBuffer.Length >= 9);
@@ -386,20 +390,20 @@ namespace Game.SudokuSolver
             {
                 var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetRowCellIndexBitSet(row));
                 if (cellCount >= minCount && cellCount <= maxCount)
-                    destinationBuffer[length++] = row;
+                    destinationBuffer[length++] = (row, cellCount);
             }
 
             return rowsBuffer[..length];
         }
 
         /// <summary>
-        /// 指定された整数をセルの位置を示すビット集合とみなし、ブロックのセル数が指定された最小値と最大値の範囲内であるブロックを指定されたバッファに格納します。
+        /// 指定された整数をセルの位置を示すビット集合とみなし、ブロックのセル数が指定された最小値と最大値の範囲内であるブロックについて、ブロックとブロックのセル数のタプルを指定されたバッファに格納します。
         /// </summary>
         /// <param name="cellIndexBitSet">
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="blocksBuffer">
-        /// ブロックを示す <see cref="SudokuBoardCellBlock"/> 値の格納先です。
+        /// ブロックを示す <see cref="SudokuBoardCellBlock"/> 値とブロックのセル数を示す <see cref="int"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
         /// 抽出条件のうち、ブロックに含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
@@ -407,8 +411,10 @@ namespace Game.SudokuSolver
         /// <param name="maxCount">
         /// 抽出条件のうち、ブロックに含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
         /// </param>
-        /// <returns></returns>
-        public static ReadOnlyMemory<SudokuBoardCellBlock> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<SudokuBoardCellBlock> blocksBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        /// <returns>
+        /// <paramref name="blocksBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
+        /// </returns>
+        public static ReadOnlyMemory<(SudokuBoardCellBlock block, int cellCount)> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellBlock block, int cellCount)> blocksBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(blocksBuffer.Length >= 9);
@@ -419,7 +425,7 @@ namespace Game.SudokuSolver
             {
                 var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block));
                 if (cellCount >= minCount && cellCount <= maxCount)
-                    destinationBuffer[length++] = block;
+                    destinationBuffer[length++] = (block, cellCount);
             }
 
             return blocksBuffer[..length];

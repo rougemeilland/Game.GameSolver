@@ -5,13 +5,11 @@ namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
-        // TODO: フィン付きX-Wingのループ回数の削減
         // TODO: Descriptionの遅延評価化
-        // TODO: フィン付きX-Wingのテスト。
         //#error
 
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_Jellyfish3();
+            => CreateModelForTest_FinnedXWing2();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -746,6 +744,38 @@ namespace Game.SudokuSolver.GUI.Models
                     "060008020" +
                     "020500780"),
                  SudokuBoardOperationType.Jellyfish);
+
+        #endregion
+
+        #region Finned X-Wing
+
+        private static SudokuGameBoard CreateModelForTest_FinnedXWing1()
+            => new(
+                CreateBoardDigits(
+                    "005200079" +
+                    "000037025" +
+                    "270590060" +
+                    "632459781" +
+                    "050702000" +
+                    "790010250" +
+                    "000975012" +
+                    "007020500" +
+                    "520006007"),
+                 SudokuBoardOperationType.FinnedXWing);
+
+        private static SudokuGameBoard CreateModelForTest_FinnedXWing2()
+            => new(
+                CreateBoardDigits(
+                    "080275040" +
+                    "000000000" +
+                    "003090000" +
+                    "007020030" +
+                    "090301000" +
+                    "030750086" +
+                    "624017090" +
+                    "000040020" +
+                    "050902704"),
+                 SudokuBoardOperationType.FinnedXWing);
 
         #endregion
 

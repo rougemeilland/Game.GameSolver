@@ -51,7 +51,7 @@ namespace Game.SudokuSolver.Operations.HardClass
 
             // 行ハウスに含まれる数字が 2 個から 3 個のみの場合
             {
-                var keyRowsBuffer = ArrayPool<SudokuBoardCellRow>.Shared.Rent(9);
+                var keyRowsBuffer = ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Rent(9);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -62,13 +62,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
                 finally
                 {
-                    ArrayPool<SudokuBoardCellRow>.Shared.Return(keyRowsBuffer);
+                    ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Return(keyRowsBuffer);
                 }
             }
 
             // 列ハウスに含まれる数字が 2 個から 3 個のみの場合
             {
-                var keyColumnsBuffer = ArrayPool<SudokuBoardCellColumn>.Shared.Rent(9);
+                var keyColumnsBuffer = ArrayPool<(SudokuBoardCellColumn row, int cellCount)>.Shared.Rent(9);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -79,11 +79,11 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
                 finally
                 {
-                    ArrayPool<SudokuBoardCellColumn>.Shared.Return(keyColumnsBuffer);
+                    ArrayPool<(SudokuBoardCellColumn row, int cellCount)>.Shared.Return(keyColumnsBuffer);
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellRow> keyRowsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> keyRowsBuffer)
             {
                 // digit を候補に持つセルが 2 個以上 3 個以下ある行を抽出する。
                 var keyRows = allCellIndexBitSet.ExtractRowsByCellCount(keyRowsBuffer, 2, 3);
@@ -94,7 +94,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 for (var keyIndex1 = 0; keyIndex1 < keyRows.Length - 2; ++keyIndex1)
                 {
-                    var keyRow1 = keyRows.Span[keyIndex1];
+                    var keyRow1 = keyRows.Span[keyIndex1].row;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(keyRows.Span[keyIndex1].cellCount is >= 2 and <= 3);
+#endif
                     var keyRowHouse1 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1);
                     var keyRowCellIndexBitSet1 = allCellIndexBitSet & keyRowHouse1;
 #if DEBUG
@@ -102,7 +105,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 #endif
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyRows.Length - 1; ++keyIndex2)
                     {
-                        var keyRow2 = keyRows.Span[keyIndex2];
+                        var keyRow2 = keyRows.Span[keyIndex2].row;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(keyRows.Span[keyIndex2].cellCount is >= 2 and <= 3);
+#endif
                         var keyRowHouse2 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2);
                         var keyRowCellIndexBitSet2 = allCellIndexBitSet & keyRowHouse2;
 #if DEBUG
@@ -110,7 +116,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 #endif
                         for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyRows.Length; ++keyIndex3)
                         {
-                            var keyRow3 = keyRows.Span[keyIndex3];
+                            var keyRow3 = keyRows.Span[keyIndex3].row;
+#if DEBUG
+                            System.Diagnostics.Debug.Assert(keyRows.Span[keyIndex3].cellCount is >= 2 and <= 3);
+#endif
                             var keyRowHouse3 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3);
                             var keyRowCellIndexBitSet3 = allCellIndexBitSet & keyRowHouse3;
 #if DEBUG
@@ -153,7 +162,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<SudokuBoardCellColumn> keyColumnsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellColumn row, int cellCount)> keyColumnsBuffer)
             {
                 // digit を候補に持つセルが 2 個以上 3 個以下ある列を抽出する。
                 var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, 2, 3);
@@ -164,7 +173,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 for (var keyIndex1 = 0; keyIndex1 < keyColumns.Length - 2; ++keyIndex1)
                 {
-                    var keyColumn1 = keyColumns.Span[keyIndex1];
+                    var keyColumn1 = keyColumns.Span[keyIndex1].column;
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(keyColumns.Span[keyIndex1].cellCount is >= 2 and <= 3);
+#endif
                     var keyColumnHouse1 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1);
                     var keyColumnCellIndexBitSet1 = allCellIndexBitSet & keyColumnHouse1;
 #if DEBUG
@@ -172,7 +184,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 #endif
                     for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyColumns.Length - 1; ++keyIndex2)
                     {
-                        var keyColumn2 = keyColumns.Span[keyIndex2];
+                        var keyColumn2 = keyColumns.Span[keyIndex2].column;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(keyColumns.Span[keyIndex2].cellCount is >= 2 and <= 3);
+#endif
                         var keyColumnHouse2 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2);
                         var keyColumnCellIndexBitSet2 = allCellIndexBitSet & keyColumnHouse2;
 #if DEBUG
@@ -180,7 +195,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 #endif
                         for (var keyIndex3 = keyIndex2 + 1; keyIndex3 < keyColumns.Length; ++keyIndex3)
                         {
-                            var keyColumn3 = keyColumns.Span[keyIndex3];
+                            var keyColumn3 = keyColumns.Span[keyIndex3].column;
+#if DEBUG
+                            System.Diagnostics.Debug.Assert(keyColumns.Span[keyIndex3].cellCount is >= 2 and <= 3);
+#endif
                             var keyColumnHouse3 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3);
                             var keyColumnCellIndexBitSet3 = allCellIndexBitSet & keyColumnHouse3;
 #if DEBUG

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -50,17 +51,60 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             // 
             // ※上記の論拠は、行と列を言い換えても成立する。
 
-            for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
+            // 行ハウスにフィンが含まれている場合
             {
-                var allCellIndexBitSet = ws.GetCellIndexBitSet(digit);
-
-                // 行ハウスにフィンが含まれている場合
-                for (var row12 = SudokuBoardCellRow.MinValue; row12 <= SudokuBoardCellRow.MaxValue; ++row12)
+                var keyRowsBuffer = ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Rent(9);
+                try
                 {
-                    var rowHouseMask12 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row12);
-                    var keyCellIndexBitSet12 = allCellIndexBitSet & rowHouseMask12;
-                    if (UInt128.PopCount(keyCellIndexBitSet12) == 2)
+                    for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
                     {
+                        foreach (var operation in MatchPatternByRowHouse(digit, ws.GetCellIndexBitSet(digit), keyRowsBuffer))
+                            yield return operation;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Return(keyRowsBuffer);
+                }
+            }
+
+            // 列ハウスにフィンが含まれている場合
+            {
+                var keyColumnsBuffer = ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Rent(9);
+                try
+                {
+                    for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
+                    {
+                        foreach (var operation in MatchPatternByColumnHouse(digit, ws.GetCellIndexBitSet(digit), keyColumnsBuffer))
+                            yield return operation;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Return(keyColumnsBuffer);
+                }
+            }
+
+            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> keyRowsBuffer)
+            {
+                // 数字 digit を候補に持つセルの数が 2 以上 3 以下の行を抽出する。
+                var keyRows = allCellIndexBitSet.ExtractRowsByCellCount(keyRowsBuffer, 2, 3);
+
+                // 数字 digit を候補に持つセルの数が 2 以上 3 以下の行が 2 個未満である場合はフィン付き X-Wing が成立しないため、検索を中断する。
+                if (keyRows.Length < 2)
+                    yield break;
+
+                for (var keyIndex12 = 0; keyIndex12 < keyRows.Length; ++keyIndex12)
+                {
+                    if (keyRows.Span[keyIndex12].cellCount == 2)
+                    {
+                        var row12 = keyRows.Span[keyIndex12].row;
+                        var rowHouseMask12 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row12);
+                        var keyCellIndexBitSet12 = allCellIndexBitSet & rowHouseMask12;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(UInt128.PopCount(keyCellIndexBitSet12) == 2);
+#endif
+
                         // 行 row12 に 数字の候補 digit を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex2 である。
                         var (keyCellIndex1, keyCellIndex2) = keyCellIndexBitSet12.SplitAsPairCellIndexes();
 
@@ -69,83 +113,98 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var columnHouseMask13 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column1);
                         var columnHouseMask24 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column2);
 
-                        for (var row34 = SudokuBoardCellRow.MinValue; row34 <= SudokuBoardCellRow.MaxValue; ++row34)
+                        for (var keyIndex34 = 0; keyIndex34 < keyRows.Length; ++keyIndex34)
                         {
-                            if (row12 != row34)
+                            if (keyRows.Span[keyIndex34].cellCount == 3)
                             {
+                                var row34 = keyRows.Span[keyIndex34].row;
                                 var rowHouseMask34 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34);
                                 var keyCellIndexBitSet34F = allCellIndexBitSet & rowHouseMask34;
-                                if (UInt128.PopCount(keyCellIndexBitSet34F) == 3)
+#if DEBUG
+                                System.Diagnostics.Debug.Assert(UInt128.PopCount(keyCellIndexBitSet34F) == 3);
+#endif
+
+                                // row12 とば別の行 row34 に数字の候補 digit を持つセルは 3 個存在する。
+
+                                var keyCellIndex3BitSet = keyCellIndexBitSet34F & columnHouseMask13;
+                                var keyCellIndex4BitSet = keyCellIndexBitSet34F & columnHouseMask24;
+#if DEBUG
+                                System.Diagnostics.Debug.Assert(keyCellIndex3BitSet == 0 || UInt128.IsPow2(keyCellIndex3BitSet), $"{nameof(keyCellIndex3BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+                                System.Diagnostics.Debug.Assert(keyCellIndex4BitSet == 0 || UInt128.IsPow2(keyCellIndex4BitSet), $"{nameof(keyCellIndex4BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+#endif
+                                if (keyCellIndex3BitSet != 0 && keyCellIndex4BitSet != 0)
                                 {
-                                    // row12 とば別の行 row34 に数字の候補 digit を持つセルは 3 個存在する。
-
-                                    var keyCellIndex3BitSet = keyCellIndexBitSet34F & columnHouseMask13;
-                                    var keyCellIndex4BitSet = keyCellIndexBitSet34F & columnHouseMask24;
+                                    var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
+                                    var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
+                                    var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
 #if DEBUG
-                                    System.Diagnostics.Debug.Assert(keyCellIndex3BitSet == 0 || UInt128.IsPow2(keyCellIndex3BitSet), $"{nameof(keyCellIndex3BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
-                                    System.Diagnostics.Debug.Assert(keyCellIndex4BitSet == 0 || UInt128.IsPow2(keyCellIndex4BitSet), $"{nameof(keyCellIndex4BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+                                    System.Diagnostics.Debug.Assert(UInt128.IsPow2(finCellIndexBitSet), $"{nameof(finCellIndexBitSet)} は 1 のビットを一つだけ持つ");
 #endif
-                                    if (keyCellIndex3BitSet != 0 && keyCellIndex4BitSet != 0)
+                                    var finCellIndex = finCellIndexBitSet.AsSingleCellIndex();
+                                    var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
+
+                                    // row34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
+                                    // そのうち keyCellIndex3 と keyCellIndex1 は同じ列であり、keyCellIndex4 と keyCellIndex2 は同じ列である。
+
+                                    var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
+                                    var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
+                                    if (block1 != block4 && block2 != block3)
                                     {
-                                        var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
-                                        var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
-                                        var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
-#if DEBUG
-                                        System.Diagnostics.Debug.Assert(UInt128.IsPow2(finCellIndexBitSet), $"{nameof(finCellIndexBitSet)} は 1 のビットを一つだけ持つ");
-#endif
-                                        var finCellIndex = finCellIndexBitSet.AsSingleCellIndex();
-                                        var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
-
-                                        // row34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
-                                        // そのうち keyCellIndex3 と keyCellIndex1 は同じ列であり、keyCellIndex4 と keyCellIndex2 は同じ列である。
-
-                                        var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                                        var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                                        if (block1 != block4 && block2 != block3)
-                                        {
-                                            // 1) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
-                                            // 2) keyCellIndex2 のセルの列と keyCellIndex4 のセルの列は等しく、かつ
-                                            // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
-                                            // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                            // 5) finCellIndex のセルの行は keyCellIndex3 および keyCellIndex4 のセルの行と等しい。
-                                            // => フィン付き X-Wing が成立している)。
-                                            //   ※ finCellIndex のセルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
-                                            //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
-                                            var operation =
-                                                MatchPatternByHouse(
-                                                    digit,
-                                                    allCellIndexBitSet,
-                                                    allKeyCellIndexBitSet,
-                                                    rowHouseMask12,
-                                                    columnHouseMask13,
-                                                    columnHouseMask24,
-                                                    rowHouseMask34,
-                                                    keyCellIndex1,
-                                                    keyCellIndex2,
-                                                    keyCellIndex3,
-                                                    keyCellIndex4,
-                                                    finCellIndex,
-                                                    () => $"{row12.ToFriendlyString()}の行",
-                                                    () => $"{column1.ToFriendlyString()}の列",
-                                                    () => $"{column2.ToFriendlyString()}の列",
-                                                    () => $"{row34.ToFriendlyString()}の行");
-                                            if (operation is not null)
-                                                yield return operation;
-                                        }
+                                        // 1) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
+                                        // 2) keyCellIndex2 のセルの列と keyCellIndex4 のセルの列は等しく、かつ
+                                        // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
+                                        // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
+                                        // 5) finCellIndex のセルの行は keyCellIndex3 および keyCellIndex4 のセルの行と等しい。
+                                        // => フィン付き X-Wing が成立している)。
+                                        //   ※ finCellIndex のセルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
+                                        //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
+                                        var operation =
+                                            MatchPatternByHouse(
+                                                digit,
+                                                allCellIndexBitSet,
+                                                allKeyCellIndexBitSet,
+                                                rowHouseMask12,
+                                                columnHouseMask13,
+                                                columnHouseMask24,
+                                                rowHouseMask34,
+                                                keyCellIndex1,
+                                                keyCellIndex2,
+                                                keyCellIndex3,
+                                                keyCellIndex4,
+                                                finCellIndex,
+                                                () => $"{row12.ToFriendlyString()}の行",
+                                                () => $"{column1.ToFriendlyString()}の列",
+                                                () => $"{column2.ToFriendlyString()}の列",
+                                                () => $"{row34.ToFriendlyString()}の行");
+                                        if (operation is not null)
+                                            yield return operation;
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                // 列ハウスにフィンが含まれている場合
-                for (var column12 = SudokuBoardCellColumn.MinValue; column12 <= SudokuBoardCellColumn.MaxValue; ++column12)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> keyColumnsBuffer)
+            {
+                // 数字 digit を候補に持つセルの数が 2 以上 3 以下の列を抽出する。
+                var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, 2, 3);
+
+                // 数字 digit を候補に持つセルの数が 2 以上 3 以下の列が 2 個未満である場合はフィン付き X-Wing が成立しないため、検索を中断する。
+                if (keyColumns.Length < 2)
+                    yield break;
+
+                for (var keyIndex12 = 0; keyIndex12 < keyColumns.Length; ++keyIndex12)
                 {
-                    var columnHouseMask12 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column12);
-                    var keyCellIndexBitSet12 = allCellIndexBitSet & columnHouseMask12;
-                    if (UInt128.PopCount(keyCellIndexBitSet12) == 2)
+                    if (keyColumns.Span[keyIndex12].cellCount == 2)
                     {
+                        var column12 = keyColumns.Span[keyIndex12].column;
+                        var columnHouseMask12 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column12);
+                        var keyCellIndexBitSet12 = allCellIndexBitSet & columnHouseMask12;
+#if DEBUG
+                        System.Diagnostics.Debug.Assert(UInt128.PopCount(keyCellIndexBitSet12) == 2);
+#endif
                         // 列 column12 に 数字の候補 digit を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex2 である。
                         var (keyCellIndex1, keyCellIndex2) = keyCellIndexBitSet12.SplitAsPairCellIndexes();
 
@@ -154,69 +213,70 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var rowHouseMask13 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row1);
                         var rowHouseMask24 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row2);
 
-                        for (var column34 = SudokuBoardCellColumn.MinValue; column34 <= SudokuBoardCellColumn.MaxValue; ++column34)
+                        for (var keyIndex34 = 0; keyIndex34 < keyColumns.Length; ++keyIndex34)
                         {
-                            if (column12 != column34)
+                            if (keyColumns.Span[keyIndex34].cellCount == 3)
                             {
+                                var column34 = keyColumns.Span[keyIndex34].column;
                                 var _columnHouseMask34 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34);
                                 var keyCellIndexBitSet34F = allCellIndexBitSet & _columnHouseMask34;
-                                if (UInt128.PopCount(keyCellIndexBitSet34F) == 3)
+#if DEBUG
+                                System.Diagnostics.Debug.Assert(UInt128.PopCount(keyCellIndexBitSet34F) == 3);
+#endif
+
+                                // column12 とば別の列 column34 に数字の候補 digit を持つセルは 3 個存在する。
+                                var keyCellIndex3BitSet = keyCellIndexBitSet34F & rowHouseMask13;
+                                var keyCellIndex4BitSet = keyCellIndexBitSet34F & rowHouseMask24;
+#if DEBUG
+                                System.Diagnostics.Debug.Assert(keyCellIndex3BitSet == 0 || UInt128.IsPow2(keyCellIndex3BitSet), $"{nameof(keyCellIndex3BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+                                System.Diagnostics.Debug.Assert(keyCellIndex4BitSet == 0 || UInt128.IsPow2(keyCellIndex4BitSet), $"{nameof(keyCellIndex4BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+#endif
+                                if (keyCellIndex3BitSet != 0 && keyCellIndex4BitSet != 0)
                                 {
-                                    // column12 とば別の列 column34 に数字の候補 digit を持つセルは 3 個存在する。
-
-                                    var keyCellIndex3BitSet = keyCellIndexBitSet34F & rowHouseMask13;
-                                    var keyCellIndex4BitSet = keyCellIndexBitSet34F & rowHouseMask24;
+                                    var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
+                                    var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
+                                    var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
 #if DEBUG
-                                    System.Diagnostics.Debug.Assert(keyCellIndex3BitSet == 0 || UInt128.IsPow2(keyCellIndex3BitSet), $"{nameof(keyCellIndex3BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
-                                    System.Diagnostics.Debug.Assert(keyCellIndex4BitSet == 0 || UInt128.IsPow2(keyCellIndex4BitSet), $"{nameof(keyCellIndex4BitSet)} は 0 であるか、あるいは 1 のビットを一つだけ持つ");
+                                    System.Diagnostics.Debug.Assert(UInt128.IsPow2(finCellIndexBitSet), $"{nameof(finCellIndexBitSet)} は 1 のビットを一つだけ持つ");
 #endif
-                                    if (keyCellIndex3BitSet != 0 && keyCellIndex4BitSet != 0)
+                                    var finCellIndex = finCellIndexBitSet.AsSingleCellIndex();
+                                    var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
+
+                                    // column34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
+                                    // そのうち keyCellIndex3 と keyCellIndex1 は同じ行であり、keyCellIndex4 と keyCellIndex2 は同じ行である。
+
+                                    var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
+                                    var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
+                                    if (block1 != block4 && block2 != block3)
                                     {
-                                        var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
-                                        var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
-                                        var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
-#if DEBUG
-                                        System.Diagnostics.Debug.Assert(UInt128.IsPow2(finCellIndexBitSet), $"{nameof(finCellIndexBitSet)} は 1 のビットを一つだけ持つ");
-#endif
-                                        var finCellIndex = finCellIndexBitSet.AsSingleCellIndex();
-                                        var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
-
-                                        // column34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
-                                        // そのうち keyCellIndex3 と keyCellIndex1 は同じ行であり、keyCellIndex4 と keyCellIndex2 は同じ行である。
-
-                                        var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                                        var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                                        if (block1 != block4 && block2 != block3)
-                                        {
-                                            // 1) keyCellIndex1 のセルの行と keyCellIndex3 のセルの行は等しく、かつ
-                                            // 2) keyCellIndex2 のセルの行と keyCellIndex4 のセルの行は等しく、かつ
-                                            // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
-                                            // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                            // 5) finCellIndex のセルの列は keyCellIndex3 および keyCellIndex4 のセルの列と等しい。
-                                            // => フィン付き X-Wing が成立している)。
-                                            //   ※ finCellIndex のセルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
-                                            //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
-                                            var operation =
-                                                MatchPatternByHouse(
-                                                    digit,
-                                                    allCellIndexBitSet,
-                                                    allKeyCellIndexBitSet,
-                                                    columnHouseMask12,
-                                                    rowHouseMask13,
-                                                    rowHouseMask24,
-                                                    _columnHouseMask34,
-                                                    keyCellIndex1,
-                                                    keyCellIndex2,
-                                                    keyCellIndex3,
-                                                    keyCellIndex4,
-                                                    finCellIndex,
-                                                    () => $"{column12.ToFriendlyString()}の列",
-                                                    () => $"{row1.ToFriendlyString()}の行",
-                                                    () => $"{row2.ToFriendlyString()}の行",
-                                                    () => $"{column34.ToFriendlyString()}の列");
-                                            if (operation is not null)
-                                                yield return operation;
-                                        }
+                                        // 1) keyCellIndex1 のセルの行と keyCellIndex3 のセルの行は等しく、かつ
+                                        // 2) keyCellIndex2 のセルの行と keyCellIndex4 のセルの行は等しく、かつ
+                                        // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
+                                        // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
+                                        // 5) finCellIndex のセルの列は keyCellIndex3 および keyCellIndex4 のセルの列と等しい。
+                                        // => フィン付き X-Wing が成立している)。
+                                        //   ※ finCellIndex のセルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
+                                        //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
+                                        var operation =
+                                            MatchPatternByHouse(
+                                                digit,
+                                                allCellIndexBitSet,
+                                                allKeyCellIndexBitSet,
+                                                columnHouseMask12,
+                                                rowHouseMask13,
+                                                rowHouseMask24,
+                                                _columnHouseMask34,
+                                                keyCellIndex1,
+                                                keyCellIndex2,
+                                                keyCellIndex3,
+                                                keyCellIndex4,
+                                                finCellIndex,
+                                                () => $"{column12.ToFriendlyString()}の列",
+                                                () => $"{row1.ToFriendlyString()}の行",
+                                                () => $"{row2.ToFriendlyString()}の行",
+                                                () => $"{column34.ToFriendlyString()}の列");
+                                        if (operation is not null)
+                                            yield return operation;
                                     }
                                 }
                             }
