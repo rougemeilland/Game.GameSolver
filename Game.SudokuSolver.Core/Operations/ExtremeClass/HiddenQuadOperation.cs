@@ -143,8 +143,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                     keyCellIndex2,
                                                                     keyCellIndex3,
                                                                     keyCellIndex4,
-                                                                    keyCellDigitBitSet,
-                                                                    excludedCellDigitBitSet));
+                                                                    keyCellDigitBitSet));
                                                     }
                                                 }
                                             }
@@ -162,13 +161,11 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     SudokuBoardCellIndex keyCellIndex2,
                     SudokuBoardCellIndex keyCellIndex3,
                     SudokuBoardCellIndex keyCellIndex4,
-                    SudokuBoardCellDigitBitSet keyCellDigitBitSet,
-                    SudokuBoardCellDigitBitSet excludedCellDigitBitSet)
+                    SudokuBoardCellDigitBitSet keyCellDigitBitSet)
                 {
                     return
                         () =>
                         {
-                            var excludedDigitChars = string.Join(", ", excludedCellDigitBitSet.EnumerateAsCellDigitTexts());
                             var keyCellDigitCharsText = string.Join(", ", keyCellDigitBitSet.EnumerateAsCellDigitTexts());
                             var keyCellPositionsText =
                                 string.Join(
@@ -176,9 +173,9 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet())
                                         .EnumerateAsCellPositionTexts());
                             return
-                                $"{houseName}において、四つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の四つしかないので、" +
-                                $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
-                                $"したがって、四つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
+                                $"{houseName}において、四つの数字 {keyCellDigitCharsText} の何れかを候補として含むマスは {keyCellPositionsText} の四つしかないので、" +
+                                $"これらのマスには必ず {keyCellDigitCharsText} の何れかが入り、他の数字は入り得ません。\n" +
+                                $"したがって、四つのマス {keyCellPositionsText} の数字の候補から {keyCellDigitCharsText} 以外の数字を排除します。";
                         };
                 }
             }

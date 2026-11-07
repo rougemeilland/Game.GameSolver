@@ -48,6 +48,10 @@ namespace Game.SudokuSolver
                   cellNoteEffects,
                   descriptionBuilder)
         {
+#if DEBUG
+            if (ExcludedCellNotes.Length <= 0)
+                throw new ApplicationException();
+#endif
         }
 
         internal override SudokuBoardCellsSet Execute(SudokuBoardCellsSet cells)

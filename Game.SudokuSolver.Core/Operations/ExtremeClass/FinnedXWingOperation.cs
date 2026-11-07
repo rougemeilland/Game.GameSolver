@@ -371,7 +371,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 $"a) もし、{cellFinPositionText} のマスの数字が {digitText}である場合、" +
                                 $"{cellFinPositionText} のマスとハウスを共有する全てのマスの数字の数字の候補から {digitText} を排除できます。\n" +
                                 $"b) もし、{cellFinPositionText} のマスの数字が {digitText}でない場合、" +
-                                $"X-Wing が成立するので、" +
+                                $"X-Wing ({houseName12}, {houseName34}, {houseName13}, {houseName24}) が成立するので、" +
                                 $"{houseName13}または{houseName24}にある {cell1PositionText},  {cell2PositionText},  {cell3PositionText},  {cell4PositionText} を除くすべてのマスの数字の候補から {digitText} を排除できます。\n" +
                                 $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスは数字 {digitText} ではあり得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
                                 $"1) {houseName13}または{houseName24}のどちらかに存在し、かつ\n" +

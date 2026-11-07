@@ -311,8 +311,6 @@ namespace Game.SudokuSolver.Operations.HardClass
                         allKeyCellBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         GetDescriptionBuilder(
                             digit,
-                            houseMask13,
-                            houseMask24,
                             houseName12,
                             houseName13,
                             houseName24,
@@ -346,8 +344,6 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 static Func<string> GetDescriptionBuilder(
                     SudokuBoardCellDigit digit,
-                    UInt128 houseMask13,
-                    UInt128 houseMask24,
                     string houseName12,
                     string houseName13,
                     string houseName24,
@@ -370,16 +366,22 @@ namespace Game.SudokuSolver.Operations.HardClass
                             var cell3PositionText = keyCellIndex3.ToFriendlyString();
                             var cell4PositionText = keyCellIndex4.ToFriendlyString();
                             return
-                                $"{houseName12}では数字 {digitText} の候補は {cell1PositionText} と {cell2PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。 - (1)\n" +
-                                $"{houseName34}では数字 {digitText} の候補は {cell3PositionText} と {cell4PositionText} のマスにしか存在しないので、数字 {digitText} は必ずどちらかのマスだけに入ります。 - (2)\n" +
-                                $"{cell1PositionText} と {cell3PositionText} のマスは同じ{houseName13}に存在するので、両方のマスに数字 {digitText} が入ることはあり得ません。 - (3)\n" +
-                                $"(1), (2), (3) から、{cell2PositionText} と {cell4PositionText} のマスは必ずどちらかだけが数字 {digitText} になります。 - (4)\n" +
-                                $"(2), (3), (4) から、{cell1PositionText} と {cell3PositionText} のマスも必ずどちらかだけが数字 {digitText} になります。 - (5)\n" +
-                                $"したがって、以下に述べるマスの数字は {digitText} にはなり得ませんので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                $"・(5) から、{cell1PositionText} と {cell3PositionText} を除く{(block1 == block3 ? $"{houseMask13}および{block1.ToHouseName()}" : houseName13)}の全てのマスは {digitText} になり得ない。\n" +
-                                $"・(4) から、{cell2PositionText} と {cell4PositionText} を除く{(block2 == block4 ? $"{houseMask24}および{block2.ToHouseName()}" : houseName24)}の全てのマスは {digitText} になり得ない。" +
-                                $"{(block1 == block2 ? $"\n・(1) から、{cell1PositionText} と {cell2PositionText} を除く{block1.ToHouseName()}の全てのマスは {digitText} になり得ない。" : "")}" +
-                                $"{(block3 == block4 ? $"\n・(2) から、{cell3PositionText} と {cell4PositionText} を除く{block3.ToHouseName()}の全てのマスは {digitText} になり得ない。" : "")}";
+                                $"{houseName12}と{houseName34}では、数字 {digitText} を候補として持つマスはそれぞれ 2 個しか存在せず、" +
+                                $"かつそれらのマスは {houseName13} と {houseName24} に収まっています。\n" +
+                                $"仮に「{houseName13}のマス {cell1PositionText}, {cell3PositionText} の何れにも {digitText} が入らない」と仮定します。\n" +
+                                $"{cell1PositionText}に {digitText} が入らないので、{houseName12}で {digitText} が入ることが出来るマスは{cell2PositionText}しかありません。\n" +
+                                $"同様に、" +
+                                $"{cell3PositionText}に {digitText} が入らないので、{houseName34}で {digitText} が入ることが出来るマスは{cell4PositionText}しかありません。\n" +
+                                $"すると、{houseName24}内の二つのマス {cell2PositionText}, {cell4PositionText} の両方に {digitText} が入ることになってしまうので、仮定が誤っていることになります。\n" +
+                                $"つまり、" +
+                                $"{cell1PositionText}, {cell3PositionText} の何れかには {digitText} が入ります。\n" +
+                                $"同様の論法で、" +
+                                $"{cell2PositionText}, {cell4PositionText} の何れかにも {digitText} が入ります。\n" +
+                                $"したがって、以下に述べるマスには {digitText} は入り得ませんので、それらのマスの数字の候補から {digitText} を排除します。\n" +
+                                $"・{cell1PositionText} と {cell3PositionText} を除く{(block1 == block3 ? $"{houseName13}および{block1.ToHouseName()}" : houseName13)}の全てのマス\n" +
+                                $"・{cell2PositionText} と {cell4PositionText} を除く{(block2 == block4 ? $"{houseName24}および{block2.ToHouseName()}" : houseName24)}の全てのマス" +
+                                $"{(block1 == block2 ? $"\n・{cell1PositionText} と {cell2PositionText} を除く{block1.ToHouseName()}の全てのマス" : "")}" +
+                                $"{(block3 == block4 ? $"\n・{cell3PositionText} と {cell4PositionText} を除く{block3.ToHouseName()}の全てのマス" : "")}";
                         };
                 }
             }

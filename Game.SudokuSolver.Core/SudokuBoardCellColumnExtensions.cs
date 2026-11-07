@@ -10,7 +10,7 @@ namespace Game.SudokuSolver
             [.. Enumerable.Range(1, 9).Select(n => $"{n}列目")];
 
         private readonly static string[] _houseNameTable =
-            [.. Enumerable.Range(0, 9).Select(n => (SudokuBoardCellBlock.MinValue + n).ToHouseNameCore())];
+            [.. Enumerable.Range(0, 9).Select(n => (SudokuBoardCellColumn.MinValue + n).ToHouseNameCore())];
 
         /// <summary>
         /// 与えられたセルの列を要素に持つビット集合を取得します。
@@ -72,7 +72,7 @@ namespace Game.SudokuSolver
             return _houseNameTable[column - SudokuBoardCellColumn.MinValue];
         }
 
-        private static string ToHouseNameCore(this SudokuBoardCellBlock block)
-            => $"{block.ToFriendlyString()}の列";
+        private static string ToHouseNameCore(this SudokuBoardCellColumn column)
+            => $"{column.ToFriendlyString()}の列";
     }
 }

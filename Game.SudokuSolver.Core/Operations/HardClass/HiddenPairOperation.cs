@@ -117,7 +117,11 @@ namespace Game.SudokuSolver.Operations.HardClass
                                                 keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
                                                     .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2)),
                                                 highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
-                                                GetDescriptionBuilder(houseName, keyCellIndex1, keyCellIndex2, keyCellDigitBitSet, excludedCellDigitBitSet));
+                                                GetDescriptionBuilder(
+                                                    houseName,
+                                                    keyCellIndex1,
+                                                    keyCellIndex2,
+                                                    keyCellDigitBitSet));
                                     }
                                 }
                             }
@@ -129,13 +133,11 @@ namespace Game.SudokuSolver.Operations.HardClass
                     string houseName,
                     SudokuBoardCellIndex keyCellIndex1,
                     SudokuBoardCellIndex keyCellIndex2,
-                    SudokuBoardCellDigitBitSet keyCellDigitBitSet,
-                    SudokuBoardCellDigitBitSet excludedCellDigitBitSet)
+                    SudokuBoardCellDigitBitSet keyCellDigitBitSet)
                 {
                     return
                         () =>
                         {
-                            var excludedDigitChars = string.Join(", ", excludedCellDigitBitSet.EnumerateAsCellDigitTexts());
                             var keyCellDigitCharsText = string.Join(", ", keyCellDigitBitSet.EnumerateAsCellDigitTexts());
                             var keyCellPositionsText =
                                 string.Join(
@@ -143,9 +145,9 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet())
                                         .EnumerateAsCellPositionTexts());
                             return
-                                $"{houseName}において、二つの数字 {keyCellDigitCharsText} を候補として含むマスは {keyCellPositionsText} の二つしかないので、" +
-                                $"これらのマスの数字は必ず {keyCellDigitCharsText} の何れかになります。\n" +
-                                $"したがって、二つのマス {keyCellPositionsText} の数字の候補からそれ以外の数字 {excludedDigitChars} を排除します。";
+                                $"{houseName}において、二つの数字 {keyCellDigitCharsText} の何れかを候補として含むマスは {keyCellPositionsText} の二つしかないので、" +
+                                $"これらのマスには必ず {keyCellDigitCharsText} の何れかが入り、他の数字は入り得ません。\n" +
+                                $"したがって、二つのマス {keyCellPositionsText} の数字の候補から {keyCellDigitCharsText} 以外の数字を排除します。";
                         };
                 }
             }
