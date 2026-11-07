@@ -240,7 +240,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
@@ -292,7 +292,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </returns>
         /// <remarks>
         /// <para>
-        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。
+        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 5 のスー・デ・コック法の適用を試みます。
         /// </para>
         /// <para>
         /// 以下にメソッド中で使用されている用語の説明を示します。
@@ -333,10 +333,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;
 
             // 数字が排他関係である可能性があるセルを抽出する
-            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);
+            var keyCellIIndexes = SearchKeyCells(ws, 5, bothHouseMask, keyCellIIndexesBuffer);
 
-            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
-            if (keyCellIIndexes.Length < 4)
+            // ハウス内の未確定かつ数字の候補が 5 個以下のセルが 5 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
+            if (keyCellIIndexes.Length < 5)
                 yield break;
 
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 4; ++keyIndex1)
@@ -498,14 +498,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、五つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                             $"{(
                                 bothWingKeyigitsText.Length > 0
-                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
-                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
+                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、五つの数字 ({allKeyDigitsText}) は重複せず五つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、五つの数字 ({allKeyDigitsText}) は重複せず五つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                             )}" +
                             $"したがって、" +
                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
@@ -550,7 +550,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </returns>
         /// <remarks>
         /// <para>
-        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。
+        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 6 のスー・デ・コック法の適用を試みます。
         /// </para>
         /// <para>
         /// 以下にメソッド中で使用されている用語の説明を示します。
@@ -591,10 +591,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;
 
             // 数字が排他関係である可能性があるセルを抽出する
-            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);
+            var keyCellIIndexes = SearchKeyCells(ws, 6, bothHouseMask, keyCellIIndexesBuffer);
 
-            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
-            if (keyCellIIndexes.Length < 4)
+            // ハウス内の未確定かつ数字の候補が 6 個以下のセルが 6 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
+            if (keyCellIIndexes.Length < 6)
                 yield break;
 
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 5; ++keyIndex1)
@@ -762,14 +762,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、六つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                             $"{(
                                 bothWingKeyigitsText.Length > 0
-                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
-                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
+                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、六つの数字 ({allKeyDigitsText}) は重複せず六つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、六つの数字 ({allKeyDigitsText}) は重複せず六つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                             )}" +
                             $"したがって、" +
                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
@@ -814,7 +814,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </returns>
         /// <remarks>
         /// <para>
-        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。
+        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 7 のスー・デ・コック法の適用を試みます。
         /// </para>
         /// <para>
         /// 以下にメソッド中で使用されている用語の説明を示します。
@@ -855,10 +855,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;
 
             // 数字が排他関係である可能性があるセルを抽出する
-            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);
+            var keyCellIIndexes = SearchKeyCells(ws, 7, bothHouseMask, keyCellIIndexesBuffer);
 
-            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
-            if (keyCellIIndexes.Length < 4)
+            // ハウス内の未確定かつ数字の候補が 7 個以下のセルが 7 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
+            if (keyCellIIndexes.Length < 7)
                 yield break;
 
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 6; ++keyIndex1)
@@ -1032,14 +1032,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、七つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                             $"{(
                                 bothWingKeyigitsText.Length > 0
-                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
-                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
+                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、七つの数字 ({allKeyDigitsText}) は重複せず七つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、七つの数字 ({allKeyDigitsText}) は重複せず七つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                             )}" +
                             $"したがって、" +
                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
@@ -1084,7 +1084,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </returns>
         /// <remarks>
         /// <para>
-        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。
+        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 8 のスー・デ・コック法の適用を試みます。
         /// </para>
         /// <para>
         /// 以下にメソッド中で使用されている用語の説明を示します。
@@ -1125,10 +1125,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;
 
             // 数字が排他関係である可能性があるセルを抽出する
-            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);
+            var keyCellIIndexes = SearchKeyCells(ws, 8, bothHouseMask, keyCellIIndexesBuffer);
 
-            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
-            if (keyCellIIndexes.Length < 4)
+            // ハウス内の未確定かつ数字の候補が 8 個以下のセルが 8 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
+            if (keyCellIIndexes.Length < 8)
                 yield break;
 
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 7; ++keyIndex1)
@@ -1308,14 +1308,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、八つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                             $"{(
                                 bothWingKeyigitsText.Length > 0
-                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
-                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
+                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、八つの数字 ({allKeyDigitsText}) は重複せず八つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、八つの数字 ({allKeyDigitsText}) は重複せず八つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                             )}" +
                             $"したがって、" +
                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +
@@ -1360,7 +1360,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// </returns>
         /// <remarks>
         /// <para>
-        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。
+        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 9 のスー・デ・コック法の適用を試みます。
         /// </para>
         /// <para>
         /// 以下にメソッド中で使用されている用語の説明を示します。
@@ -1401,10 +1401,10 @@ namespace Game.SudokuSolver.Operations.InsaneClass
             var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;
 
             // 数字が排他関係である可能性があるセルを抽出する
-            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);
+            var keyCellIIndexes = SearchKeyCells(ws, 9, bothHouseMask, keyCellIIndexesBuffer);
 
-            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
-            if (keyCellIIndexes.Length < 4)
+            // ハウス内の未確定かつ数字の候補が 9 個以下のセルが 9 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する
+            if (keyCellIIndexes.Length < 9)
                 yield break;
 
             for (var keyIndex1 = 0; keyIndex1 < keyCellIIndexes.Length - 8; ++keyIndex1)
@@ -1590,14 +1590,14 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                                 .OrderBy(digit => digit)
                                 .Select(digit => digit.ToCellDigitText()));
                         return
-                            $"{blockHouseName}と{lineHouseName}において、四つのマス ({keyCellPositionsText}) を選びます。\n" +
+                            $"{blockHouseName}と{lineHouseName}において、九つのマス ({keyCellPositionsText}) に注目します。\n" +
                             $"このうち、交差部 ({blockHouseName}と{lineHouseName}が重なっている部分) のマス ({intersectionKeyCellPositionsText}) の候補の数字は {intersectionKeyDigitsText} で、" +
                             $"ブロックウィング ({blockHouseName}のうち{lineHouseName}ではない部分) のマス ({blockWingKeyCellPositionsText}) の候補の数字は {blockWingKeyDigitsText}、" +
                             $"ラインウィング ({lineHouseName}のうち{blockHouseName}のマス ({lineWingKeyCellPositionsText}) の候補の数字は {lineWingKeyDigitsText} です。\n" +
                             $"{(
                                 bothWingKeyigitsText.Length > 0
-                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
-                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、四つの数字 ({allKeyDigitsText}) は重複せず四つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
+                                ? $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補 {bothWingKeyigitsText} が含まれていますが、これらの数字は交差部のマス {intersectionKeyCellPositionsText} の候補には含まれておらず、数字 {bothWingKeyigitsText} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、九つの数字 ({allKeyDigitsText}) は重複せず九つのマス ({keyCellPositionsText}) の何れかにしか入り得ないと言えます。\n"
+                                : $"ブロックウィングのマス {blockWingKeyCellPositionsText} とラインウィングのマス {lineWingKeyCellPositionsText} には同一の数字の候補が存在しないため、九つの数字 ({allKeyDigitsText}) は重複せず九つのマス ({keyCellPositionsText}) の何れかにしか入り得ません。\n"
                             )}" +
                             $"したがって、" +
                             $"ラインウィング内のマス {lineWingKeyCellPositionsText} にしか出現しない数字の候補を除いた数字 ({blockOnlyKeyDigitsText}) を {blockKeyCellPositionsText} を除くブロック内のマスの数字の候補から排除し、" +

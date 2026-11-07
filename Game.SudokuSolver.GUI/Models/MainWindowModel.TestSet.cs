@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_FinnedXWing2();
+            => CreateModelForTest_SueDeCoq5();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(

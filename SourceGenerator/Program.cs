@@ -683,7 +683,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"        /// </returns>");
                     sourceWriter.WriteLine($"        /// <remarks>");
                     sourceWriter.WriteLine($"        /// <para>");
-                    sourceWriter.WriteLine($"        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が 4 のスー・デ・コック法の適用を試みます。");
+                    sourceWriter.WriteLine($"        /// 指定されたブロックとそのブロックと交差する指定されたラインに対して、キーとなるセルと数字の数が {numberOfAlliance} のスー・デ・コック法の適用を試みます。");
                     sourceWriter.WriteLine($"        /// </para>");
                     sourceWriter.WriteLine($"        /// <para>");
                     sourceWriter.WriteLine($"        /// 以下にメソッド中で使用されている用語の説明を示します。");
@@ -724,10 +724,10 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;");
                     sourceWriter.WriteLine();
                     sourceWriter.WriteLine($"            // 数字が排他関係である可能性があるセルを抽出する");
-                    sourceWriter.WriteLine($"            var keyCellIIndexes = SearchKeyCells(ws, 4, bothHouseMask, keyCellIIndexesBuffer);");
+                    sourceWriter.WriteLine($"            var keyCellIIndexes = SearchKeyCells(ws, {numberOfAlliance}, bothHouseMask, keyCellIIndexesBuffer);");
                     sourceWriter.WriteLine();
-                    sourceWriter.WriteLine($"            // ハウス内の未確定かつ数字の候補が 4 個以下のセルが 4 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する");
-                    sourceWriter.WriteLine($"            if (keyCellIIndexes.Length < 4)");
+                    sourceWriter.WriteLine($"            // ハウス内の未確定かつ数字の候補が {numberOfAlliance} 個以下のセルが {numberOfAlliance} 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する");
+                    sourceWriter.WriteLine($"            if (keyCellIIndexes.Length < {numberOfAlliance})");
                     sourceWriter.WriteLine($"                yield break;");
                     sourceWriter.WriteLine();
 
@@ -886,14 +886,14 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"                                .OrderBy(digit => digit)");
                     sourceWriter.WriteLine($"                                .Select(digit => digit.ToCellDigitText()));");
                     sourceWriter.WriteLine($"                        return");
-                    sourceWriter.WriteLine($"                            $\"{{blockHouseName}}と{{lineHouseName}}において、四つのマス ({{keyCellPositionsText}}) を選びます。\\n\" +");
+                    sourceWriter.WriteLine($"                            $\"{{blockHouseName}}と{{lineHouseName}}において、{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) に注目します。\\n\" +");
                     sourceWriter.WriteLine($"                            $\"このうち、交差部 ({{blockHouseName}}と{{lineHouseName}}が重なっている部分) のマス ({{intersectionKeyCellPositionsText}}) の候補の数字は {{intersectionKeyDigitsText}} で、\" +");
                     sourceWriter.WriteLine($"                            $\"ブロックウィング ({{blockHouseName}}のうち{{lineHouseName}}ではない部分) のマス ({{blockWingKeyCellPositionsText}}) の候補の数字は {{blockWingKeyDigitsText}}、\" +");
                     sourceWriter.WriteLine($"                            $\"ラインウィング ({{lineHouseName}}のうち{{blockHouseName}}のマス ({{lineWingKeyCellPositionsText}}) の候補の数字は {{lineWingKeyDigitsText}} です。\\n\" +");
                     sourceWriter.WriteLine($"                            $\"{{(");
                     sourceWriter.WriteLine($"                                bothWingKeyigitsText.Length > 0");
-                    sourceWriter.WriteLine($"                                ? $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補 {{bothWingKeyigitsText}} が含まれていますが、これらの数字は交差部のマス {{intersectionKeyCellPositionsText}} の候補には含まれておらず、数字 {{bothWingKeyigitsText}} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、四つの数字 ({{allKeyDigitsText}}) は重複せず四つのマス ({{keyCellPositionsText}}) の何れかにしか入り得ないと言えます。\\n\"");
-                    sourceWriter.WriteLine($"                                : $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補が存在しないため、四つの数字 ({{allKeyDigitsText}}) は重複せず四つのマス ({{keyCellPositionsText}}) の何れかにしか入り得ません。\\n\"");
+                    sourceWriter.WriteLine($"                                ? $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補 {{bothWingKeyigitsText}} が含まれていますが、これらの数字は交差部のマス {{intersectionKeyCellPositionsText}} の候補には含まれておらず、数字 {{bothWingKeyigitsText}} がどこに入るかはブロックウィングのマスとライトウィングのマスの間で互いに干渉することはないので便宜上は別々の数字として扱うことが出来、{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) は重複せず{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) の何れかにしか入り得ないと言えます。\\n\"");
+                    sourceWriter.WriteLine($"                                : $\"ブロックウィングのマス {{blockWingKeyCellPositionsText}} とラインウィングのマス {{lineWingKeyCellPositionsText}} には同一の数字の候補が存在しないため、{nameOfPiecesNumber}の数字 ({{allKeyDigitsText}}) は重複せず{nameOfPiecesNumber}のマス ({{keyCellPositionsText}}) の何れかにしか入り得ません。\\n\"");
                     sourceWriter.WriteLine($"                            )}}\" +");
                     sourceWriter.WriteLine($"                            $\"したがって、\" +");
                     sourceWriter.WriteLine($"                            $\"ラインウィング内のマス {{lineWingKeyCellPositionsText}} にしか出現しない数字の候補を除いた数字 ({{blockOnlyKeyDigitsText}}) を {{blockKeyCellPositionsText}} を除くブロック内のマスの数字の候補から排除し、\" +");
