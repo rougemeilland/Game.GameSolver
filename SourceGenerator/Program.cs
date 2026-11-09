@@ -816,7 +816,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}        yield return");
                     sourceWriter.WriteLine($"            {indent}            new SueDeCoqOperation(");
                     sourceWriter.WriteLine($"            {indent}                excludedCellNotes,");
-                    sourceWriter.WriteLine($"            {indent}                intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4)");
+                    sourceWriter.WriteLine($"            {indent}                intersectionKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType2AndType3)");
                     sourceWriter.WriteLine($"            {indent}                    .Concat(blockWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))");
                     sourceWriter.WriteLine($"            {indent}                    .Concat(lineWingKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))");
                     sourceWriter.WriteLine($"            {indent}                    .Concat((bothHouseMask & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),");

@@ -303,6 +303,108 @@ namespace Game.SudokuSolver
         }
 
         /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、各セルが全て同じ列に存在するかどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// この値は 0 であってはなりません。
+        /// </param>
+        /// <returns>
+        /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じ列に存在する場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="true"/> を返します。
+        /// </returns>
+        public static bool ExistAllCellsInOneColumn(this UInt128 cellIndexBitSet)
+        {
+#if DEBUG
+            ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
+            if ((cellIndexBitSet & ~SudokuBoardCellGeometry.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+#endif
+
+            var cellIndex = cellIndexBitSet.GetOneCellIndex();
+            var column = SudokuBoardCellGeometry.GetColumn(cellIndex);
+            cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            while (cellIndexBitSet != 0)
+            {
+                cellIndex = cellIndexBitSet.GetOneCellIndex();
+                var otherCellColumn = SudokuBoardCellGeometry.GetColumn(cellIndex);
+                if (otherCellColumn != column)
+                    return false;
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、各セルが全て同じ行に存在するかどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// この値は 0 であってはなりません。
+        /// </param>
+        /// <returns>
+        /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じ行に存在する場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="true"/> を返します。
+        /// </returns>
+        public static bool ExistAllCellsInOneRow(this UInt128 cellIndexBitSet)
+        {
+#if DEBUG
+            ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
+            if ((cellIndexBitSet & ~SudokuBoardCellGeometry.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+#endif
+
+            var cellIndex = cellIndexBitSet.GetOneCellIndex();
+            var row = SudokuBoardCellGeometry.GetRow(cellIndex);
+            cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            while (cellIndexBitSet != 0)
+            {
+                cellIndex = cellIndexBitSet.GetOneCellIndex();
+                var otherCellRow = SudokuBoardCellGeometry.GetRow(cellIndex);
+                if (otherCellRow != row)
+                    return false;
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 指定された整数をセルの位置を示すビット集合とみなし、各セルが全て同じブロックに存在するかどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// この値は 0 であってはなりません。
+        /// </param>
+        /// <returns>
+        /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じブロックに存在する場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="true"/> を返します。
+        /// </returns>
+        public static bool ExistAllCellsInOneBlock(this UInt128 cellIndexBitSet)
+        {
+#if DEBUG
+            ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
+            if ((cellIndexBitSet & ~SudokuBoardCellGeometry.AllCellIndexBitSet) != 0)
+                throw new ArgumentOutOfRangeException(nameof(cellIndexBitSet));
+#endif
+
+            var cellIndex = cellIndexBitSet.GetOneCellIndex();
+            var block = SudokuBoardCellGeometry.GetBlock(cellIndex);
+            cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            while (cellIndexBitSet != 0)
+            {
+                cellIndex = cellIndexBitSet.GetOneCellIndex();
+                var otherCellBlock = SudokuBoardCellGeometry.GetBlock(cellIndex);
+                if (otherCellBlock != block)
+                    return false;
+                cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// 指定された整数をセルの位置を示すビット集合とみなし、セルの位置のシーケンスを取得します。
         /// </summary>
         /// <param name="cellIndexBitSet">

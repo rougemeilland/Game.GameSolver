@@ -31,7 +31,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             // 【論拠】
             // あるハウス H と ある三つの数字 D1, D2, D3 と H 内にある三つのセル C1, C2, C3 に対して、
             // C1, C2, C3 が数字の候補として D1, S2, D3 の何れかだけを持つ場合
-            // => C1, C2, C3 の数字はそれぞれ D1, D2, D3 の何れかであるので、C1, C2, C3 の全てが共有するハウス内の C1, C2, C3 以外のセルは D1, D2, D3 の何れでもあり得ない。
+            // => C1, C2, C3 の数字はそれぞれ D1, D2, D3 の何れかであるので、H 内の C1, C2, C3 以外のセルは D1, D2, D3 の何れでもあり得ない。
 
             var keyCellIIndexesBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
             try
@@ -130,13 +130,9 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
                                 // 三国同盟によって排除出来るセルの数字の候補を求める
                                 var keyCellIndexBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet();
-                                var excludedCellHouseMask =
-                                    SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex1)
-                                    & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex2)
-                                    & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex3);
-                                var excludedCellIndexBitSetA = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
-                                var excludedCellIndexBitSetB = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
-                                var excludedCellIndexBitSetC = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
+                                var excludedCellIndexBitSetA = houseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
+                                var excludedCellIndexBitSetB = houseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
+                                var excludedCellIndexBitSetC = houseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
 
                                 var excludedCellIndexBitSet = excludedCellIndexBitSetA | excludedCellIndexBitSetB | excludedCellIndexBitSetC;
                                 if (excludedCellIndexBitSet != 0)
@@ -168,7 +164,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                         new NakedTripleOperation(
                                             excludedCellNotes,
                                             keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                                .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                                .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                             highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                             GetDescriptionBuilder(
                                                 houseName,
@@ -201,7 +197,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             return
                                 $"{houseName}において、{keyCellPositionsText} の三つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
                                 $"これら三つの数字はこれら三つのマスの何れかにしか入り得ません。、\n" +
-                                $"したがって、{keyCellPositionsText} の三つのマスを共に含むハウスの他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
                                 $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
                         };
                 }

@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_SueDeCoq5();
+            => CreateModelForTest_SueDeCoq1();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -651,7 +651,6 @@ namespace Game.SudokuSolver.GUI.Models
 
         #region Swordfish
 
-        // 想定とは別の行・列のソードフィッシュが動いてしまっているが、消せるマスの数が多い方を優先するという仕様上致し方なし。
         private static SudokuGameBoard CreateModelForTest_Swordfish1()
             => new(
                 CreateBoardDigits(
@@ -773,6 +772,38 @@ namespace Game.SudokuSolver.GUI.Models
                     "000040020" +
                     "050902704"),
                  SudokuBoardOperationType.FinnedXWing);
+
+        #endregion
+
+        #region Sashimi X-Wing
+
+        private static SudokuGameBoard CreateModelForTest_SashimiXWing1()
+            => new(
+                CreateBoardDigits(
+                    "000302061" +
+                    "030160200" +
+                    "162007305" +
+                    "000031500" +
+                    "200000010" +
+                    "018529600" +
+                    "601003090" +
+                    "004006100" +
+                    "000210706"),
+                 SudokuBoardOperationType.SashimiXWing);
+
+        private static SudokuGameBoard CreateModelForTest_SashimiXWing2()
+            => new(
+                CreateBoardDigits(
+                    "400085009" +
+                    "090004050" +
+                    "215739648" +
+                    "079040080" +
+                    "150007490" +
+                    "040090007" +
+                    "720458901" +
+                    "904010875" +
+                    "581970204"),
+                 SudokuBoardOperationType.SashimiXWing);
 
         #endregion
 

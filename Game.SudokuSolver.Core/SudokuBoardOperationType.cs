@@ -103,6 +103,11 @@
         /// </summary>
         FinnedXWing,
 
+        /// <summary>
+        /// Sashimi X-Wing
+        /// </summary>
+        SashimiXWing,
+
         #endregion
 
         #region InsaneClass

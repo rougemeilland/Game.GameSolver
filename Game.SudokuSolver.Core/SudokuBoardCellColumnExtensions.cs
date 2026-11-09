@@ -73,6 +73,6 @@ namespace Game.SudokuSolver
         }
 
         private static string ToHouseNameCore(this SudokuBoardCellColumn column)
-            => $"{column.ToFriendlyString()}の列";
+            => column.ToFriendlyString();
     }
 }

@@ -31,7 +31,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
             // 【論拠】
             // あるハウス H と ある二つの数字 D1, D2 と H 内にある二つのセル C1, C2 に対して、
             // C1, C2 が数字の候補として D1, S2 の何れかだけを持つ場合
-            // => C1, C2 の数字はそれぞれ D1, D2 の何れかであるので、C1, C2 の全てが共有するハウス内の C1, C2 以外のセルは D1, D2 の何れでもあり得ない。
+            // => C1, C2 の数字はそれぞれ D1, D2 の何れかであるので、H 内の C1, C2 以外のセルは D1, D2 の何れでもあり得ない。
 
             var keyCellIIndexesBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
             try
@@ -126,11 +126,8 @@ namespace Game.SudokuSolver.Operations.MediumClass
 
                             // 二国同盟によって排除可能なセルの数字の候補を求める
                             var keyCellIndexBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet();
-                            var excludedCellHouseMask =
-                                SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex1)
-                                & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex2);
-                            var excludedCellNoteBitSetA = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
-                            var excludedCellNoteBitSetB = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
+                            var excludedCellNoteBitSetA = houseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
+                            var excludedCellNoteBitSetB = houseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
 
                             var excludedCellNoteBitSet = excludedCellNoteBitSetA | excludedCellNoteBitSetB;
                             if (excludedCellNoteBitSet != 0)
@@ -159,7 +156,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                                     new NakedPairOperation(
                                         excludedCellNotes,
                                         keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                            .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                            .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                         highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                         GetDescriptionBuilder(
                                             houseName,
@@ -189,7 +186,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                             return
                                 $"{houseName}において、{keyCellPositionsText} の二つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
                                 $"これら二つの数字はこれら二つのマスの何れかにしか入り得ません。、\n" +
-                                $"したがって、{keyCellPositionsText} の二つのマスを共に含むハウスの他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
+                                $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
                                 $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
                         };
                 }

@@ -32,7 +32,6 @@ namespace Game.SudokuSolver.Operations.HardClass
             // あるハウス H と ある四つの数字 D1, D2, D3, D4 と H 内にある四つのセル C1, C2, C3, C4 に対して、
             // C1, C2, C3, C4 が数字の候補として D1, S2, D3, D4 の何れかだけを持つ場合
             // => C1, C2, C3, C4 の数字はそれぞれ D1, D2, D3, D4 の何れかであるので、H 内の C1, C2, C3, C4 以外のセルは D1, D2, D3, D4 の何れでもあり得ない。
-            // => C1, C2, C3, C4 の数字はそれぞれ D1, D2, D3, D4 の何れかであるので、C1, C2, C3, C4 の全てが共有するハウス (つまりハウス H) 内の C1, C2, C3, C4 以外のセルは D1, D2, D3, D4 の何れでもあり得ない。
 
             var keyCellIIndexesBuffer = ArrayPool<SudokuBoardCellIndex>.Shared.Rent(9);
             try
@@ -135,18 +134,10 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                                     // 四国同盟によって排除されるセルの数字の候補を求める
                                     var keyCellIndexBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
-                                    var excludedCellHouseMask =
-                                        SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex1)
-                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex2)
-                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex3)
-                                        & SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex4);
-#if DEBUG
-                                    System.Diagnostics.Debug.Assert(excludedCellHouseMask == houseMask, "四国同盟を構成する四つのセルが共有できるハウスは元々のハウスしかない");
-#endif
-                                    var excludedCellIndexBitSetA = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetB = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetC = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
-                                    var excludedCellIndexBitSetD = excludedCellHouseMask & ws.GetCellIndexBitSet(keyCellDigitD) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetA = houseMask & ws.GetCellIndexBitSet(keyCellDigitA) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetB = houseMask & ws.GetCellIndexBitSet(keyCellDigitB) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetC = houseMask & ws.GetCellIndexBitSet(keyCellDigitC) & ~keyCellIndexBitSet;
+                                    var excludedCellIndexBitSetD = houseMask & ws.GetCellIndexBitSet(keyCellDigitD) & ~keyCellIndexBitSet;
 
                                     var excludedCellNoteBitSet = excludedCellIndexBitSetA | excludedCellIndexBitSetB | excludedCellIndexBitSetC | excludedCellIndexBitSetD;
                                     if (excludedCellNoteBitSet != 0)
@@ -181,7 +172,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                             new NakedQuadOperation(
                                                 excludedCellNotes,
                                                 keyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PrimaryPositivelyHighlighted)
-                                                    .Concat((excludedCellHouseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                                                    .Concat((houseMask & ~keyCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                                                 highlightedCellNotes.ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                                                 GetDescriptionBuilder(houseName, keyCellDigitA, keyCellDigitB, keyCellDigitC, keyCellDigitD, keyCellIndexBitSet));
                                     }
@@ -211,7 +202,6 @@ namespace Game.SudokuSolver.Operations.HardClass
                             return
                                 $"{houseName}において、{keyCellPositionsText} の四つのマスの数字の候補は {keyCellDigitCharsText} の何れかのみであり、" +
                                 $"これら四つの数字はこれら四つのマスの何れかにしか入り得ません。、\n" +
-                                // 二国同盟や三国同盟と異なり、四個のマスが全て共有するハウスは一種類しかありえないので、排除対象のハウスは houseName のみと限定してよい。
                                 $"したがって、{houseName}の他のマスは数字 {keyCellDigitCharsText} の何れでもあり得ないので、" +
                                 $"それらのマスの数字の候補から {keyCellDigitCharsText} を排除します。";
                         };

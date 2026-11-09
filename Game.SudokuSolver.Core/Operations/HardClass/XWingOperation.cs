@@ -40,18 +40,12 @@ namespace Game.SudokuSolver.Operations.HardClass
             // 8) C2 と C3 が共通に属するハウスは存在しない (注2) 場合。
             // => C1, C2 の数字は何れかだけが必ず D であり、C3, C4 の数字も何れかだけが必ず D である。
             //    そして、C1, C3 は同時には D になり得ないので、C2, C4 の何れかだけが必ず D となる。そのため、C1, C3 も何れかだけが D となる。
-            //    したがって、数字の候補を排除できる。
-            //    a) C1, C2 と同じハウスのセル (注3) に数字の候補 D
-            //    b) C1, C3 と同じハウスのセル (注4) に数字の候補 D
-            //    c) C2, C4 と同じハウスのセル (注5) に数字の候補 D
-            //    d) C3, C4 と同じハウスのセル (注6) に数字の候補 D
+            //    したがって、以下のセルの数字の候補から D を排除できる。
+            //    a) C1, C3 と同じ列の C1, C3 以外のセル
+            //    b) C2, C4 と同じ列の C2, C4 以外のセル
             // 
             // 注1) C1 と C4 は異なる行かつ異なる列にあるため共通に属するハウスがあるとすればブロックハウスしかない。したがって「C1 と C4 は異なるブロックに存在する」と言い換えることもできる。
             // 注2) C2 と C3 は異なる行かつ異なる列にあるため共通に属するハウスがあるとすればブロックハウスしかない。したがって「C2 と C3 は異なるブロックに存在する」と言い換えることもできる。
-            // 注3) C1 と C2 は同じ行にあり、かつその行に数字 D を持つセルは他に存在しないため、「C1 と C2 の共通のブロックに存在するセル」と言い換えることもできる。ただし、C1 と C2 が必ずしも同じブロックにあるわけではないことに注意すること。
-            // 注4) C1 と C3 は同じ列にあるため、「C1 と C3 と共通の行またはブロックに存在するセル」と言い換えることもできる。ただし、C1 と C3 が必ずしも同じブロックにあるわけではないことに注意すること。
-            // 注5) C2 と C4 は同じ列にあるため、「C2 と C4 と共通の行またはブロックに存在するセル」と言い換えることもできる。ただし、C2 と C4 が必ずしも同じブロックにあるわけではないことに注意すること。
-            // 注6) C3 と C4 は同じ行にあり、かつその行に数字 D を持つセルは他に存在しないため、「C3 と C4 の共通のブロックに存在するセル」と言い換えることもできる。ただし、C3 と C4 が必ずしも同じブロックにあるわけではないことに注意すること。
             //
             // ※上記の論拠は、行と列を言い換えても成立する。
 
@@ -135,13 +129,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     digit,
                                     allCellIndexBitSet,
                                     rowHouse12,
+                                    rowHouse34,
                                     SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column13),
                                     SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column24),
-                                    rowHouse34,
                                     row12.ToHouseName(),
+                                    row34.ToHouseName(),
                                     column13.ToHouseName(),
                                     column24.ToHouseName(),
-                                    row34.ToHouseName(),
                                     keyCellIndex1,
                                     keyCellIndex2,
                                     keyCellIndex3,
@@ -199,13 +193,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                                     digit,
                                     allCellIndexBitSet,
                                     columnHouse12,
+                                    columnHouse34,
                                     SudokuBoardCellGeometry.GetRowCellIndexBitSet(row13),
                                     SudokuBoardCellGeometry.GetRowCellIndexBitSet(row24),
-                                    columnHouse34,
                                     column12.ToHouseName(),
+                                    column34.ToHouseName(),
                                     row13.ToHouseName(),
                                     row24.ToHouseName(),
-                                    column34.ToHouseName(),
                                     keyCellIndex1,
                                     keyCellIndex2,
                                     keyCellIndex3,
@@ -265,37 +259,24 @@ namespace Game.SudokuSolver.Operations.HardClass
             static XWingOperation? MatchPatternByHouse(
                 SudokuBoardCellDigit digit,
                 UInt128 allCellIndexBitSet,
-                UInt128 houseMask12,
-                UInt128 houseMask13,
-                UInt128 houseMask24,
-                UInt128 houseMask34,
-                string houseName12,
-                string houseName13,
-                string houseName24,
-                string houseName34,
+                UInt128 baseLineHouseMask12,
+                UInt128 baseLineHouseMask34,
+                UInt128 coverLineHouseMask13,
+                UInt128 coverLineHouseMask24,
+                string baseLineHouseName12,
+                string baseLineHouseName34,
+                string coverLineHouseName13,
+                string coverLineHouseName24,
                 SudokuBoardCellIndex keyCellIndex1,
                 SudokuBoardCellIndex keyCellIndex2,
                 SudokuBoardCellIndex keyCellIndex3,
                 SudokuBoardCellIndex keyCellIndex4)
             {
                 var allKeyCellBitSet = keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet();
-
-                var (_, _, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex1);
-                var (_, _, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex2);
-                var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
+                var excludableCellsRegionBitMask = (coverLineHouseMask13 | coverLineHouseMask24) & ~(baseLineHouseMask12 | baseLineHouseMask34);
 #if DEBUG
-#pragma warning disable IDE0047 // 不要なかっこの削除
-                System.Diagnostics.Debug.Assert(block1 != block4);
-                System.Diagnostics.Debug.Assert(block2 != block3);
-                System.Diagnostics.Debug.Assert((block1 == block2) == (block3 == block4));
-                System.Diagnostics.Debug.Assert((block1 == block3) == (block2 == block4));
-#pragma warning restore IDE0047 // 不要なかっこの削除
+                System.Diagnostics.Debug.Assert((excludableCellsRegionBitMask & ~allKeyCellBitSet) == excludableCellsRegionBitMask, $"{nameof(excludableCellsRegionBitMask)} から {nameof(allKeyCellBitSet)} を除去する必要はない。");
 #endif
-                var excludableCellsRegionBitMask =
-                    GetExcludableCellsRegionBitMask(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, allKeyCellBitSet)
-                    & ~houseMask12
-                    & ~houseMask34;
                 var excludedCellsBitSet = allCellIndexBitSet & excludableCellsRegionBitMask;
                 if (excludedCellsBitSet == 0)
                     return null;
@@ -306,56 +287,30 @@ namespace Game.SudokuSolver.Operations.HardClass
                     new XWingOperation(
                         excludedCellsBitSet.EnumerateAsCellNotes(digit),
                         allKeyCellBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                            .Concat(((houseMask12 | houseMask34) & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat(((baseLineHouseMask12 | baseLineHouseMask34) & ~allKeyCellBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
                             .Concat(excludableCellsRegionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         GetDescriptionBuilder(
                             digit,
-                            houseName12,
-                            houseName13,
-                            houseName24,
-                            houseName34,
+                            baseLineHouseName12,
+                            baseLineHouseName34,
+                            coverLineHouseName13,
+                            coverLineHouseName24,
                             keyCellIndex1,
                             keyCellIndex2,
                             keyCellIndex3,
-                            keyCellIndex4,
-                            block1,
-                            block2,
-                            block3,
-                            block4));
-
-                static UInt128 GetExcludableCellsRegionBitMask(
-                    SudokuBoardCellIndex keyCellIndex1,
-                    SudokuBoardCellIndex keyCellIndex2,
-                    SudokuBoardCellIndex keyCellIndex3,
-                    SudokuBoardCellIndex keyCellIndex4,
-                    UInt128 allKeyCellBitSet)
-                {
-                    var visibleRegionFromCellIndex1 = SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex1);
-                    var visibleRegionFromCellIndex2 = SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex2);
-                    var visibleRegionFromCellIndex3 = SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex3);
-                    var visibleRegionFromCellIndex4 = SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(keyCellIndex4);
-                    var edcludableCellsRegionBitMask12 = visibleRegionFromCellIndex1 & visibleRegionFromCellIndex2;
-                    var edcludableCellsRegionBitMask13 = visibleRegionFromCellIndex1 & visibleRegionFromCellIndex3;
-                    var edcludableCellsRegionBitMask24 = visibleRegionFromCellIndex2 & visibleRegionFromCellIndex4;
-                    var edcludableCellsRegionBitMask34 = visibleRegionFromCellIndex3 & visibleRegionFromCellIndex4;
-                    return (edcludableCellsRegionBitMask12 | edcludableCellsRegionBitMask13 | edcludableCellsRegionBitMask24 | edcludableCellsRegionBitMask34) & ~allKeyCellBitSet;
-                }
+                            keyCellIndex4));
 
                 static Func<string> GetDescriptionBuilder(
                     SudokuBoardCellDigit digit,
-                    string houseName12,
-                    string houseName13,
-                    string houseName24,
-                    string houseName34,
+                    string baseLineHouseName12,
+                    string baseLineHouseName34,
+                    string coverLineHouseName13,
+                    string coverLineHouseName24,
                     SudokuBoardCellIndex keyCellIndex1,
                     SudokuBoardCellIndex keyCellIndex2,
                     SudokuBoardCellIndex keyCellIndex3,
-                    SudokuBoardCellIndex keyCellIndex4,
-                    SudokuBoardCellBlock block1,
-                    SudokuBoardCellBlock block2,
-                    SudokuBoardCellBlock block3,
-                    SudokuBoardCellBlock block4)
+                    SudokuBoardCellIndex keyCellIndex4)
                 {
                     return
                         () =>
@@ -366,22 +321,20 @@ namespace Game.SudokuSolver.Operations.HardClass
                             var cell3PositionText = keyCellIndex3.ToFriendlyString();
                             var cell4PositionText = keyCellIndex4.ToFriendlyString();
                             return
-                                $"{houseName12}と{houseName34}では、数字 {digitText} を候補として持つマスはそれぞれ 2 個しか存在せず、" +
-                                $"かつそれらのマスは {houseName13} と {houseName24} に収まっています。\n" +
-                                $"仮に「{houseName13}のマス {cell1PositionText}, {cell3PositionText} の何れにも {digitText} が入らない」と仮定します。\n" +
-                                $"{cell1PositionText}に {digitText} が入らないので、{houseName12}で {digitText} が入ることが出来るマスは{cell2PositionText}しかありません。\n" +
+                                $"{baseLineHouseName12}と{baseLineHouseName34}では、数字 {digitText} を候補として持つマスはそれぞれ 2 個しか存在せず、" +
+                                $"かつそれらのマスは {coverLineHouseName13} と {coverLineHouseName24} に収まっています。\n" +
+                                $"仮に「{coverLineHouseName13}のマス {cell1PositionText}, {cell3PositionText} の何れにも {digitText} が入らない」と仮定します。\n" +
+                                $"{cell1PositionText}に {digitText} が入らないので、{baseLineHouseName12}で {digitText} が入ることが出来るマスは{cell2PositionText}しかありません。\n" +
                                 $"同様に、" +
-                                $"{cell3PositionText}に {digitText} が入らないので、{houseName34}で {digitText} が入ることが出来るマスは{cell4PositionText}しかありません。\n" +
-                                $"すると、{houseName24}内の二つのマス {cell2PositionText}, {cell4PositionText} の両方に {digitText} が入ることになってしまうので、仮定が誤っていることになります。\n" +
+                                $"{cell3PositionText}に {digitText} が入らないので、{baseLineHouseName34}で {digitText} が入ることが出来るマスは{cell4PositionText}しかありません。\n" +
+                                $"すると、{coverLineHouseName24}内の二つのマス {cell2PositionText}, {cell4PositionText} の両方に {digitText} が入ることになってしまうので、仮定が誤っていることになります。\n" +
                                 $"つまり、" +
                                 $"{cell1PositionText}, {cell3PositionText} の何れかには {digitText} が入ります。\n" +
                                 $"同様の論法で、" +
                                 $"{cell2PositionText}, {cell4PositionText} の何れかにも {digitText} が入ります。\n" +
                                 $"したがって、以下に述べるマスには {digitText} は入り得ませんので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                $"・{cell1PositionText} と {cell3PositionText} を除く{(block1 == block3 ? $"{houseName13}および{block1.ToHouseName()}" : houseName13)}の全てのマス\n" +
-                                $"・{cell2PositionText} と {cell4PositionText} を除く{(block2 == block4 ? $"{houseName24}および{block2.ToHouseName()}" : houseName24)}の全てのマス" +
-                                $"{(block1 == block2 ? $"\n・{cell1PositionText} と {cell2PositionText} を除く{block1.ToHouseName()}の全てのマス" : "")}" +
-                                $"{(block3 == block4 ? $"\n・{cell3PositionText} と {cell4PositionText} を除く{block3.ToHouseName()}の全てのマス" : "")}";
+                                $"・{cell1PositionText} と {cell3PositionText} を除く{coverLineHouseName13}の全てのマス\n" +
+                                $"・{cell2PositionText} と {cell4PositionText} を除く{coverLineHouseName24}の全てのマス";
                         };
                 }
             }

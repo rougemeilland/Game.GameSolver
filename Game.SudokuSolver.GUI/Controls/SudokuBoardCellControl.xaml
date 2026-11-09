@@ -16,23 +16,50 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Panel.ZIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="AnimationBackground" x:FieldModifier="private">
+        <Grid Panel.ZIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="PanelOfBlinkingBetweenType1AndType2" x:FieldModifier="private">
             <Grid.Background>
-                <SolidColorBrush x:Name="GridBackgroundColor" Color="Cyan"/>
+                <SolidColorBrush x:Name="GridBackgroundColorForBlinkingType1AndType2" Color="Lime"/>
             </Grid.Background>
             <Grid.Triggers>
                 <EventTrigger RoutedEvent="Loaded">
                     <BeginStoryboard>
                         <Storyboard RepeatBehavior="Forever">
                             <ColorAnimation 
-                                Storyboard.TargetName="GridBackgroundColor"
+                                Storyboard.TargetName="GridBackgroundColorForBlinkingType1AndType2"
+                                Storyboard.TargetProperty="Color"
+                                From="Lime" 
+                                To="GreenYellow" 
+                                BeginTime="0:0:0.8"
+                                Duration="0:0:0.2"/>
+                            <ColorAnimation 
+                                Storyboard.TargetName="GridBackgroundColorForBlinkingType1AndType2"
+                                Storyboard.TargetProperty="Color"
+                                From="GreenYellow" 
+                                To="Lime" 
+                                BeginTime="0:0:1.8"
+                                Duration="0:0:0.2"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+        </Grid>
+        <Grid Panel.ZIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="PanelOfBlinkingBetweenType2AndType3" x:FieldModifier="private">
+            <Grid.Background>
+                <SolidColorBrush x:Name="GridBackgroundColorForBlinkingType2AndType3" Color="Cyan"/>
+            </Grid.Background>
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <ColorAnimation 
+                                Storyboard.TargetName="GridBackgroundColorForBlinkingType2AndType3"
                                 Storyboard.TargetProperty="Color"
                                 From="Cyan" 
                                 To="GreenYellow" 
                                 BeginTime="0:0:0.8"
                                 Duration="0:0:0.2"/>
                             <ColorAnimation 
-                                Storyboard.TargetName="GridBackgroundColor"
+                                Storyboard.TargetName="GridBackgroundColorForBlinkingType2AndType3"
                                 Storyboard.TargetProperty="Color"
                                 From="GreenYellow" 
                                 To="Cyan" 

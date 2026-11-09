@@ -14,12 +14,14 @@
         Normal = 0,
 
         /// <summary>
-        /// 肯定的に強調されている背景効果です。(タイプ4)
+        /// 肯定的に強調されている背景効果です。(タイプ2とタイプ3の点滅)
         /// </summary>
-        /// <remarks>
-        /// <see cref="PositivelyHighlightedType2"/> の効果と <see cref="PositivelyHighlightedType3"/> の効果をアニメーションで繰り返すような効果を推奨します。
-        /// </remarks>
-        PositivelyHighlightedType4,
+        PositivelyHighlightedBlinkingType2AndType3,
+
+        /// <summary>
+        /// 肯定的に強調されている背景効果です。(タイプ1とタイプ2の点滅)
+        /// </summary>
+        PositivelyHighlightedBlinkingType1AndType2,
 
         /// <summary>
         /// 肯定的に強調されている背景効果です。(タイプ3)

@@ -35,8 +35,8 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             // ある数字 D について、
             // 1) ある行 ROW12 にセル C1, C2 が存在し、かつ
             // 2) ROW12 では C1, C2 以外には数字の候補 D を持つセルは存在せず、かつ
-            // 3) ROW12 とは別の行 ROW34 にセル C3, C4 が存在し、かつ
-            // 4) ROW34 において C3, C4 を除く数字の候補 D を持つ全てのセルの集合 (フィン) を CF とし、かつ,
+            // 3) ROW12 とは別の行 ROW34F にセル C3, C4 が存在し、かつ
+            // 4) ROW34F において C3, C4 を除く数字の候補 D を持つ全てのセルの集合 (フィン) を CF とし、かつ,
             // 5) CF の大きさは 1 以上 2 であり、かつ
             // 6) C1, C3 は同じ列 COL13 に存在し、かつ
             // 7) C2, C4 は同じ列 COL24 に存在し、かつ
@@ -118,18 +118,18 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var columnHouseMask13 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column1);
                         var columnHouseMask24 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column2);
 
-                        for (var keyIndex34 = 0; keyIndex34 < keyRows.Length; ++keyIndex34)
+                        for (var keyIndex34F = 0; keyIndex34F < keyRows.Length; ++keyIndex34F)
                         {
-                            if (keyRows.Span[keyIndex34].cellCount is 3 or 4)
+                            if (keyRows.Span[keyIndex34F].cellCount is 3 or 4)
                             {
-                                var row34 = keyRows.Span[keyIndex34].row;
-                                var rowHouseMask34 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34);
-                                var keyCellIndexBitSet34F = allCellIndexBitSet & rowHouseMask34;
+                                var row34F = keyRows.Span[keyIndex34F].row;
+                                var rowHouseMask34F = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34F);
+                                var keyCellIndexBitSet34F = allCellIndexBitSet & rowHouseMask34F;
 #if DEBUG
                                 System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is 3 or 4);
 #endif
 
-                                // row12 とば別の行 row34 に数字の候補 digit を持つセルは 3 個または 4 個存在する。
+                                // row12 とば別の行 row34F に数字の候補 digit を持つセルは 3 個または 4 個存在する。
 
                                 var keyCellIndex3BitSet = keyCellIndexBitSet34F & columnHouseMask13;
                                 var keyCellIndex4BitSet = keyCellIndexBitSet34F & columnHouseMask24;
@@ -147,21 +147,25 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 #endif
                                     var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
 
-                                    // row34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
+                                    // row34F に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndexBitSet のみであり、
                                     // そのうち keyCellIndex3 と keyCellIndex1 は同じ列であり、keyCellIndex4 と keyCellIndex2 は同じ列である。
 
                                     var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
                                     var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                                    if (block1 != block4 && block2 != block3)
+                                    if (block1 != block4 && block2 != block3 && finCellIndexBitSet.ExistAllCellsInOneBlock())
                                     {
                                         // 1) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
                                         // 2) keyCellIndex2 のセルの列と keyCellIndex4 のセルの列は等しく、かつ
                                         // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
                                         // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                        // 5) finCellIndex のセルの行は keyCellIndex3 および keyCellIndex4 のセルの行と等しい。
+                                        // 5) finCellIndexBitSet の要素の全てのセルの行は keyCellIndex3 および keyCellIndex4 のセルの行と等しく、かつ
+                                        // 6) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
                                         // => フィン付き X-Wing が成立している)。
                                         //   ※ finCellIndexBitSet の各セルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
                                         //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
+
+                                        // finCellsBlock が全て同一ブロックに属していることが判明しているので、finCellsBlock から適当な要素を一つ取り出してブロックを求める。
+                                        var finCellsBlock = SudokuBoardCellGeometry.GetBlock(finCellIndexBitSet.GetOneCellIndex());
                                         var operation =
                                             MatchPatternByHouse(
                                                 digit,
@@ -170,16 +174,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 rowHouseMask12,
                                                 columnHouseMask13,
                                                 columnHouseMask24,
-                                                rowHouseMask34,
+                                                rowHouseMask34F,
                                                 keyCellIndex1,
                                                 keyCellIndex2,
                                                 keyCellIndex3,
                                                 keyCellIndex4,
                                                 finCellIndexBitSet,
+                                                finCellsBlock,
                                                 row12.ToHouseName(),
                                                 column1.ToHouseName(),
                                                 column2.ToHouseName(),
-                                                row34.ToHouseName());
+                                                row34F.ToHouseName());
                                         if (operation is not null)
                                             yield return operation;
                                     }
@@ -217,18 +222,18 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var rowHouseMask13 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row1);
                         var rowHouseMask24 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row2);
 
-                        for (var keyIndex34 = 0; keyIndex34 < keyColumns.Length; ++keyIndex34)
+                        for (var keyIndex34F = 0; keyIndex34F < keyColumns.Length; ++keyIndex34F)
                         {
-                            if (keyColumns.Span[keyIndex34].cellCount is 3 or 4)
+                            if (keyColumns.Span[keyIndex34F].cellCount is 3 or 4)
                             {
-                                var column34 = keyColumns.Span[keyIndex34].column;
-                                var _columnHouseMask34 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34);
-                                var keyCellIndexBitSet34F = allCellIndexBitSet & _columnHouseMask34;
+                                var column34F = keyColumns.Span[keyIndex34F].column;
+                                var columnHouseMask34F = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34F);
+                                var keyCellIndexBitSet34F = allCellIndexBitSet & columnHouseMask34F;
 #if DEBUG
                                 System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is 3 or 4);
 #endif
 
-                                // column12 とば別の列 column34 に数字の候補 digit を持つセルは 3 個存在する。
+                                // column12 とば別の列 column34F に数字の候補 digit を持つセルは 3 個存在する。
                                 var keyCellIndex3BitSet = keyCellIndexBitSet34F & rowHouseMask13;
                                 var keyCellIndex4BitSet = keyCellIndexBitSet34F & rowHouseMask24;
 #if DEBUG
@@ -245,21 +250,25 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 #endif
                                     var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
 
-                                    // column34 に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
+                                    // column34F に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndexBitSet のみであり、
                                     // そのうち keyCellIndex3 と keyCellIndex1 は同じ行であり、keyCellIndex4 と keyCellIndex2 は同じ行である。
 
                                     var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
                                     var (_, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                                    if (block1 != block4 && block2 != block3)
+                                    if (block1 != block4 && block2 != block3 && finCellIndexBitSet.ExistAllCellsInOneBlock())
                                     {
                                         // 1) keyCellIndex1 のセルの行と keyCellIndex3 のセルの行は等しく、かつ
                                         // 2) keyCellIndex2 のセルの行と keyCellIndex4 のセルの行は等しく、かつ
                                         // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
                                         // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                        // 5) finCellIndex のセルの列は keyCellIndex3 および keyCellIndex4 のセルの列と等しい。
+                                        // 5) finCellIndexBitSet の要素の全てのセルの列は keyCellIndex3 および keyCellIndex4 のセルの列と等しく、かつ
+                                        // 6) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
                                         // => フィン付き X-Wing が成立している)。
                                         //   ※ finCellIndexBitSet の各セルのブロックが keyCellIndex3 あるいは keyCellIndex4 のセルのブロックと等しいかどうかについては
                                         //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
+
+                                        // finCellsBlock が全て同一ブロックに属していることが判明しているので、finCellsBlock から適当な要素を一つ取り出してブロックを求める。
+                                        var finCellsBlock = SudokuBoardCellGeometry.GetBlock(finCellIndexBitSet.GetOneCellIndex());
                                         var operation =
                                             MatchPatternByHouse(
                                                 digit,
@@ -268,16 +277,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 columnHouseMask12,
                                                 rowHouseMask13,
                                                 rowHouseMask24,
-                                                _columnHouseMask34,
+                                                columnHouseMask34F,
                                                 keyCellIndex1,
                                                 keyCellIndex2,
                                                 keyCellIndex3,
                                                 keyCellIndex4,
                                                 finCellIndexBitSet,
+                                                finCellsBlock,
                                                 column12.ToHouseName(),
                                                 row1.ToHouseName(),
                                                 row2.ToHouseName(),
-                                                column34.ToHouseName());
+                                                column34F.ToHouseName());
                                         if (operation is not null)
                                             yield return operation;
                                     }
@@ -295,41 +305,46 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 UInt128 houseMask12,
                 UInt128 houseMask13,
                 UInt128 houseMask24,
-                UInt128 houseMask34,
+                UInt128 houseMask34F,
                 SudokuBoardCellIndex keyCellIndex1,
                 SudokuBoardCellIndex keyCellIndex2,
                 SudokuBoardCellIndex keyCellIndex3,
                 SudokuBoardCellIndex keyCellIndex4,
                 UInt128 finCellIndexBitSet,
+                SudokuBoardCellBlock finCellsBlock,
                 string houseName12,
                 string houseName13,
                 string houseName24,
-                string houseName34)
+                string houseName34F)
             {
-
                 // 排除対象のセル:
                 // 1) 数字 digit を候補として持ち、かつ
-                // 2) house13 または house24 に属しており、かつ
-                // 3) finCellIndex と何れかのハウスを共有しており、かつ
-                // 4) keyCellIndex1, keyCellIndex2. keyCellIndex3, keyCellIndex4, finCellIndex の何れでもないセル。
-                var excludedCellRegionBitSet =
-                    (houseMask13 | houseMask24)
-                    & finCellIndexBitSet.ToVisibleCellsIntersectionBitSet()
-                    & ~allKeyCellIndexBitSet;
-                var excludedCellIndexBitSet = allCellIndexBitSet & excludedCellRegionBitSet;
-                if (excludedCellIndexBitSet == 0)
+                // 2) 以下の何れかのハウスに属しており、かつ
+                //   a) keyCellIndex1 と keyCellIndex3 が共有するハウス
+                //   b) keyCellIndex2 と keyCellIndex4 が共有するハウス
+                // 3) finCellIndexBitSet の全てのセルと何れかのハウスを共有しており、かつ
+                // 4) keyCellIndex1, keyCellIndex2. keyCellIndex3, keyCellIndex4, finCellIndexBitSet の何れでもないセル。
+                var allExceptFinKeyCellIndexBitSet = allKeyCellIndexBitSet & ~finCellIndexBitSet;
+                var excludableCellsRegionBitMask = (houseMask13 | houseMask24) & ~(houseMask12 | houseMask34F) & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(finCellsBlock);
+#if DEBUG
+                System.Diagnostics.Debug.Assert((excludableCellsRegionBitMask & ~allKeyCellIndexBitSet) == excludableCellsRegionBitMask, $"{nameof(excludableCellsRegionBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
+#endif
+                var excludableCellIndexBitSet = allCellIndexBitSet & excludableCellsRegionBitMask;
+                if (excludableCellIndexBitSet == 0)
                     return null;
 
                 // 排除対象の数字の候補が存在する
 
                 return
                     new FinnedXWingOperation(
-                        excludedCellIndexBitSet.EnumerateAsCellNotes(digit),
-                        allKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                            .Concat((houseMask12 | houseMask34).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                        excludableCellIndexBitSet.EnumerateAsCellNotes(digit),
+                        allExceptFinKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
+                            .Concat(((houseMask12 | houseMask34F) & ~finCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
                             .Concat((houseMask13 | houseMask24).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
-                            .Concat(excludedCellRegionBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
-                        allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
+                            .Concat(finCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType1AndType2))
+                            .Concat(excludableCellsRegionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                        allExceptFinKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PositivelyHilightedType1)
+                            .Concat(finCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PositivelyHilightedType2)),
                         GetDescriptionBuilder(
                             digit,
                             keyCellIndex1,
@@ -338,9 +353,9 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             keyCellIndex4,
                             finCellIndexBitSet,
                             houseName12,
+                            houseName34F,
                             houseName13,
-                            houseName24,
-                            houseName34));
+                            houseName24));
 
                 static Func<string> GetDescriptionBuilder(
                     SudokuBoardCellDigit digit,
@@ -349,10 +364,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     SudokuBoardCellIndex keyCellIndex3,
                     SudokuBoardCellIndex keyCellIndex4,
                     UInt128 finCellIndexBitSet,
-                    string houseName12,
-                    string houseName13,
-                    string houseName24,
-                    string houseName34)
+                    string baseLineHouseName12,
+                    string baseLineHouseName34F,
+                    string coverLineHouseName13,
+                    string coverLineHouseName24)
                 {
                     return
                         () =>
@@ -366,25 +381,33 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             var cellPositionsText12 = string.Join(", ", (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet()).EnumerateAsCellPositionTexts());
                             var cellPositionsText34F = string.Join(", ", (keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet() | finCellIndexBitSet).EnumerateAsCellPositionTexts());
                             var cellPositionsTextF = string.Join(", ", finCellIndexBitSet.EnumerateAsCellPositionTexts());
+                            var cellPositionsText13 = string.Join(", ", (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet()).EnumerateAsCellPositionTexts());
+                            var cellPositionsText24 = string.Join(", ", (keyCellIndex2.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet()).EnumerateAsCellPositionTexts());
                             var cellPositionsText1234F = string.Join(", ", (keyCellIndex1.ToCellIndexBitSet() | keyCellIndex2.ToCellIndexBitSet() | keyCellIndex3.ToCellIndexBitSet() | keyCellIndex4.ToCellIndexBitSet() | finCellIndexBitSet).EnumerateAsCellPositionTexts());
                             return
                                 $"数字 {digitText} に着目します。\n" +
-                                $"{houseName12}では {digitText} を数字の候補に持つマスは {cellPositionsText12} のみなので、 {digitText} は必ず {cellPositionsText12} の何れかのマスに入ります。\n" +
-                                $"{houseName34}では {digitText} を数字の候補に持つマスは {cellPositionsText34F} のみなので、 {digitText} は必ず {cellPositionsText34F} の何れかのマスに入ります。\n" +
+                                $"{baseLineHouseName12}では {digitText} を数字の候補に持つマスは {cellPositionsText12} のみなので、 {digitText} は必ず {cellPositionsText12} の何れかのマスに入ります。\n" +
+                                $"{baseLineHouseName34F}では {digitText} を数字の候補に持つマスは {cellPositionsText34F} のみなので、 {digitText} は必ず {cellPositionsText34F} の何れかのマスに入ります。\n" +
                                 $"そして、" +
-                                $"{cellPositionText1} と {cellPositionText3} は共に {houseName13} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
+                                $"{cellPositionText1} と {cellPositionText3} は共に {coverLineHouseName13} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
                                 $"同様に、" +
-                                $"{cellPositionText2} と {cellPositionText4} は共に {houseName24} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
-                                $"ここで、{houseName34}にありかつ{houseName13}および{houseName24}の何れにもないマス ({cellPositionsTextF}) をフィンと呼びます。\n" +
-                                $"そして、{(existMultipleFinCell ? "何れかの" :"")}フィンのマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
-                                $"a) もし、{(existMultipleFinCell ? "何れかの" : "")}フィンのマスの数字が {digitText}である場合、" +
-                                $"{(existMultipleFinCell ? "全ての" : "")}フィンのマスとハウスを共有するフィン以外のマスの数字の候補から {digitText} を排除できます。\n" +
-                                $"b) もし、{(existMultipleFinCell ? "何れの" : "")}フィンのマスの数字も {digitText}でない場合、" +
-                                $"X-Wing ({houseName12}, {houseName34}, {houseName13}, {houseName24}) が成立するので、" +
-                                $"{houseName13}または{houseName24}にある {cellPositionText1},  {cellPositionText2},  {cellPositionText3},  {cellPositionText4} を除くすべてのマスの数字の候補から {digitText} を排除できます。\n" +
-                                $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスは数字 {digitText} ではあり得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                $"1) {houseName13}または{houseName24}のどちらかに存在し、かつ\n" +
-                                $"2) {(existMultipleFinCell ? "全ての" : "")}フィンのマス ({cellPositionsTextF}) と同じブロックに存在し、かつ\n" +
+                                $"{cellPositionText2} と {cellPositionText4} は共に {coverLineHouseName24} に存在し、少なくとも両方に {digitText} が入ることはあり得ません。\n" +
+                                $"\n" +
+                                $"ここで、{baseLineHouseName34F}の、{coverLineHouseName13}と{coverLineHouseName24}のどちらでもないマス ({cellPositionsTextF}) をフィンと呼びます。\n" +
+                                $"そして、{(existMultipleFinCell ? "何れかのフィン" : "フィン")}のマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
+                                $"\n" +
+                                $"a) もし、{(existMultipleFinCell ? "何れかのフィン" : "フィン")}のマスの数字が {digitText}である場合、" +
+                                $"{(existMultipleFinCell ? "全てのフィン" : "フィン")}のマスとハウスを共有するフィン以外のマスには {digitText} は入り得ません。\n" +
+                                $"\n" +
+                                $"b) もし、{(existMultipleFinCell ? "何れのフィン" : "フィン")}のマスの数字も {digitText}でない場合、" +
+                                $"X-Wing ({baseLineHouseName12}, {baseLineHouseName34F}, {coverLineHouseName13}, {coverLineHouseName24}) が成立するので、" +
+                                $"以下に示すマスには {digitText} は入り得ません。\n" +
+                                $"・{cellPositionsText13}を除く{coverLineHouseName13}の全てのマス\n" +
+                                $"・{cellPositionsText24}を除く{coverLineHouseName24}の全てのマス\n" +
+                                $"\n" +
+                                $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
+                                $"1) {coverLineHouseName13}と{coverLineHouseName24}の何れかに存在し、かつ\n" +
+                                $"2) {(existMultipleFinCell ? "全てのフィン" : "フィン")}のマス ({cellPositionsTextF}) と同じブロックに存在し、かつ\n" +
                                 $"3) {cellPositionsText1234F} の何れでもないマス。";
                         };
                 }

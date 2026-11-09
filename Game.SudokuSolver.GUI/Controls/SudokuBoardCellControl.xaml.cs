@@ -46,27 +46,38 @@ namespace Game.SudokuSolver.GUI.Controls
             {
                 case SudokuBoardCellBackgroundEffect.Normal:
                     c.CellContainer.Background = Brushes.Transparent;
-                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1:
                     c.CellContainer.Background = Brushes.Lime;
-                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2:
                     c.CellContainer.Background = Brushes.GreenYellow;
-                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3:
                     c.CellContainer.Background = Brushes.Cyan;
-                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
-                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4:
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType1AndType2:
                     c.CellContainer.Background = Brushes.Transparent;
-                    c.AnimationBackground.Visibility = Visibility.Visible;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Visible;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
+                    break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType2AndType3:
+                    c.CellContainer.Background = Brushes.Transparent;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Visible;
                     break;
                 case SudokuBoardCellBackgroundEffect.NegativelyHighlighted:
                     c.CellContainer.Background = Brushes.MistyRose;
-                    c.AnimationBackground.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
                 default:
                     throw new ApplicationException();
