@@ -140,8 +140,8 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     SudokuBoardCellIndex keyCellIndex1,
                     SudokuBoardCellIndex keyCellIndex2)
                 {
-                    var (column1, _, _) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex1);
-                    var (column2, _, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex2);
+                    var column1 = SudokuBoardCellGeometry.GetColumn(keyCellIndex1);
+                    var column2 = SudokuBoardCellGeometry.GetColumn(keyCellIndex2);
                     var columnHouseMask13 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column1);
                     var columnHouseMask2 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column2);
 
@@ -176,21 +176,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 // row3F に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndexBitSet のみであり、
                                 // そのうち keyCellIndex3 と keyCellIndex1 は同じ列であり、keyCellIndex4 と keyCellIndex2 は同じ列である。
 
-                                var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                                if (block2 != block3 && finCellIndexBitSet.ExistAllCellsInOneBlock())
+                                if (finCellIndexBitSet.ExistAllCellsInOneBlock(out var finCellsBlock))
                                 {
                                     // 1) keyCellIndex1 のセルの行と keyCellIndex2 のセルの行は等しく、かつ
-                                    // 1) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
-                                    // 2) keyCellIndex2 のセルの列と keyCellIndex3 のセルの行の交点のセルは D を数字の候補として持たず、かつ
-                                    // 3) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                    // 5) finCellIndexBitSet の要素の全てのセルの行は keyCellIndex3 のセルの行と等しく、かつ
-                                    // 6) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
+                                    // 2) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
+                                    // 3) keyCellIndex2 のセルの列と keyCellIndex3 のセルの行の交点のセルは D を数字の候補として持たず、かつ
+                                    // 4) finCellIndexBitSet の要素の全てのセルの行は keyCellIndex3 のセルの行と等しく、かつ
+                                    // 5) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
                                     // => サシミ X-Wing が成立している)。
                                     //   ※ finCellIndexBitSet の各セルのブロックと keyCellIndex2 のマスの列が交点を持つかどうかについては
                                     //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
 
-                                    // finCellsBlock が全て同一ブロックに属していることが判明しているので、finCellsBlock から適当な要素を一つ取り出してブロックを求める。
-                                    var finCellsBlock = SudokuBoardCellGeometry.GetBlock(finCellIndexBitSet.GetOneCellIndex());
                                     var operation =
                                         MatchPatternByHouse(
                                             digit,
@@ -260,8 +256,8 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     SudokuBoardCellIndex keyCellIndex1,
                     SudokuBoardCellIndex keyCellIndex2)
                 {
-                    var (_, row1, _) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex1);
-                    var (_, row2, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex2);
+                    var row1 = SudokuBoardCellGeometry.GetRow(keyCellIndex1);
+                    var row2 = SudokuBoardCellGeometry.GetRow(keyCellIndex2);
                     var rowHouseMask13 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row1);
                     var rowHouseMask2 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row2);
 
@@ -295,21 +291,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 // column3F に数字の候補 digit を持つセルは keyCellIndex3, keyCellIndex4, finCellIndex のみであり、
                                 // そのうち keyCellIndex3 と keyCellIndex1 は同じ行である。
 
-                                var (_, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                                if (block2 != block3 && finCellIndexBitSet.ExistAllCellsInOneBlock())
+                                if (finCellIndexBitSet.ExistAllCellsInOneBlock(out var finCellsBlock))
                                 {
                                     // 1) keyCellIndex1 のセルの列と keyCellIndex2 のセルの列は等しく、かつ
                                     // 2) keyCellIndex1 のセルの行と keyCellIndex3 のセルの行は等しく、かつ
                                     // 3) keyCellIndex2 のセルの行と keyCellIndex3 のセルの列の交点のセルは D を数字の候補として持たず、かつ
-                                    // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくなく、かつ
-                                    // 5) finCellIndexBitSet の要素の全てのセルの列は keyCellIndex3 のセルの列と等しく、かつ
-                                    // 6) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
+                                    // 4) finCellIndexBitSet の要素の全てのセルの列は keyCellIndex3 のセルの列と等しく、かつ
+                                    // 5) finCellIndexBitSet の要素の全てのセルはただ一つのブロックのみに存在している。
                                     // => サシミ X-Wing が成立している)。
                                     //   ※ finCellIndexBitSet の各セルのブロックと keyCellIndex2 のマスの行が交点を持つかどうかについては
                                     //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
 
-                                    // finCellsBlock が全て同一ブロックに属していることが判明しているので、finCellsBlock から適当な要素を一つ取り出してブロックを求める。
-                                    var finCellsBlock = SudokuBoardCellGeometry.GetBlock(finCellIndexBitSet.GetOneCellIndex());
                                     var operation =
                                         MatchPatternByHouse(
                                             digit,

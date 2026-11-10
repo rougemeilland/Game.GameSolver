@@ -260,6 +260,8 @@ namespace Game.SudokuSolver
                         SudokuBoardOperationType.Jellyfish => JellyfishOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.FinnedXWing => FinnedXWingOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.SashimiXWing => SashimiXWingOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.FinnedJellyfish => FinnedJellyfishOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.SashimiJellyfish => SashimiellyfishOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.SueDeCoq => SueDeCoqOperation.MatchPattern(workspace),
                         _ => [],
                     })
@@ -353,6 +355,8 @@ namespace Game.SudokuSolver
                 .Concat(JellyfishOperation.MatchPattern(workspace))
                 .Concat(FinnedXWingOperation.MatchPattern(workspace))
                 .Concat(SashimiXWingOperation.MatchPattern(workspace))
+                .Concat(FinnedJellyfishOperation.MatchPattern(workspace))
+                .Concat(SashimiellyfishOperation.MatchPattern(workspace))
 #if DEBUG
                 .Select(operation =>
                 {

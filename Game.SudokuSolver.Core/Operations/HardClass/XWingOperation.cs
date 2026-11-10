@@ -35,18 +35,13 @@ namespace Game.SudokuSolver.Operations.HardClass
             // 3) 別の行のセル  C3, C4 の何れの候補にも D が含まれており、かつ
             // 4) C3, C4 と同じ行の他のセルの数字の候補には D は含まれておらず、かつ
             // 5) C1, C3 は同じ列に存在し、かつ
-            // 6) C2, C4 は同じ列に存在し、かつ
-            // 7) C1 と C4 が共通に属するハウスは存在せず (注1) 、かつ
-            // 8) C2 と C3 が共通に属するハウスは存在しない (注2) 場合。
+            // 6) C2, C4 は同じ列に存在する場合。
             // => C1, C2 の数字は何れかだけが必ず D であり、C3, C4 の数字も何れかだけが必ず D である。
             //    そして、C1, C3 は同時には D になり得ないので、C2, C4 の何れかだけが必ず D となる。そのため、C1, C3 も何れかだけが D となる。
             //    したがって、以下のセルの数字の候補から D を排除できる。
             //    a) C1, C3 と同じ列の C1, C3 以外のセル
             //    b) C2, C4 と同じ列の C2, C4 以外のセル
             // 
-            // 注1) C1 と C4 は異なる行かつ異なる列にあるため共通に属するハウスがあるとすればブロックハウスしかない。したがって「C1 と C4 は異なるブロックに存在する」と言い換えることもできる。
-            // 注2) C2 と C3 は異なる行かつ異なる列にあるため共通に属するハウスがあるとすればブロックハウスしかない。したがって「C2 と C3 は異なるブロックに存在する」と言い換えることもできる。
-            //
             // ※上記の論拠は、行と列を言い換えても成立する。
 
             // 行ハウスに含まれる数字が 2 個のみの場合
@@ -122,20 +117,26 @@ namespace Game.SudokuSolver.Operations.HardClass
                         // 行 row34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex1 である。
                         var (keyCellIndex3, keyCellIndex4) = keyCellIndexBitSet34.SplitAsPairCellIndexes();
 
-                        if (IsFormedXWingByRowHouse(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var column13, out var column24))
+                        var column1 = SudokuBoardCellGeometry.GetColumn(keyCellIndex1);
+                        var column2 = SudokuBoardCellGeometry.GetColumn(keyCellIndex2);
+                        if (column1 == SudokuBoardCellGeometry.GetColumn(keyCellIndex3) && column2 == SudokuBoardCellGeometry.GetColumn(keyCellIndex4))
                         {
+                            // 1) keyCellIndex1 と keyCellIndex3 が同じ列にあり、かつ
+                            // 2) keyCellIndex2 と keyCellIndex4 が同じ列にある。
+                            // => X-Wing の成立
+
                             var operation =
                                 MatchPatternByHouse(
                                     digit,
                                     allCellIndexBitSet,
                                     rowHouse12,
                                     rowHouse34,
-                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column13),
-                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column24),
+                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column1),
+                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column2),
                                     row12.ToHouseName(),
                                     row34.ToHouseName(),
-                                    column13.ToHouseName(),
-                                    column24.ToHouseName(),
+                                    column1.ToHouseName(),
+                                    column2.ToHouseName(),
                                     keyCellIndex1,
                                     keyCellIndex2,
                                     keyCellIndex3,
@@ -186,20 +187,26 @@ namespace Game.SudokuSolver.Operations.HardClass
                         // 列 column34 に 数字の候補 D を持つセルは 2 個だけで、それらの位置は keyCellIndex1 と keyCellIndex1 である。
                         var (keyCellIndex3, keyCellIndex4) = keyCellIndexBitSet34.SplitAsPairCellIndexes();
 
-                        if (IsFormedXWingByColumnHouse(keyCellIndex1, keyCellIndex2, keyCellIndex3, keyCellIndex4, out var row13, out var row24))
+                        var row1 = SudokuBoardCellGeometry.GetRow(keyCellIndex1);
+                        var row2 = SudokuBoardCellGeometry.GetRow(keyCellIndex2);
+                        if (row1 == SudokuBoardCellGeometry.GetRow(keyCellIndex3) && row2 == SudokuBoardCellGeometry.GetRow(keyCellIndex4))
                         {
+                            // 1) keyCellIndex1 と keyCellIndex3 が同じ行にあり、かつ
+                            // 2) keyCellIndex2 と keyCellIndex4 が同じ行にある。
+                            // => X-Wing の成立
+
                             var operation =
                                 MatchPatternByHouse(
                                     digit,
                                     allCellIndexBitSet,
                                     columnHouse12,
                                     columnHouse34,
-                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(row13),
-                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(row24),
+                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(row1),
+                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(row2),
                                     column12.ToHouseName(),
                                     column34.ToHouseName(),
-                                    row13.ToHouseName(),
-                                    row24.ToHouseName(),
+                                    row1.ToHouseName(),
+                                    row2.ToHouseName(),
                                     keyCellIndex1,
                                     keyCellIndex2,
                                     keyCellIndex3,
@@ -209,51 +216,6 @@ namespace Game.SudokuSolver.Operations.HardClass
                         }
                     }
                 }
-            }
-
-            static bool IsFormedXWingByRowHouse(
-                SudokuBoardCellIndex keyCellIndex1,
-                SudokuBoardCellIndex keyCellIndex2,
-                SudokuBoardCellIndex keyCellIndex3,
-                SudokuBoardCellIndex keyCellIndex4,
-                out SudokuBoardCellColumn column13,
-                out SudokuBoardCellColumn column24)
-            {
-                // 1) keyCellIndex1 のセルの列と keyCellIndex3 のセルの列は等しく、かつ
-                // 2) keyCellIndex2 のセルの列と keyCellIndex4 のセルの列は等しく、かつ
-                // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
-                // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくない。
-                // => X-Wing が成立している。
-
-                var (column1, _, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex1);
-                var (column2, _, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex2);
-                var (column3, _, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                var (column4, _, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                column13 = column1;
-                column24 = column2;
-                return column1 == column3 && column2 == column4 && block1 != block4 && block2 != block3;
-            }
-
-            static bool IsFormedXWingByColumnHouse(
-                SudokuBoardCellIndex keyCellIndex1,
-                SudokuBoardCellIndex keyCellIndex2,
-                SudokuBoardCellIndex keyCellIndex3,
-                SudokuBoardCellIndex keyCellIndex4,
-                out SudokuBoardCellRow row13,
-                out SudokuBoardCellRow row24)
-            {
-                // 1) keyCellIndex1 のセルの行と keyCellIndex3 のセルの行は等しく、かつ
-                // 2) keyCellIndex2 のセルの行と keyCellIndex4 のセルの行は等しく、かつ
-                // 3) keyCellIndex1 のセルのブロックと keyCellIndex4 のセルのブロックは等しくなく、かつ
-                // 4) keyCellIndex2 のセルのブロックと keyCellIndex3 のセルのブロックは等しくない。
-                // => X-Wing が成立している。
-                var (_, row1, block1) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex1);
-                var (_, row2, block2) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex2);
-                var (_, row3, block3) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex3);
-                var (_, row4, block4) = SudokuBoardCellGeometry.GetColumnRowBlock(keyCellIndex4);
-                row13 = row1;
-                row24 = row2;
-                return row1 == row3 && row2 == row4 && block1 != block4 && block2 != block3;
             }
 
             static XWingOperation? MatchPatternByHouse(
@@ -321,6 +283,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                             var cell3PositionText = keyCellIndex3.ToFriendlyString();
                             var cell4PositionText = keyCellIndex4.ToFriendlyString();
                             return
+                                $"数字 {digitText} に着目します。\n" +
                                 $"{baseLineHouseName12}と{baseLineHouseName34}では、数字 {digitText} を候補として持つマスはそれぞれ 2 個しか存在せず、" +
                                 $"かつそれらのマスは {coverLineHouseName13} と {coverLineHouseName24} に収まっています。\n" +
                                 $"仮に「{coverLineHouseName13}のマス {cell1PositionText}, {cell3PositionText} の何れにも {digitText} が入らない」と仮定します。\n" +

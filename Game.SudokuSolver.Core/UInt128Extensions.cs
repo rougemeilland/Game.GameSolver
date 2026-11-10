@@ -309,11 +309,15 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// この値は 0 であってはなりません。
         /// </param>
+        /// <param name="column">
+        /// 復帰値が <see langword="true"/> の場合は、<paramref name="cellIndexBitSet"/> で与えられたセルが全て存在する列を示す <see cref="SudokuBoardCellColumn"/> 値です。
+        /// そうではない場合は値は保証されません。
+        /// </param>
         /// <returns>
         /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じ列に存在する場合は <see langword="true"/> を返します。
-        /// そうではない場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="false"/> を返します。
         /// </returns>
-        public static bool ExistAllCellsInOneColumn(this UInt128 cellIndexBitSet)
+        public static bool ExistAllCellsInOneColumn(this UInt128 cellIndexBitSet, out SudokuBoardCellColumn column)
         {
 #if DEBUG
             ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
@@ -322,7 +326,7 @@ namespace Game.SudokuSolver
 #endif
 
             var cellIndex = cellIndexBitSet.GetOneCellIndex();
-            var column = SudokuBoardCellGeometry.GetColumn(cellIndex);
+            column = SudokuBoardCellGeometry.GetColumn(cellIndex);
             cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             while (cellIndexBitSet != 0)
             {
@@ -343,11 +347,15 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// この値は 0 であってはなりません。
         /// </param>
+        /// <param name="row">
+        /// 復帰値が <see langword="true"/> の場合は、<paramref name="cellIndexBitSet"/> で与えられたセルが全て存在する行を示す <see cref="SudokuBoardCellRow"/> 値です。
+        /// そうではない場合は値は保証されません。
+        /// </param>
         /// <returns>
         /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じ行に存在する場合は <see langword="true"/> を返します。
-        /// そうではない場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="false"/> を返します。
         /// </returns>
-        public static bool ExistAllCellsInOneRow(this UInt128 cellIndexBitSet)
+        public static bool ExistAllCellsInOneRow(this UInt128 cellIndexBitSet, out SudokuBoardCellRow row)
         {
 #if DEBUG
             ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
@@ -356,7 +364,7 @@ namespace Game.SudokuSolver
 #endif
 
             var cellIndex = cellIndexBitSet.GetOneCellIndex();
-            var row = SudokuBoardCellGeometry.GetRow(cellIndex);
+            row = SudokuBoardCellGeometry.GetRow(cellIndex);
             cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             while (cellIndexBitSet != 0)
             {
@@ -377,11 +385,14 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// この値は 0 であってはなりません。
         /// </param>
+        /// <param name="block">
+        /// 復帰値が <see langword="true"/> の場合は、<paramref name="cellIndexBitSet"/> で与えられたセルが全て存在するブロックを示す <see cref="SudokuBoardCellBlock"/> 値です。そうではない場合は値は保証されません。
+        /// </param>
         /// <returns>
         /// <paramref name="cellIndexBitSet"/> で指定された集合の要素のセルが全て同じブロックに存在する場合は <see langword="true"/> を返します。
-        /// そうではない場合は <see langword="true"/> を返します。
+        /// そうではない場合は <see langword="false"/> を返します。
         /// </returns>
-        public static bool ExistAllCellsInOneBlock(this UInt128 cellIndexBitSet)
+        public static bool ExistAllCellsInOneBlock(this UInt128 cellIndexBitSet, out SudokuBoardCellBlock block)
         {
 #if DEBUG
             ArgumentOutOfRangeException.ThrowIfZero(cellIndexBitSet);
@@ -390,7 +401,7 @@ namespace Game.SudokuSolver
 #endif
 
             var cellIndex = cellIndexBitSet.GetOneCellIndex();
-            var block = SudokuBoardCellGeometry.GetBlock(cellIndex);
+            block = SudokuBoardCellGeometry.GetBlock(cellIndex);
             cellIndexBitSet &= ~cellIndex.ToCellIndexBitSet();
             while (cellIndexBitSet != 0)
             {

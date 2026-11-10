@@ -108,6 +108,26 @@
         /// </summary>
         SashimiXWing,
 
+        /// <summary>
+        /// Finned Swordfish
+        /// </summary>
+        FinnedSwordfish,
+
+        /// <summary>
+        /// Sashimi Swordfish
+        /// </summary>
+        SashimiSwordfish,
+
+        /// <summary>
+        /// Finned Jellyfish
+        /// </summary>
+        FinnedJellyfish,
+
+        /// <summary>
+        /// Sashimi Jellyfish
+        /// </summary>
+        SashimiJellyfish,
+
         #endregion
 
         #region InsaneClass

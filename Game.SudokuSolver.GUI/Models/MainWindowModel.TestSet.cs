@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_SueDeCoq1();
+            => CreateModelForTest_SashimiJellyFish2();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -619,34 +619,6 @@ namespace Game.SudokuSolver.GUI.Models
                     "045327901"),
                  SudokuBoardOperationType.XWing);
 
-        private static SudokuGameBoard CreateModelForTest_XWing_Extra1()
-            => new(
-                CreateBoardDigits(
-                    "153798426" +
-                    "600030000" +
-                    "840256103" +
-                    "700643985" +
-                    "538917264" +
-                    "496000731" +
-                    "005000610" +
-                    "060070000" +
-                    "304060009"),
-                 SudokuBoardOperationType.XWing);
-
-        private static SudokuGameBoard CreateModelForTest_XWing_Extra2()
-            => new(
-                CreateBoardDigits(
-                    "300457861" +
-                    "060930405" +
-                    "405680003" +
-                    "000096207" +
-                    "670014539" +
-                    "000073608" +
-                    "006729104" +
-                    "001368002" +
-                    "900145306"),
-                 SudokuBoardOperationType.XWing);
-
         #endregion
 
         #region Swordfish
@@ -804,6 +776,72 @@ namespace Game.SudokuSolver.GUI.Models
                     "904010875" +
                     "581970204"),
                  SudokuBoardOperationType.SashimiXWing);
+
+        #endregion
+
+        #region Finned JellyFish
+
+        private static SudokuGameBoard CreateModelForTest_FinnedJellyFish1()
+            => new(
+                CreateBoardDigits(
+                    "309057040" +
+                    "600032709" +
+                    "700001035" +
+                    "090300071" +
+                    "073105090" +
+                    "001789403" +
+                    "000073004" +
+                    "087010300" +
+                    "034508007"),
+                 SudokuBoardOperationType.FinnedJellyfish);
+
+        private static SudokuGameBoard CreateModelForTest_FinnedJellyFish2()
+            => new(
+                CreateBoardDigits(
+                    "179526843" +
+                    "400397150" +
+                    "003418097" +
+                    "007104509" +
+                    "910700004" +
+                    "004069701" +
+                    "740901300" +
+                    "390070410" +
+                    "001043975"),
+                 SudokuBoardOperationType.FinnedJellyfish);
+
+        #endregion
+
+        #region Sashimi Jellyfish
+
+        private static SudokuGameBoard CreateModelForTest_SashimiJellyFish1()
+            => new(
+                CreateBoardDigits(
+                    "680150007" +
+                    "530870060" +
+                    "000600008" +
+                    "000028610" +
+                    "906001780" +
+                    "018067000" +
+                    "800016974" +
+                    "760095801" +
+                    "090780006"),
+                 SudokuBoardOperationType.SashimiJellyfish);
+
+        private static SudokuGameBoard CreateModelForTest_SashimiJellyFish2()
+            => new(
+                CreateBoardDigits(
+                    "053029048" +
+                    "490085302" +
+                    "028304095" +
+                    "500948031" +
+                    "389201504" +
+                    "040053809" +
+                    "804590003" +
+                    "035410986" +
+                    "910830457"),
+                 SudokuBoardOperationType.SashimiJellyfish,
+                 // 別の定石で 6行3列 の数字の候補 6 をあらかじめ消しておかないとサシミジェリーフィッシュが適用されない。
+                 "636");
 
         #endregion
 

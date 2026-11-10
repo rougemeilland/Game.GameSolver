@@ -133,6 +133,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 var result =
                                     MatchPatternByHouse(
                                         digit,
+                                        SudokuBoardHouseType.Row,
                                         SudokuBoardHouseType.Column,
                                         allCellIndexBitSet,
                                         keyRowHouse1,
@@ -210,6 +211,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 var result =
                                     MatchPatternByHouse(
                                         digit,
+                                        SudokuBoardHouseType.Column,
                                         SudokuBoardHouseType.Row,
                                         allCellIndexBitSet,
                                         keyColumnHouse1,
@@ -237,6 +239,7 @@ namespace Game.SudokuSolver.Operations.HardClass
 
             static SudokuBoardOperation? MatchPatternByHouse(
                 SudokuBoardCellDigit digit,
+                SudokuBoardHouseType baseLineHouseType,
                 SudokuBoardHouseType coverLineHouseType,
                 UInt128 cellIndexBitSet,
                 UInt128 baseLineHouseBitMask1,
@@ -261,7 +264,7 @@ namespace Game.SudokuSolver.Operations.HardClass
 #if DEBUG
                 System.Diagnostics.Debug.Assert((excludableCellsBitMask & ~allKeyCellIndexBitSet) == excludableCellsBitMask, $"{nameof(excludableCellsBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
 #endif
-                var excludableCellIndexBitSet = excludableCellsBitMask & ~allKeyCellIndexBitSet & cellIndexBitSet;
+                var excludableCellIndexBitSet = cellIndexBitSet & excludableCellsBitMask;
                 if (excludableCellIndexBitSet == 0)
                     return null;
 
@@ -276,6 +279,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         GetDescriptionBuilder(
                             digit,
+                            baseLineHouseType,
                             coverLineHouseType,
                             baseLineKeyCellIndexBitSet1,
                             baseLineKeyCellIndexBitSet2,
@@ -292,6 +296,7 @@ namespace Game.SudokuSolver.Operations.HardClass
 
                 static Func<string> GetDescriptionBuilder(
                     SudokuBoardCellDigit digit,
+                    SudokuBoardHouseType baseLineHouseType,
                     SudokuBoardHouseType coverLineHouseType,
                     UInt128 baseLineKeyCellIndexBitSet1,
                     UInt128 baseLineKeyCellIndexBitSet2,
@@ -309,6 +314,13 @@ namespace Game.SudokuSolver.Operations.HardClass
                     return
                         () =>
                         {
+                            var baseLineHouseTypeName =
+                                baseLineHouseType switch
+                                {
+                                    SudokuBoardHouseType.Row => "行",
+                                    SudokuBoardHouseType.Column => "列",
+                                    _ => throw new ApplicationException(),
+                                };
                             var coverLineHouseTypeName =
                                 coverLineHouseType switch
                                 {
@@ -321,19 +333,14 @@ namespace Game.SudokuSolver.Operations.HardClass
                             var coverLineKeyCellPositionsText2 = string.Join(", ", coverLineKeyCellIndexBitSet2.EnumerateAsCellPositionTexts());
                             var coverLineKeyCellPositionsText3 = string.Join(", ", coverLineKeyCellIndexBitSet3.EnumerateAsCellPositionTexts());
                             return
-                                $"数字の候補 {digitText} を含むマスは、" +
-                                $"{baseLineHouseName1}に {UInt128.PopCount(baseLineKeyCellIndexBitSet1)} 個、" +
-                                $"{baseLineHouseName2}に {UInt128.PopCount(baseLineKeyCellIndexBitSet2)} 個、" +
-                                $"{baseLineHouseName3}に {UInt128.PopCount(baseLineKeyCellIndexBitSet3)} 個あり、" +
-                                $"それらのマスは全て {coverLineHouseName1}, {coverLineHouseName2}, {coverLineHouseName3} の何れかに収まっています。\n" +
-                                $"実際に {digitText} が入るマスは、{baseLineHouseName1}, {baseLineHouseName2}, {baseLineHouseName3} で互いに各{coverLineHouseTypeName}にばらける必要がありますので、以下のことが成り立ちます。\n" +
-                                $"・{coverLineHouseName1}のマス {coverLineKeyCellPositionsText1} の何れかには必ず {digitText} が入る。\n" +
-                                $"・{coverLineHouseName2}のマス {coverLineKeyCellPositionsText2} の何れかには必ず {digitText} が入る。\n" +
-                                $"・{coverLineHouseName3}のマス {coverLineKeyCellPositionsText3} の何れかには必ず {digitText} が入る。\n" +
-                                $"したがって、{coverLineHouseName1}の {coverLineKeyCellPositionsText1} 以外のマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                $"同様の論法で、以下のマスの数字の候補からも {digitText} を排除します。\n" +
-                                $"・{coverLineHouseName2}の {coverLineKeyCellPositionsText2} 以外のマス\n" +
-                                $"・{coverLineHouseName3}の {coverLineKeyCellPositionsText3} 以外のマス";
+                                $"数字 {digitText} に着目します。\n" +
+                                $"{baseLineHouseName1}, {baseLineHouseName2}, {baseLineHouseName3} の三つのどの{baseLineHouseTypeName}においても、" +
+                                $"数字の候補 {digitText} を含むマスは三つの{coverLineHouseTypeName} {coverLineHouseName1}, {coverLineHouseName2},{coverLineHouseName3} との交差点にしか存在しません。\n" +
+                                $"{baseLineHouseName1}, {baseLineHouseName2}, {baseLineHouseName3} の三つのどの{baseLineHouseTypeName}においても" +
+                                $"実際に {digitText} が入るマスは重複しないように各{coverLineHouseTypeName}にばらける必要があるので、" +
+                                $"{coverLineHouseName1}, {coverLineHouseName2}, {coverLineHouseName3} のどの{coverLineHouseTypeName}においても {baseLineHouseName1}, {baseLineHouseName2}, {baseLineHouseName3} との交差点にある何れかのマスには必ず {digitText} が入ります。\n" +
+                                $"したがって、{coverLineHouseName1}, {coverLineHouseName2}, {coverLineHouseName3} の各{coverLineHouseTypeName}の {baseLineHouseName1}, {baseLineHouseName2}, {baseLineHouseName3} との交差点以外にあるマスには {digitText} は入り得ないので、" +
+                                $"それらのマスの数字の候補から {digitText} を排除します。";
                         };
                 }
             }
