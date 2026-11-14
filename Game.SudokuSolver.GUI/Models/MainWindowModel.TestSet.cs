@@ -5,7 +5,6 @@ namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
-        // TODO: FinnedSwordfishOperation と FinnedJellyfishOperation を削除して、SashimiSwordfishOperation を FinnedSwordfishOperation に変名、SashimiJellyfishOperation を FinnedJellyfishOperation に変名する。
         private static SudokuGameBoard CreateModelForTest()
             => CreateModelForTest_SashimiJellyFish2();
 
