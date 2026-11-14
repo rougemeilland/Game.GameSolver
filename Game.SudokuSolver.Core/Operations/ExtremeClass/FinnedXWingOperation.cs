@@ -47,7 +47,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             //   つまり、以下の条件を満たすセルに数字の候補 D があれば、どちらにしろそのセルの数字の候補から D を排除できる。
             //   a) COL13 あるいは COL24 上にある C1, C2, C3, C4 を除くセルであり、かつ
             //   b) CF の全ての要素のセルが共有するハウス (==ブロック) 上の CF の要素の何れでもないセルである。
-            // 
+            //
             // ※上記の論拠は、行と列を言い換えても成立する。
             // ※フィンのセルは複数存在し得ることに注意すること。
             //   ただしフィン付き X-Wing として有効なフィンの数は 1 個以上 2 個以下である。
@@ -118,13 +118,13 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                         for (var keyIndex34F = 0; keyIndex34F < keyRows.Length; ++keyIndex34F)
                         {
-                            if (keyRows.Span[keyIndex34F].cellCount is 3 or 4)
+                            if (keyRows.Span[keyIndex34F].cellCount is >= 3 and <= 4)
                             {
                                 var row34F = keyRows.Span[keyIndex34F].row;
                                 var rowHouseMask34F = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row34F);
                                 var keyCellIndexBitSet34F = allCellIndexBitSet & rowHouseMask34F;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is 3 or 4);
+                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is >= 3 and <= 4);
 #endif
 
                                 // row12 とば別の行 row34F に数字の候補 digit を持つセルは 3 個または 4 個存在する。
@@ -141,7 +141,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
                                     var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
 #if DEBUG
-                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2);
+                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= 1 and <= 2);
 #endif
                                     var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
 
@@ -216,13 +216,13 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                         for (var keyIndex34F = 0; keyIndex34F < keyColumns.Length; ++keyIndex34F)
                         {
-                            if (keyColumns.Span[keyIndex34F].cellCount is 3 or 4)
+                            if (keyColumns.Span[keyIndex34F].cellCount is >= 3 and <= 4)
                             {
                                 var column34F = keyColumns.Span[keyIndex34F].column;
                                 var columnHouseMask34F = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column34F);
                                 var keyCellIndexBitSet34F = allCellIndexBitSet & columnHouseMask34F;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is 3 or 4);
+                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet34F) is >= 3 and <= 4);
 #endif
 
                                 // column12 とば別の列 column34F に数字の候補 digit を持つセルは 3 個存在する。
@@ -238,7 +238,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     var keyCellIndex4 = keyCellIndex4BitSet.AsSingleCellIndex();
                                     var finCellIndexBitSet = keyCellIndexBitSet34F & ~keyCellIndex3BitSet & ~keyCellIndex4BitSet;
 #if DEBUG
-                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2);
+                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= 1 and <= 2);
 #endif
                                     var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet34F;
 

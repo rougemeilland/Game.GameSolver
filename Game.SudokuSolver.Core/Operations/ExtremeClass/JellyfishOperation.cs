@@ -30,10 +30,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         {
             // 【論拠】
             // ある数字 D とある重複しない行 Row1, Row2, Row3, Row4 とある重複しない列 Col1, Col2, Col3, Col4 について、
-            // 1) Row1 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
-            // 2) Row2 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
-            // 3) Row3 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
-            // 4) Row4 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
+            // 1) Row1 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注Ⅰ) 4 個以下であり、かつ
+            // 2) Row2 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注Ⅰ) 4 個以下であり、かつ
+            // 3) Row3 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注Ⅰ) 4 個以下であり、かつ
+            // 4) Row4 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注Ⅰ) 4 個以下であり、かつ
             // 5) Col1 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
             // 6) Col2 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
             // 7) Col3 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
@@ -46,8 +46,11 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             //    仮に、Col1 上の Row1, Row2, Row3, Row4 との何れの交差点にあるセルにも数字 D が入らないとした場合、数字 D が入ることができるセルが足りなくなってしまう。
             //    そのため、Col1 上の Row1, Row2, Row3, Row4 との何れかの交差点にあるセルには必ず数字 D が入るので、交差点以外の全てのセルから数字の候補 D を排除できる。
             //    なお、Col2, Col3, Col4 についても同様である。
-            //     
-            // ※ Row1, Row2, Row3, Row4 と Col1, Col2, Col3, Col4 の合計 16 個の交差点にあるセルには数字の候補に必ず D があるとは限らない。
+            //
+            // 注1) 同一行にある数字 D を候補に持つセルの数が 1 の場合、サシミジェリーフィッシュより発見が容易な Hidden Single が適用可能であるため、本実装では 2 個以上の場合のみ考える。
+            //
+            // ※ Row1, Row2, Row3, Row4 と Col1, Col2, Col3, Col4 の合計 16 個の交差点にあるセルには数字の候補に必ず D があるとは限らない。            //
+
             // ※上記の論拠は、行と列を言い換えても成立する。
 
             // 行ハウスに含まれる数字が 2 個から 4 個のみの場合
@@ -278,7 +281,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 SudokuBoardCellDigit digit,
                 SudokuBoardHouseType baseLineHouseType,
                 SudokuBoardHouseType coverLineHouseType,
-                UInt128 cellIndexBitSet,
+                UInt128 allCellIndexBitSet,
                 UInt128 baseLineHouseBitMask1,
                 UInt128 baseLineHouseBitMask2,
                 UInt128 baseLineHouseBitMask3,
@@ -302,11 +305,12 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             {
                 var allKeyCellIndexBitSet = baseLineKeyCellIndexBitSet1 | baseLineKeyCellIndexBitSet2 | baseLineKeyCellIndexBitSet3 | baseLineKeyCellIndexBitSet4;
                 var baseLineHouseBitMask = baseLineHouseBitMask1 | baseLineHouseBitMask2 | baseLineHouseBitMask3 | baseLineHouseBitMask4;
-                var excludableCellsBitMask = (coverLineHouseBitMask1 | coverLineHouseBitMask2 | coverLineHouseBitMask3 | coverLineHouseBitMask4) & ~baseLineHouseBitMask;
+                var coverLineHouseBitMask = coverLineHouseBitMask1 | coverLineHouseBitMask2 | coverLineHouseBitMask3 | coverLineHouseBitMask4;
+                var excludableCellsRegionBitMask = coverLineHouseBitMask & ~baseLineHouseBitMask;
 #if DEBUG
-                System.Diagnostics.Debug.Assert((excludableCellsBitMask & ~allKeyCellIndexBitSet) == excludableCellsBitMask, $"{nameof(excludableCellsBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
+                System.Diagnostics.Debug.Assert((excludableCellsRegionBitMask & ~allKeyCellIndexBitSet) == excludableCellsRegionBitMask, $"{nameof(excludableCellsRegionBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
 #endif
-                var excludableCellIndexBitSet = cellIndexBitSet & excludableCellsBitMask;
+                var excludableCellIndexBitSet = allCellIndexBitSet & excludableCellsRegionBitMask;
                 if (excludableCellIndexBitSet == 0)
                     return null;
 
@@ -317,7 +321,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         excludableCellIndexBitSet.EnumerateAsCellNotes(digit),
                         allKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
                             .Concat(baseLineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
-                            .Concat((excludableCellsBitMask & ~baseLineHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .Concat(excludableCellsRegionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         GetDescriptionBuilder(
                             digit,

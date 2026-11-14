@@ -33,14 +33,14 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         {
             // 【論拠】
             // ある数字 D とある重複しない行 Row1, Row2, Row3, Row4 とある重複しない列 Col1, Col2, Col3, Col4 について、
-            // 1) Row1 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
-            // 2) Row2 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
-            // 3) Row3 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 4 個以下であり、かつ
+            // 1) Row1 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注1) 4 個以下であり、かつ
+            // 2) Row2 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注1) 4 個以下であり、かつ
+            // 3) Row3 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所のセルにのみ数字の候補 D が存在し、かつそれらのセルの数は 2 個以上 (注1) 4 個以下であり、かつ
             // 4) Row4 のハウスのセルには Col1, Col2, Col3, Col4 の何れかと交わる場所の数字の候補 D を持つセルが 2 個以上 4 個以下存在し、かつ
-            // 5) Col1 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
-            // 6) Col2 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
-            // 7) Col3 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
-            // 8) Col4 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも一つに数字の候補 D が存在し、かつ
+            // 5) Col1 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも二つに数字の候補 D が存在し (注2)、かつ
+            // 6) Col2 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも二つに数字の候補 D が存在し (注2)、かつ
+            // 7) Col3 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも二つに数字の候補 D が存在し (注2)、かつ
+            // 8) Col4 のハウスのセルには Row1, Row2, Row3, Row4 の何れかと交わる場所のセルのうち少なくとも二つに数字の候補 D が存在し (注2)、かつ
             // 9) Row4 のハウスのうち Col1, Col2, Col3, Col4 の何れとも交差しないセル (フィン) が 1 個以上 2 個以下存在し、かつ
             // 10) 全てのフィンのセルが同一ブロックに存在している場合。
             // => フィンの何れかのセルに数字 D が入るかどうかの仮定を行ってみる。
@@ -52,7 +52,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             //      排除条件1) 全てのフィンとハウスを共有し (== 全てのフィンと同一ブロックにある)、かつ
             //      排除条件2) Col1, Col2, Col3, Col4 の何れかに属し、かつ
             //      排除条件3) Row1, Row2, Row3, Row4 の何れにも属さないマス。
-            //     
+            //
+            // 注1) 同一行にある数字 D を候補に持つセルの数が 1 の場合、フィン付きジェリーフィッシュより発見が容易な Hidden Single が適用可能であるため、本実装では 2 個以上の場合のみ考える。
+            // 注2) この条件がないと、サシミジェリーフィッシュと成立条件が重複してしまう。
+            //
             // ※ Row1, Row2, Row3, Row4 と Col1, Col2, Col3, Col4 の合計 16 個の交差点にあるセルには数字の候補に必ず D があるとは限らない。
             // ※ フィンのマスの個数が 1 個以上 2 個以下である理由は、3 個以上では排除条件を満たせないからである。
             // ※ 上記の論拠は、行と列を言い換えても成立する。
@@ -139,64 +142,44 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             // b) この条件付けを行った方がフィンの発見が容易であること。
 
                                             var (keyColumn1, keyColumn2, keyColumn3, keyColumn4) = keyColumnBitSet.SplitAsQuadCellColulmns();
-                                            for (var keyIndex4 = 0; keyIndex4 < keyRows.Length; ++keyIndex4)
+                                            for (var keyIndex4F = 0; keyIndex4F < keyRows.Length; ++keyIndex4F)
                                             {
-                                                if (keyIndex4 != keyIndex1 && keyIndex4 != keyIndex2 && keyIndex4 != keyIndex3)
+                                                if (keyIndex4F != keyIndex1 && keyIndex4F != keyIndex2 && keyIndex4F != keyIndex3)
                                                 {
-                                                    var keyRow4 = keyRows.Span[keyIndex4].row;
-                                                    if (keyRows.Span[keyIndex4].cellCount is >= 3 and <= 6)
+                                                    var keyRow4F = keyRows.Span[keyIndex4F].row;
+                                                    if (keyRows.Span[keyIndex4F].cellCount is >= 3 and <= 6)
                                                     {
-                                                        var keyRowHouse4 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4);
-                                                        var keyRowCellIndexBitSet4F = allCellIndexBitSet & keyRowHouse4;
+                                                        var keyRowHouse4F = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4F);
+                                                        var keyRowCellIndexBitSet4F = allCellIndexBitSet & keyRowHouse4F;
 #if DEBUG
                                                         System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet4F) is >= 3 and <= 6);
 #endif
-                                                        var allKeyColumnsHouse =
-                                                            SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1)
-                                                            | SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2)
-                                                            | SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3)
-                                                            | SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4);
-                                                        var keyRowCellIndexBitSet4 = keyRowCellIndexBitSet4F & allKeyColumnsHouse;
-                                                        var finCellIndexBitSet = keyRowCellIndexBitSet4F & ~keyRowCellIndexBitSet4;
-                                                        if ((int)UInt128.PopCount(keyRowCellIndexBitSet4) is >= 2 and <= 4 && (int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2 && finCellIndexBitSet.ExistAllCellsInOneBlock(out var finCellsBlock))
-                                                        {
-                                                            // 1) フィンを除いて各行に 2 個以上 4 個以下の数字の候補 D を持つセルがあり、かつ
-                                                            // 2) フィンを除くそれらの全てのセルはちょうど 4 個の列に収まっており、かつ
-                                                            // 3) フィンの数は 1 以上 2 以下であり、かつ
-                                                            // 4) フィンは同一ブロックに収まっている。
-                                                            // => フィン付きジェリーフィッシュの成立
-                                                            //   ※ finCellIndexBitSet のブロックが keyColumn1, keyColumn2, keyColumn3, keyColumn4 の何れかの列と交差するかについては
-                                                            //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
-
-                                                            var result =
-                                                                MatchPatternByHouse(
-                                                                    digit,
-                                                                    allCellIndexBitSet,
-                                                                    keyRowHouse1,
-                                                                    keyRowHouse2,
-                                                                    keyRowHouse3,
-                                                                    keyRowHouse4,
-                                                                    keyRowCellIndexBitSet1,
-                                                                    keyRowCellIndexBitSet2,
-                                                                    keyRowCellIndexBitSet3,
-                                                                    keyRowCellIndexBitSet4,
-                                                                    finCellIndexBitSet,
-                                                                    finCellsBlock,
-                                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1),
-                                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
-                                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
-                                                                    SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4),
-                                                                    keyRow1.ToHouseName(),
-                                                                    keyRow2.ToHouseName(),
-                                                                    keyRow3.ToHouseName(),
-                                                                    keyRow4.ToHouseName(),
-                                                                    keyColumn1.ToHouseName(),
-                                                                    keyColumn2.ToHouseName(),
-                                                                    keyColumn3.ToHouseName(),
-                                                                    keyColumn4.ToHouseName());
-                                                            if (result is not null)
-                                                                yield return result;
-                                                        }
+                                                        var operation =
+                                                            MatchPatternByHouse(
+                                                                digit,
+                                                                allCellIndexBitSet,
+                                                                keyRowHouse1,
+                                                                keyRowHouse2,
+                                                                keyRowHouse3,
+                                                                keyRowHouse4F,
+                                                                keyRowCellIndexBitSet1,
+                                                                keyRowCellIndexBitSet2,
+                                                                keyRowCellIndexBitSet3,
+                                                                keyRowCellIndexBitSet4F,
+                                                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1),
+                                                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
+                                                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
+                                                                SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4),
+                                                                keyRow1.ToHouseName(),
+                                                                keyRow2.ToHouseName(),
+                                                                keyRow3.ToHouseName(),
+                                                                keyRow4F.ToHouseName(),
+                                                                keyColumn1.ToHouseName(),
+                                                                keyColumn2.ToHouseName(),
+                                                                keyColumn3.ToHouseName(),
+                                                                keyColumn4.ToHouseName());
+                                                        if (operation is not null)
+                                                            yield return operation;
                                                     }
                                                 }
                                             }
@@ -214,7 +197,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 // digit を候補に持つセルが 2 個以上 6 個以下ある列を抽出する。
                 var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, 2, 6);
 
-                // digit を候補に持つセルが 2 個以上 4 個以下ある列が 6 個未満である場合はフィン付きジェリーフィッシュが成立しないので、検索を中断する。
+                // digit を候補に持つセルが 2 個以上 6 個以下ある列が 4 個未満である場合はフィン付きジェリーフィッシュが成立しないので、検索を中断する。
                 if (keyColumns.Length < 4)
                     yield break;
 
@@ -257,64 +240,44 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             // b) この条件付けを行った方がフィンの発見が容易であること。
 
                                             var (keyRow1, keyRow2, keyRow3, keyRow4) = keyRowBitSet.SplitAsQuadCellRows();
-                                            for (var keyIndex4 = 0; keyIndex4 < keyColumns.Length; ++keyIndex4)
+                                            for (var keyIndex4F = 0; keyIndex4F < keyColumns.Length; ++keyIndex4F)
                                             {
-                                                if (keyIndex4 != keyIndex1 && keyIndex4 != keyIndex2 && keyIndex4 != keyIndex3)
+                                                if (keyIndex4F != keyIndex1 && keyIndex4F != keyIndex2 && keyIndex4F != keyIndex3)
                                                 {
-                                                    var keyColumn4 = keyColumns.Span[keyIndex4].column;
-                                                    if (keyColumns.Span[keyIndex4].cellCount is >= 3 and <= 6)
+                                                    var keyColumn4F = keyColumns.Span[keyIndex4F].column;
+                                                    if (keyColumns.Span[keyIndex4F].cellCount is >= 3 and <= 6)
                                                     {
-                                                        var keyColumnHouse4 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4);
-                                                        var keyColumnCellIndexBitSet4F = allCellIndexBitSet & keyColumnHouse4;
+                                                        var keyColumnHouse4F = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4F);
+                                                        var keyColumnCellIndexBitSet4F = allCellIndexBitSet & keyColumnHouse4F;
 #if DEBUG
                                                         System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet4F) is >= 3 and <= 6);
 #endif
-                                                        var allKeyRowsHouse =
-                                                            SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1)
-                                                            | SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2)
-                                                            | SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3)
-                                                            | SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4);
-                                                        var keyColumnCellIndexBitSet4 = keyColumnCellIndexBitSet4F & allKeyRowsHouse;
-                                                        var finCellIndexBitSet = keyColumnCellIndexBitSet4F & ~keyColumnCellIndexBitSet4;
-                                                        if ((int)UInt128.PopCount(keyColumnCellIndexBitSet4) is >= 2 and <= 4 && (int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2 && finCellIndexBitSet.ExistAllCellsInOneBlock(out var finCellsBlock))
-                                                        {
-                                                            // 1) フィンを除いて各列に 2 個以上 4 個以下の数字の候補 D を持つセルがあり、かつ
-                                                            // 2) フィンを除くそれらの全てのセルはちょうど 4 個の行に収まっており、かつ
-                                                            // 3) フィンの数は 1 以上 2 以下であり、かつ
-                                                            // 4) フィンは同一ブロックに収まっている。
-                                                            // => フィン付きジェリーフィッシュの成立
-                                                            //   ※ finCellIndexBitSet のブロックが keyRow1, keyRow2, keyRow3, keyRow4 の何れかの行と交差するかについては
-                                                            //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
-
-                                                            var result =
-                                                                MatchPatternByHouse(
-                                                                    digit,
-                                                                    allCellIndexBitSet,
-                                                                    keyColumnHouse1,
-                                                                    keyColumnHouse2,
-                                                                    keyColumnHouse3,
-                                                                    keyColumnHouse4,
-                                                                    keyColumnCellIndexBitSet1,
-                                                                    keyColumnCellIndexBitSet2,
-                                                                    keyColumnCellIndexBitSet3,
-                                                                    keyColumnCellIndexBitSet4,
-                                                                    finCellIndexBitSet,
-                                                                    finCellsBlock,
-                                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1),
-                                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
-                                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
-                                                                    SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4),
-                                                                    keyColumn1.ToHouseName(),
-                                                                    keyColumn2.ToHouseName(),
-                                                                    keyColumn3.ToHouseName(),
-                                                                    keyColumn4.ToHouseName(),
-                                                                    keyRow1.ToHouseName(),
-                                                                    keyRow2.ToHouseName(),
-                                                                    keyRow3.ToHouseName(),
-                                                                    keyRow4.ToHouseName());
-                                                            if (result is not null)
-                                                                yield return result;
-                                                        }
+                                                        var operation =
+                                                            MatchPatternByHouse(
+                                                                digit,
+                                                                allCellIndexBitSet,
+                                                                keyColumnHouse1,
+                                                                keyColumnHouse2,
+                                                                keyColumnHouse3,
+                                                                keyColumnHouse4F,
+                                                                keyColumnCellIndexBitSet1,
+                                                                keyColumnCellIndexBitSet2,
+                                                                keyColumnCellIndexBitSet3,
+                                                                keyColumnCellIndexBitSet4F,
+                                                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1),
+                                                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
+                                                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
+                                                                SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4),
+                                                                keyColumn1.ToHouseName(),
+                                                                keyColumn2.ToHouseName(),
+                                                                keyColumn3.ToHouseName(),
+                                                                keyColumn4F.ToHouseName(),
+                                                                keyRow1.ToHouseName(),
+                                                                keyRow2.ToHouseName(),
+                                                                keyRow3.ToHouseName(),
+                                                                keyRow4.ToHouseName());
+                                                        if (operation is not null)
+                                                            yield return operation;
                                                     }
                                                 }
                                             }
@@ -329,17 +292,15 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
             static SudokuBoardOperation? MatchPatternByHouse(
                 SudokuBoardCellDigit digit,
-                UInt128 cellIndexBitSet,
+                UInt128 allCellIndexBitSet,
                 UInt128 baseLineHouseBitMask1,
                 UInt128 baseLineHouseBitMask2,
                 UInt128 baseLineHouseBitMask3,
-                UInt128 baseLineHouseBitMask4,
+                UInt128 baseLineHouseBitMask4F,
                 UInt128 baseLineKeyCellIndexBitSet1,
                 UInt128 baseLineKeyCellIndexBitSet2,
                 UInt128 baseLineKeyCellIndexBitSet3,
-                UInt128 baseLineKeyCellIndexBitSet4,
-                UInt128 finCellIndexBitSet,
-                SudokuBoardCellBlock finCellsBlock,
+                UInt128 baseLineKeyCellIndexBitSet4F,
                 UInt128 coverLineHouseBitMask1,
                 UInt128 coverLineHouseBitMask2,
                 UInt128 coverLineHouseBitMask3,
@@ -353,14 +314,43 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 string coverLineHouseName3,
                 string coverLineHouseName4)
             {
-                var allExceptFinKeyCellIndexBitSet = baseLineKeyCellIndexBitSet1 | baseLineKeyCellIndexBitSet2 | baseLineKeyCellIndexBitSet3 | baseLineKeyCellIndexBitSet4;
-                var baseLineHouseBitMask = baseLineHouseBitMask1 | baseLineHouseBitMask2 | baseLineHouseBitMask3 | baseLineHouseBitMask4;
                 var coverLineHouseBitMask = coverLineHouseBitMask1 | coverLineHouseBitMask2 | coverLineHouseBitMask3 | coverLineHouseBitMask4;
+                var baseLineKeyCellIndexBitSet4 = baseLineKeyCellIndexBitSet4F & coverLineHouseBitMask;
+                var finCellIndexBitSet = baseLineKeyCellIndexBitSet4F & ~baseLineKeyCellIndexBitSet4;
+                if ((int)UInt128.PopCount(baseLineKeyCellIndexBitSet4) is < 2 or > 4 || (int)UInt128.PopCount(finCellIndexBitSet) is < 1 or > 2 || !finCellIndexBitSet.ExistAllCellsInOneBlock(out var finCellsBlock))
+                    return null;
+
+                // 1) フィンを除いて各ベースラインに 2 個以上 4 個以下の数字の候補 D を持つセルがあり、かつ
+                // 2) フィンを除くそれらの全てのセルはちょうど 4 個のカバーラインに収まっており、かつ
+                // 3) フィンの数は 1 以上 2 以下であり、かつ
+                // 4) フィンは同一ブロックに収まっている。
+                // => フィン付きジェリーフィッシュの成立
+                // ※ 各カバーラインにおいて交差点上にある数字 digit を候補に持つセルの数が 2 以上であるかどうかのチェックは以降に行っている。
+                // ※ finCellIndexBitSet のブロックが何れかのカバーラインと交差するかについては
+                //    以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
+
+                var allExceptFinKeyCellIndexBitSet = baseLineKeyCellIndexBitSet1 | baseLineKeyCellIndexBitSet2 | baseLineKeyCellIndexBitSet3 | baseLineKeyCellIndexBitSet4;
+                var coverLineKeyCellIndexBitSet1 = coverLineHouseBitMask1 & allExceptFinKeyCellIndexBitSet;
+                var coverLineKeyCellIndexBitSet2 = coverLineHouseBitMask2 & allExceptFinKeyCellIndexBitSet;
+                var coverLineKeyCellIndexBitSet3 = coverLineHouseBitMask3 & allExceptFinKeyCellIndexBitSet;
+                var coverLineKeyCellIndexBitSet4 = coverLineHouseBitMask4 & allExceptFinKeyCellIndexBitSet;
+
+                // 以下の条件が成立しない場合、フィン付きジェリーフィッシュではなくサシミジェリーフィッシュの手法を利用して解かれるべきであるので、探索を中止する。
+                // 1) 全てのカバーラインにおいて、カバーライン上の交差点上にある数字の候補が digit であるセルの数が 2 以上であること。
+                if ((int)UInt128.PopCount(coverLineKeyCellIndexBitSet1) < 2
+                    || (int)UInt128.PopCount(coverLineKeyCellIndexBitSet2) < 2
+                    || (int)UInt128.PopCount(coverLineKeyCellIndexBitSet3) < 2
+                    || (int)UInt128.PopCount(coverLineKeyCellIndexBitSet4) < 2)
+                {
+                    return null;
+                }
+
+                var baseLineHouseBitMask = baseLineHouseBitMask1 | baseLineHouseBitMask2 | baseLineHouseBitMask3 | baseLineHouseBitMask4F;
                 var excludableCellsRegionBitMask = coverLineHouseBitMask & ~baseLineHouseBitMask & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(finCellsBlock);
 #if DEBUG
                 System.Diagnostics.Debug.Assert((excludableCellsRegionBitMask & ~allExceptFinKeyCellIndexBitSet) == excludableCellsRegionBitMask, $"{nameof(excludableCellsRegionBitMask)} から {nameof(allExceptFinKeyCellIndexBitSet)} を除去する必要はない。");
 #endif
-                var excludableCellIndexBitSet = cellIndexBitSet & excludableCellsRegionBitMask;
+                var excludableCellIndexBitSet = allCellIndexBitSet & excludableCellsRegionBitMask;
                 if (excludableCellIndexBitSet == 0)
                     return null;
 
@@ -384,10 +374,10 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             baseLineKeyCellIndexBitSet4,
                             finCellIndexBitSet,
                             finCellsBlock,
-                            coverLineHouseBitMask1 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask2 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask3 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask4 & allExceptFinKeyCellIndexBitSet,
+                            coverLineKeyCellIndexBitSet1,
+                            coverLineKeyCellIndexBitSet2,
+                            coverLineKeyCellIndexBitSet3,
+                            coverLineKeyCellIndexBitSet4,
                             baseLineHouseName1,
                             baseLineHouseName2,
                             baseLineHouseName3,

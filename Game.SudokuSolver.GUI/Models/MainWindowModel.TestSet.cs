@@ -5,6 +5,7 @@ namespace Game.SudokuSolver.GUI.Models
 {
     internal partial class MainWindowModel
     {
+        // TODO: FinnedSwordfishOperation と FinnedJellyfishOperation を削除して、SashimiSwordfishOperation を FinnedSwordfishOperation に変名、SashimiJellyfishOperation を FinnedJellyfishOperation に変名する。
         private static SudokuGameBoard CreateModelForTest()
             => CreateModelForTest_SashimiJellyFish2();
 
@@ -776,6 +777,72 @@ namespace Game.SudokuSolver.GUI.Models
                     "904010875" +
                     "581970204"),
                  SudokuBoardOperationType.SashimiXWing);
+
+        #endregion
+
+        #region Finned Swordfish
+
+        private static SudokuGameBoard CreateModelForTest_FinnedSwordfish1()
+            => new(
+                CreateBoardDigits(
+                    "548090100" +
+                    "197034002" +
+                    "623081904" +
+                    "289015300" +
+                    "471020590" +
+                    "356009021" +
+                    "010000009" +
+                    "960108200" +
+                    "030900010"),
+                 SudokuBoardOperationType.FinnedSwordfish,
+                 // 9行1列のセルの数字の候補 1 を消しておかないと別の場所のフィン付きソードフィッシュが適用される
+                 "917");
+
+        private static SudokuGameBoard CreateModelForTest_FinnedSwordfish2()
+            => new(
+                CreateBoardDigits(
+                    "548090100" +
+                    "197034002" +
+                    "623081904" +
+                    "289015300" +
+                    "471020590" +
+                    "356009021" +
+                    "010000009" +
+                    "960108200" +
+                    "030900010"),
+                 SudokuBoardOperationType.FinnedSwordfish);
+
+        #endregion
+
+        #region Sashimi Swordfish
+
+        private static SudokuGameBoard CreateModelForTest_SashimiSwordfish1()
+            => new(
+                CreateBoardDigits(
+                    "768003500" +
+                    "054709603" +
+                    "039650007" +
+                    "582007064" +
+                    "496500070" +
+                    "371006850" +
+                    "905872036" +
+                    "627005008" +
+                    "803960725"),
+                 SudokuBoardOperationType.SashimiSwordfish);
+
+        private static SudokuGameBoard CreateModelForTest_SashimiSwordfish2()
+            => new(
+                CreateBoardDigits(
+                    "060000325" +
+                    "300001796" +
+                    "590030814" +
+                    "604093102" +
+                    "010002403" +
+                    "230000908" +
+                    "076300049" +
+                    "020004637" +
+                    "003000081"),
+                 SudokuBoardOperationType.SashimiSwordfish);
 
         #endregion
 

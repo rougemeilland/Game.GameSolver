@@ -43,7 +43,7 @@ namespace Game.SudokuSolver.Operations.HardClass
             //    仮に、Col1 上の Row1, Row2, Row3 との何れの交差点にあるセルにも数字 D が入らないとした場合、数字 D が入ることができるセルが足りなくなってしまう。
             //    そのため、Col1 上の Row1, Row2, Row3 との何れかの交差点にあるセルには必ず数字 D が入るので、交差点以外の全てのセルから数字の候補 D を排除できる。
             //    なお、Col2, Col3 についても同様である。
-            //     
+            //
             // ※ Row1, Row2, Row3 と Col1, Col2, Col3 の合計 9 個の交差点にあるセルには数字の候補に必ず D があるとは限らない。
             // ※上記の論拠は、行と列を言い換えても成立する。
 
@@ -241,7 +241,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 SudokuBoardCellDigit digit,
                 SudokuBoardHouseType baseLineHouseType,
                 SudokuBoardHouseType coverLineHouseType,
-                UInt128 cellIndexBitSet,
+                UInt128 allCellIndexBitSet,
                 UInt128 baseLineHouseBitMask1,
                 UInt128 baseLineHouseBitMask2,
                 UInt128 baseLineHouseBitMask3,
@@ -260,11 +260,12 @@ namespace Game.SudokuSolver.Operations.HardClass
             {
                 var allKeyCellIndexBitSet = baseLineKeyCellIndexBitSet1 | baseLineKeyCellIndexBitSet2 | baseLineKeyCellIndexBitSet3;
                 var baseLineHouseBitMask = baseLineHouseBitMask1 | baseLineHouseBitMask2 | baseLineHouseBitMask3;
-                var excludableCellsBitMask = (coverLineHouseBitMask1 | coverLineHouseBitMask2 | coverLineHouseBitMask3) & ~baseLineHouseBitMask;
+                var coverLineHouseBitMask = coverLineHouseBitMask1 | coverLineHouseBitMask2 | coverLineHouseBitMask3;
+                var excludableCellsRegionBitMask = coverLineHouseBitMask & ~baseLineHouseBitMask;
 #if DEBUG
-                System.Diagnostics.Debug.Assert((excludableCellsBitMask & ~allKeyCellIndexBitSet) == excludableCellsBitMask, $"{nameof(excludableCellsBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
+                System.Diagnostics.Debug.Assert((excludableCellsRegionBitMask & ~allKeyCellIndexBitSet) == excludableCellsRegionBitMask, $"{nameof(excludableCellsRegionBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
 #endif
-                var excludableCellIndexBitSet = cellIndexBitSet & excludableCellsBitMask;
+                var excludableCellIndexBitSet = allCellIndexBitSet & excludableCellsRegionBitMask;
                 if (excludableCellIndexBitSet == 0)
                     return null;
 
@@ -275,7 +276,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                         excludableCellIndexBitSet.EnumerateAsCellNotes(digit),
                         allKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
                             .Concat(baseLineHouseBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
-                            .Concat((excludableCellsBitMask & ~baseLineHouseBitMask).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
+                            .Concat(excludableCellsRegionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         allKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PrimaryPositivelyHighlighted),
                         GetDescriptionBuilder(
                             digit,

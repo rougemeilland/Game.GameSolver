@@ -51,7 +51,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             //   (a)と(b)のどちらが成立したとしても、以下の条件を満たすセルの数字は D ではあり得ないので、それらのセルの数字の候補から D を排除できる。
             //   排除条件1) CF の全ての要素のセルと同じブロックに存在し、かつ
             //   排除条件2) C2 と同じ列に存在するセル。
-            // 
+            //
             // ※上記の論拠は、行と列を言い換えても成立する。
             // ※フィンのセルは複数存在し得ることに注意すること。
             //   ただしサシミ X-Wing として有効なフィンの数は 1 個以上 2 個以下である。
@@ -147,13 +147,13 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                     for (var keyIndex3F = 0; keyIndex3F < keyRows.Length; ++keyIndex3F)
                     {
-                        if (keyRows.Span[keyIndex3F].cellCount is 2 or 3)
+                        if (keyRows.Span[keyIndex3F].cellCount is >= 2 and <= 3)
                         {
                             var row3F = keyRows.Span[keyIndex3F].row;
                             var rowHouseMask3F = SudokuBoardCellGeometry.GetRowCellIndexBitSet(row3F);
                             var keyCellIndexBitSet3F = allCellIndexBitSet & rowHouseMask3F;
 #if DEBUG
-                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet3F) is 2 or 3);
+                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet3F) is >= 2 and <= 3);
 #endif
 
                             // row12 とば別の行 row3F に数字の候補 digit を持つセルは 2 個または 3 個存在する。
@@ -169,7 +169,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
                                 var finCellIndexBitSet = keyCellIndexBitSet3F & ~keyCellIndex3BitSet;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2);
+                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= 1 and <= 2);
 #endif
                                 var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet3F;
 
@@ -193,9 +193,9 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             allCellIndexBitSet,
                                             allKeyCellIndexBitSet,
                                             rowHouseMask12,
+                                            rowHouseMask3F,
                                             columnHouseMask13,
                                             columnHouseMask2,
-                                            rowHouseMask3F,
                                             keyCellIndex1,
                                             keyCellIndex2,
                                             keyCellIndex3,
@@ -263,13 +263,13 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                     for (var keyIndex3F = 0; keyIndex3F < keyColumns.Length; ++keyIndex3F)
                     {
-                        if (keyColumns.Span[keyIndex3F].cellCount is 2 or 3)
+                        if (keyColumns.Span[keyIndex3F].cellCount is >= 2 and <= 3)
                         {
                             var column3F = keyColumns.Span[keyIndex3F].column;
                             var columnHouseMask3F = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column3F);
                             var keyCellIndexBitSet3F = allCellIndexBitSet & columnHouseMask3F;
 #if DEBUG
-                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet3F) is 2 or 3);
+                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyCellIndexBitSet3F) is >= 2 and <= 3);
 #endif
 
                             // column12 とば別の列 column3F に数字の候補 digit を持つセルは 3 個存在する。
@@ -284,7 +284,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 var keyCellIndex3 = keyCellIndex3BitSet.AsSingleCellIndex();
                                 var finCellIndexBitSet = keyCellIndexBitSet3F & ~keyCellIndex3BitSet;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is 1 or 2);
+                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= 1 and <= 2);
 #endif
                                 var allKeyCellIndexBitSet = keyCellIndexBitSet12 | keyCellIndexBitSet3F;
 
@@ -308,9 +308,9 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             allCellIndexBitSet,
                                             allKeyCellIndexBitSet,
                                             columnHouseMask12,
+                                            columnHouseMask3F,
                                             rowHouseMask13,
                                             rowHouseMask2,
-                                            columnHouseMask3F,
                                             keyCellIndex1,
                                             keyCellIndex2,
                                             keyCellIndex3,
@@ -334,9 +334,9 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 UInt128 allCellIndexBitSet,
                 UInt128 allKeyCellIndexBitSet,
                 UInt128 baseLineHouseMask12,
-                UInt128 baseLineHouseMask13,
+                UInt128 baseLineHouseMask3F,
+                UInt128 coverLineHouseMask13,
                 UInt128 coverLineHouseMask2,
-                UInt128 coverLineHouseMask3F,
                 SudokuBoardCellIndex keyCellIndex1,
                 SudokuBoardCellIndex keyCellIndex2,
                 SudokuBoardCellIndex keyCellIndex3,
@@ -353,7 +353,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 // 2) keyCellIndex2 と 何れかのハウスを共有しており、かつ
                 // 3) finCellIndexBitSet の全てのセルと何れかのハウスを共有しており、かつ
                 // 4) keyCellIndex1, keyCellIndex2. keyCellIndex3, keyCellIndex4, finCellIndexBitSet の何れでもないセル。
-                var excludableCellRegionBitMask = coverLineHouseMask2 & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(finCellsBlock) & ~allKeyCellIndexBitSet;
+                var excludableCellRegionBitMask = (coverLineHouseMask13 | coverLineHouseMask2) &~(baseLineHouseMask12 | baseLineHouseMask3F) & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(finCellsBlock) & ~allKeyCellIndexBitSet;
 #if DEBUG
                 System.Diagnostics.Debug.Assert((excludableCellRegionBitMask & ~allKeyCellIndexBitSet) == excludableCellRegionBitMask, $"{nameof(excludableCellRegionBitMask)} から {nameof(allKeyCellIndexBitSet)} を除去する必要はない。");
 #endif
@@ -367,8 +367,8 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     new SashimiXWingOperation(
                         excludableCellIndexBitSet.EnumerateAsCellNotes(digit),
                         (allKeyCellIndexBitSet & ~finCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
-                            .Concat(((baseLineHouseMask12 | coverLineHouseMask3F) & ~finCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
-                            .Concat((baseLineHouseMask13 | coverLineHouseMask2).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
+                            .Concat(((baseLineHouseMask12 | baseLineHouseMask3F) & ~finCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
+                            .Concat((coverLineHouseMask13 | coverLineHouseMask2).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType3))
                             .Concat(finCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType1AndType2))
                             .Concat(excludableCellRegionBitMask.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.NegativelyHighlighted)),
                         (allKeyCellIndexBitSet & ~finCellIndexBitSet).EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PositivelyHilightedType1)

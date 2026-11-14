@@ -441,5 +441,43 @@ namespace Game.SudokuSolver
 #endif
             return _columnRowBlockByCellIndex[cellIndex - SudokuBoardCellIndex.FirstValue];
         }
+
+        /// <summary>
+        /// 指定されたセルの列に存在し得るフィンのセルの位置の集合とそのブロックの配列を取得します。
+        /// </summary>
+        /// <param name="column">
+        /// セルの列を示す <see cref="SudokuBoardCellColumn"/> 値です。
+        /// </param>
+        /// <returns>
+        /// フィンのセルの位置の集合を示す <see cref="UInt128"/> 値とフィンが存在するブロックを示す <see cref="SudokuBoardCellBlock"/> 値のタプルの配列を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static ReadOnlyMemory<(UInt128 finCellIndexBitMask, SudokuBoardCellBlock finBlock)> GetFinCellPatterns(SudokuBoardCellColumn column)
+        {
+#if DEBUG
+            if (column is < SudokuBoardCellColumn.MinValue or > SudokuBoardCellColumn.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(column));
+#endif
+            return _finColumnHouseMaskByColumn[column - SudokuBoardCellColumn.One];
+        }
+
+        /// <summary>
+        /// 指定されたセルの行に存在し得るフィンのセルの位置の集合とそのブロックの配列を取得します。
+        /// </summary>
+        /// <param name="row">
+        /// セルの行を示す <see cref="SudokuBoardCellRow"/> 値です。
+        /// </param>
+        /// <returns>
+        /// フィンのセルの位置の集合を示す <see cref="UInt128"/> 値とフィンが存在するブロックを示す <see cref="SudokuBoardCellBlock"/> 値のタプルの配列を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static ReadOnlyMemory<(UInt128 finCellIndexBitMask, SudokuBoardCellBlock finBlock)> GetFinCellPatterns(SudokuBoardCellRow row)
+        {
+#if DEBUG
+            if (row is < SudokuBoardCellRow.MinValue or > SudokuBoardCellRow.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(row));
+#endif
+            return _finColumnHouseMaskByRow[row - SudokuBoardCellRow.One];
+        }
     }
 }

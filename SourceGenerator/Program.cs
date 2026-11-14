@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using System.Xml.Schema;
 
 namespace SourceGenerator
@@ -345,6 +346,8 @@ namespace SourceGenerator
                     }
                     #endregion
 
+                    sourceWriter.WriteLine();
+
                     #region _cellIndexesByColumn
                     {
                         sourceWriter.WriteLine("        /// <summary>");
@@ -454,6 +457,68 @@ namespace SourceGenerator
                             .ToArray();
                         for (var index1 = 0; index1 < 9; ++index1)
                             sourceWriter.WriteLine($"            {string.Join(", ", Enumerable.Range(0, 9).Select(index2 => $"(SudokuBoardCellColumn.One + {source[index1 * 9 + index2].column}, SudokuBoardCellRow.One + {source[index1 * 9 + index2].row}, SudokuBoardCellBlock.FirstValue + {source[index1 * 9 + index2].block})"))},");
+                        sourceWriter.WriteLine("        ];");
+                    }
+                    #endregion
+
+                    sourceWriter.WriteLine();
+
+                    #region _finColumnHouseMaskByColumn
+                    {
+                        sourceWriter.WriteLine("        /// <summary>");
+                        sourceWriter.WriteLine("        /// 列ハウス毎の全てのフィンの組み合わせに対する、フィンのマスクとフィンが存在するブロックのタプルテーブル。最初の添え字は列、2番目の添え字は 0 以上 18 未満の整数。");
+                        sourceWriter.WriteLine("        /// </summary>");
+                        sourceWriter.WriteLine("        private static readonly (UInt128 finCellIndexBitMask, SudokuBoardCellBlock finBlock)[][] _finColumnHouseMaskByColumn =");
+                        sourceWriter.WriteLine("        [");
+                        var source =
+                            EnumerateDetailOfCellGeometry()
+                            .Select(item => (item.column, finCellIndexBitMask: UInt128.One << item.cellIndex, finBlock: item.block))
+                            .Concat(
+                                EnumerateDetailOfCellGeometry()
+                                .SelectMany(item1 => EnumerateDetailOfCellGeometry().Where(item2 => item1.column == item2.column && item1.row < item2.row && item1.block == item2.block), (item1, item2) => (item1.column, finCellIndexBitMask: (UInt128.One << item1.cellIndex) | (UInt128.One << item2.cellIndex), finBlock: item1.block)))
+                            .GroupBy(item => item.column)
+                            .Select(g => (column: g.Key, array: g.Select(item => (item.finCellIndexBitMask, item.finBlock)).OrderBy(item => item.finCellIndexBitMask).ToArray()))
+                            .OrderBy(item => item.column)
+                            .ToArray();
+                        for (var index = 0; index < source.Length; ++index)
+                        {
+                            var elements = source[index].array;
+                            sourceWriter.WriteLine($"            [{string.Join(", ", elements.Select(element => $"({FormatUInt128Constant(element.finCellIndexBitMask)}, SudokuBoardCellBlock.FirstValue + {element.finBlock})"))}],");
+                        }
+
+                        sourceWriter.WriteLine("        ];");
+                    }
+                    #endregion
+
+                    sourceWriter.WriteLine();
+
+                    #region _finColumnHouseMaskByRow
+                    {
+                        sourceWriter.WriteLine("        /// <summary>");
+                        sourceWriter.WriteLine("        /// 行ハウス毎の全てのフィンの組み合わせに対する、フィンのマスクとフィンが存在するブロックのタプルテーブル。最初の添え字は行、2番目の添え字は 0 以上 18 未満の整数。");
+                        sourceWriter.WriteLine("        /// </summary>");
+                        sourceWriter.WriteLine("        private static readonly (UInt128 finCellIndexBitMask, SudokuBoardCellBlock finBlock)[][] _finColumnHouseMaskByRow =");
+                        sourceWriter.WriteLine("        [");
+                        var source =
+                            EnumerateDetailOfCellGeometry()
+                            .Select(item => (item.row, finCellIndexBitMask: UInt128.One << item.cellIndex, finBlock: item.block))
+                            .Concat(
+                                EnumerateDetailOfCellGeometry()
+                                .SelectMany(item1 => EnumerateDetailOfCellGeometry().Where(item2 => item1.row == item2.row && item1.column < item2.column && item1.block == item2.block), (item1, item2) => (item1.row, finCellIndexBitMask: (UInt128.One << item1.cellIndex) | (UInt128.One << item2.cellIndex), finBlock: item1.block)))
+                            .GroupBy(item => item.row)
+                            .Select(g => (row: g.Key, array: g.Select(item => (item.finCellIndexBitMask, item.finBlock)).OrderBy(item => item.finCellIndexBitMask).ToArray()))
+                            .OrderBy(item => item.row)
+                            .ToArray();
+                        if (source.Length != 9)
+                            throw new ApplicationException();
+                        for (var index = 0; index < source.Length; ++index)
+                        {
+                            var elements = source[index].array;
+                            if (elements.Length != 18)
+                                throw new ApplicationException();
+                            sourceWriter.WriteLine($"            [{string.Join(", ", elements.Select(element => $"({FormatUInt128Constant(element.finCellIndexBitMask)}, SudokuBoardCellBlock.FirstValue + {element.finBlock})"))}],");
+                        }
+
                         sourceWriter.WriteLine("        ];");
                     }
                     #endregion
@@ -679,7 +744,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"        /// 排除可能なセルの数字の候補を示す <see cref=\"SudokuBoardCellPositionDigit\"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)");
                     sourceWriter.WriteLine($"        /// </param>");
                     sourceWriter.WriteLine($"        /// <returns>");
-                    sourceWriter.WriteLine($"        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref=\"SueDeCoqOperation\"/> オブジェクトを返します。そうではない場合は <see langword=\"null\"/> を返します。 ");
+                    sourceWriter.WriteLine($"        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref=\"SueDeCoqOperation\"/> オブジェクトを返します。そうではない場合は <see langword=\"null\"/> を返します。");
                     sourceWriter.WriteLine($"        /// </returns>");
                     sourceWriter.WriteLine($"        /// <remarks>");
                     sourceWriter.WriteLine($"        /// <para>");

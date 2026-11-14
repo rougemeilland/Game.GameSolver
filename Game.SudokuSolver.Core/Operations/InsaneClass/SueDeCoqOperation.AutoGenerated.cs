@@ -36,7 +36,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>
@@ -288,7 +288,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>
@@ -546,7 +546,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>
@@ -810,7 +810,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>
@@ -1080,7 +1080,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>
@@ -1356,7 +1356,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// 排除可能なセルの数字の候補を示す <see cref="SudokuBoardCellPositionDigit"/> 値を格納する作業用の配列です。配列のサイズは 135 以上でなければなりません。135 はラインハウスとブロックハウスに属するセルの数字の候補の数の最大値です。(15 * 9 == 135)
         /// </param>
         /// <returns>
-        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。 
+        /// スー・デ・コックの適用が可能である場合は適用結果を示す <see cref="SueDeCoqOperation"/> オブジェクトを返します。そうではない場合は <see langword="null"/> を返します。
         /// </returns>
         /// <remarks>
         /// <para>

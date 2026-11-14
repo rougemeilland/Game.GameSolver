@@ -116,7 +116,7 @@
         /// <summary>
         /// Sashimi Swordfish
         /// </summary>
-        SashimiSwordfish,
+        SashimiSwordfish = FinnedSwordfish,
 
         /// <summary>
         /// Finned Jellyfish
@@ -126,7 +126,7 @@
         /// <summary>
         /// Sashimi Jellyfish
         /// </summary>
-        SashimiJellyfish,
+        SashimiJellyfish = FinnedJellyfish,
 
         #endregion
 
