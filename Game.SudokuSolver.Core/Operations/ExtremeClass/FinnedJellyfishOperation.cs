@@ -198,6 +198,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                     //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
 
                                                                     var (keyColumn1, keyColumn2, keyColumn3, keyColumn4) = keyColumnBitSet.SplitAsQuadCellColulmns();
+                                                                    var allExceptFinKeyCellIndexBitSet = keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3 | keyRowCellIndexBitSet4;
                                                                     var result =
                                                                         MatchPatternByHouse(
                                                                             digit,
@@ -218,7 +219,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2),
                                                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3),
                                                                             SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn4),
-                                                                            keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3 | keyRowCellIndexBitSet4,
+                                                                            allExceptFinKeyCellIndexBitSet,
                                                                             keyRow1.ToHouseName(),
                                                                             keyRow2.ToHouseName(),
                                                                             keyRow3.ToHouseName(),
@@ -227,7 +228,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                             keyColumn2.ToHouseName(),
                                                                             keyColumn3.ToHouseName(),
                                                                             keyColumn4.ToHouseName(),
-                                                                            new SashimiFishDegeneratableByRow(keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3 | keyRowCellIndexBitSet4));
+                                                                            new SashimiFishDegeneratableByRow(allExceptFinKeyCellIndexBitSet));
                                                                     if (result is not null)
                                                                         yield return result;
                                                                 }
@@ -332,6 +333,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                     //   以降の排除対象のセルの数字の候補が存在するかどうかのチェックで同時に行うので、ここでは省略している。
 
                                                                     var (keyRow1, keyRow2, keyRow3, keyRow4) = keyColumnBitSet.SplitAsQuadCellRows();
+                                                                    var allExceptFinKeyCellIndexBitSet = keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3 | keyColumnCellIndexBitSet4;
                                                                     var result =
                                                                         MatchPatternByHouse(
                                                                             digit,
@@ -352,7 +354,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2),
                                                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3),
                                                                             SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow4),
-                                                                            keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3 | keyColumnCellIndexBitSet4,
+                                                                            allExceptFinKeyCellIndexBitSet,
                                                                             keyColumn1.ToHouseName(),
                                                                             keyColumn2.ToHouseName(),
                                                                             keyColumn3.ToHouseName(),
@@ -361,7 +363,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                                             keyRow2.ToHouseName(),
                                                                             keyRow3.ToHouseName(),
                                                                             keyRow4.ToHouseName(),
-                                                                            new SashimiFishDegeneratableByColumn(keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3 | keyColumnCellIndexBitSet4));
+                                                                            new SashimiFishDegeneratableByColumn(allExceptFinKeyCellIndexBitSet));
                                                                     if (result is not null)
                                                                         yield return result;
                                                                 }
@@ -421,24 +423,34 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                 // 排除対象の数字の候補が存在する
 
+                // baseLineKeyCellIndexBitSet1, baseLineKeyCellIndexBitSet2, baseLineKeyCellIndexBitSet3 の各々の要素数は 2 以上であるはずである。
 #if DEBUG
-                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet1) > 1);
-                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet2) > 1);
-                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet3) > 1);
+                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet1) >= 2);
+                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet2) >= 2);
+                System.Diagnostics.Debug.Assert(UInt128.PopCount(baseLineKeyCellIndexBitSet3) >= 2);
 #endif
-                var isDegeneratable =
-                    UInt128.PopCount(allExceptFinKeyCellIndexBitSet & coverLineHouseBitMask1) <= 1
-                    || UInt128.PopCount(allExceptFinKeyCellIndexBitSet & coverLineHouseBitMask2) <= 1
-                    || UInt128.PopCount(allExceptFinKeyCellIndexBitSet & coverLineHouseBitMask3) <= 1
-                    || UInt128.PopCount(allExceptFinKeyCellIndexBitSet & coverLineHouseBitMask4) <= 1
-                    // || UInt128.PopCount(baseLineKeyCellIndexBitSet1) <= 1 // 自明的に不成立
-                    // || UInt128.PopCount(baseLineKeyCellIndexBitSet2) <= 1 // 自明的に不成立
-                    // || UInt128.PopCount(baseLineKeyCellIndexBitSet3) <= 1 // 自明的に不成立
-                    || UInt128.PopCount(baseLineKeyCellIndexBitSet4) <= 1;
-
+                const bool __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ = false; // 成立し得ない条件を抑制する定数
+                var oneOfIsolatedCellLineHouse =
+                    __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && UInt128.PopCount(baseLineKeyCellIndexBitSet1) < 2
+                    ? FishLineHouseType.BaseLine1
+                    : __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && UInt128.PopCount(baseLineKeyCellIndexBitSet2) < 2
+                    ? FishLineHouseType.BaseLine2
+                    : __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && UInt128.PopCount(baseLineKeyCellIndexBitSet3) < 2
+                    ? FishLineHouseType.BaseLine3
+                    : UInt128.PopCount(baseLineKeyCellIndexBitSet4) < 2
+                    ? FishLineHouseType.BaseLine4
+                    : UInt128.PopCount(coverLineHouseBitMask1 & allExceptFinKeyCellIndexBitSet) < 2
+                    ? FishLineHouseType.CoverLine1
+                    : UInt128.PopCount(coverLineHouseBitMask2 & allExceptFinKeyCellIndexBitSet) < 2
+                    ? FishLineHouseType.CoverLine2
+                    : UInt128.PopCount(coverLineHouseBitMask3 & allExceptFinKeyCellIndexBitSet) < 2
+                    ? FishLineHouseType.CoverLine3
+                    : UInt128.PopCount(coverLineHouseBitMask4 & allExceptFinKeyCellIndexBitSet) < 2
+                    ? FishLineHouseType.CoverLine4
+                    : FishLineHouseType.None;
                 return
                     new FinnedJellyfishOperation(
-                        isDegeneratable,
+                        oneOfIsolatedCellLineHouse != FishLineHouseType.None,
                         excludableCellIndexBitSet.EnumerateAsCellNotes(digit),
                         allExceptFinKeyCellIndexBitSet.EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType1)
                             .Concat((baseLineHouseBitMask & ~finCellIndexBitSet).EnumerateAsCellBackgroundEffects(SudokuBoardCellBackgroundEffect.PositivelyHighlightedType2))
@@ -448,20 +460,11 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         allExceptFinKeyCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PositivelyHilightedType1)
                             .Concat(finCellIndexBitSet.EnumerateAsCellNotes(digit).ToCellNoteEffects(SudokuBoardCellNoteEffect.PositivelyHilightedType2)),
                         GetDescriptionBuilder(
-                            isDegeneratable,
                             digit,
                             baseLineHouseType,
                             coverLineHouseType,
-                            baseLineKeyCellIndexBitSet1,
-                            baseLineKeyCellIndexBitSet2,
-                            baseLineKeyCellIndexBitSet3,
-                            baseLineKeyCellIndexBitSet4,
                             finCellIndexBitSet,
                             finCellsBlock,
-                            coverLineHouseBitMask1 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask2 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask3 & allExceptFinKeyCellIndexBitSet,
-                            coverLineHouseBitMask4 & allExceptFinKeyCellIndexBitSet,
                             baseLineHouseName1,
                             baseLineHouseName2,
                             baseLineHouseName3,
@@ -470,23 +473,15 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             coverLineHouseName2,
                             coverLineHouseName3,
                             coverLineHouseName4,
+                            oneOfIsolatedCellLineHouse,
                             sashimi));
 
                 static Func<string> GetDescriptionBuilder(
-                    bool isDegeneratable,
                     SudokuBoardCellDigit digit,
                     SudokuBoardHouseType baseLineHouseType,
                     SudokuBoardHouseType coverLineHouseType,
-                    UInt128 baseLineKeyCellIndexBitSet1,
-                    UInt128 baseLineKeyCellIndexBitSet2,
-                    UInt128 baseLineKeyCellIndexBitSet3,
-                    UInt128 baseLineKeyCellIndexBitSet4,
                     UInt128 finCellIndexBitSet,
                     SudokuBoardCellBlock finCellsBlock,
-                    UInt128 coverLineKeyCellIndexBitSet1,
-                    UInt128 coverLineKeyCellIndexBitSet2,
-                    UInt128 coverLineKeyCellIndexBitSet3,
-                    UInt128 coverLineKeyCellIndexBitSet4,
                     string baseLineHouseName1,
                     string baseLineHouseName2,
                     string baseLineHouseName3,
@@ -495,6 +490,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                     string coverLineHouseName2,
                     string coverLineHouseName3,
                     string coverLineHouseName4,
+                    FishLineHouseType oneOfIsolatedCellLineHouse,
                     SashimiFishDegeneratable sashimi)
                 {
                     return
@@ -519,178 +515,42 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                             var coverLineHouseNamesText = $"{coverLineHouseName1}, {coverLineHouseName2}, {coverLineHouseName3}, {coverLineHouseName4}";
                             var finCellPositionsText = string.Join(", ", finCellIndexBitSet.EnumerateAsCellPositionTexts());
                             var finBlockHouseName = finCellsBlock.ToHouseName();
-                            if (isDegeneratable)
-                            {
-                                // フィッシュが退化可能である場合 (サシミジェリーフィッシュ)
-
-                                var (degenerationMessages, undegeneratedBaseLineHouseNames, undegeneratedCoverLineHouseNames, determinedCellIndexBitSet) =
-                                    sashimi.Degenerate(
-                                        (baseHouseName, effectedHouseName, cellPositionText)
-                                            => $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
-                                                $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。",
-                                        (coverHouseName, effectedHouseName, cellPositionText)
-                                            => $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
-                                                $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。");
 #if DEBUG
-                                System.Diagnostics.Debug.Assert(undegeneratedBaseLineHouseNames.Length == undegeneratedCoverLineHouseNames.Length);
-#pragma warning disable IDE0047 // 不要なかっこの削除 (ソースコードの可読性を重視するために抑制)
-                                System.Diagnostics.Debug.Assert((determinedCellIndexBitSet != UInt128.Zero) == (degenerationMessages.Length > 0));
-#pragma warning restore IDE0047 // 不要なかっこの削除 (ソースコードの可読性を重視するために抑制)
-
-                                // サシミフィッシュは退化可能であることが前提なので、以下も成立する。
-                                System.Diagnostics.Debug.Assert(determinedCellIndexBitSet != UInt128.Zero);
-                                System.Diagnostics.Debug.Assert(degenerationMessages.Length > 0);
+                            System.Diagnostics.Debug.Assert(oneOfIsolatedCellLineHouse is not FishLineHouseType.BaseLine1 and not FishLineHouseType.BaseLine2 and not FishLineHouseType.BaseLine3);
 #endif
-                                var undegeneratedBaseLineHouseNamesText = string.Join(", ", undegeneratedBaseLineHouseNames.AsEnumerable());
-                                var undegeneratedCoverLineHouseNamesText = string.Join(", ", undegeneratedCoverLineHouseNames.AsEnumerable());
-                                var degenerationTextLines = degenerationMessages.AsEnumerable();
-                                if (undegeneratedBaseLineHouseNames.Length > 0)
+                            var (isolatedCellHouseName, effectecdByIsolatedCellHouseNamesText) =
+                                oneOfIsolatedCellLineHouse switch
                                 {
-                                    var lastFishName =
-                                        undegeneratedBaseLineHouseNames.Length switch
-                                        {
-                                            2 => "X-ウィング",
-                                            3 => "ソードフィッシュ",
-                                            _ => throw new ApplicationException(),
-
-                                        };
-                                    degenerationTextLines =
-                                        degenerationTextLines
-                                        .Append(
-                                            $"残った {undegeneratedBaseLineHouseNamesText} と {undegeneratedCoverLineHouseNamesText} で{lastFishName}が成立するので、{undegeneratedCoverLineHouseNamesText} の各{coverLineHouseTypeName}の {undegeneratedBaseLineHouseNamesText} を除くマスには {digitText} は入り得ません。");
-                                }
-
-                                var degenerationText =
-                                    string.Join(
-                                        "\n",
-                                        degenerationTextLines
-                                        .Zip(Enumerable.Range(1, int.MaxValue - 1), (message, n) => $"  {n}) {message}"));
-                                if (!UInt128.IsPow2(finCellIndexBitSet))
-                                {
-                                    // フィンのセルが複数存在する場合
-                                    return
-                                        $"数字 {digitText} に着目します。\n" +
-                                        $"以下の条件が全て成立するため、サシミジェリーフィッシュが成立しています。\n" +
-                                        $"1) {baseLineHouseName4F}にあるフィンと呼ばれる一部のマス ({finCellPositionsText}) を除いて {baseLineHouseNamesText} の数字の候補 {digitText} を含むマスは {coverLineHouseNamesText} の何れかとの交差点にのみに存在する。\n" +
-                                        $"2) {(
-                                            UInt128.PopCount(coverLineKeyCellIndexBitSet1) <= 1
-                                            ? $"{coverLineHouseName1}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet2) <= 1
-                                            ? $"{coverLineHouseName2}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet3) <= 1
-                                            ? $"{coverLineHouseName3}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet4) <= 1
-                                            ? $"{coverLineHouseName4}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            // : UInt128.PopCount(baseLineKeyCellIndexBitSet1) <= 1 // 自明的に不成立
-                                            // ? $"{baseLineHouseName1}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            // : UInt128.PopCount(baseLineKeyCellIndexBitSet2) <= 1 // 自明的に不成立
-                                            // ? $"{baseLineHouseName2}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(baseLineKeyCellIndexBitSet3) <= 1 // 自明的に不成立
-                                            ? $"{baseLineHouseName3}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(baseLineKeyCellIndexBitSet4) <= 1
-                                            ? $"{baseLineHouseName4F}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : throw new ApplicationException()
-                                        )}\n" +
-                                        $"3) 全てのフィンが{finBlockHouseName}に収まっている。\n" +
-                                        $"\n" +
-                                        $"ここで、何れかのフィンのマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
-                                        $"\n" +
-                                        $"a) もし、何れかのフィンのマスの数字が {digitText} である場合、" +
-                                        $"全てのフィンのマスとハウスを共有するフィン以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"b) もし (a) ではない場合、つまり何れのフィンのマスの数字も {digitText} ではない場合、以下のことが言えます。\n" +
-                                        $"{degenerationText}\n" +
-                                        $"結局 {coverLineHouseNamesText} の各{coverLineHouseTypeName}で {baseLineHouseNamesText} 以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                        $"1) {coverLineHouseNamesText} の各{coverLineHouseTypeName}の {baseLineHouseNamesText} 以外のマスであり、かつ\n" +
-                                        $"2) 全てのフィンのマス ({finCellPositionsText}) と同じブロック ({finBlockHouseName}) に存在するマス。";
-                                }
-                                else
-                                {
-                                    // フィンのセルが一つだけ存在する場合
-                                    return
-                                        $"数字 {digitText} に着目します。\n" + $"以下の条件が全て成立するため、サシミジェリーフィッシュが成立しています。\n" +
-                                        $"1) {baseLineHouseName4F}にあるフィンと呼ばれる一部のマス ({finCellPositionsText}) を除いて {baseLineHouseNamesText} の数字の候補 {digitText} を含むマスは {coverLineHouseNamesText} の何れかとの交差点にのみに存在する。\n" +
-                                        $"2) {(
-                                            UInt128.PopCount(baseLineKeyCellIndexBitSet1) <= 1
-                                            ? $"{baseLineHouseName1}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(baseLineKeyCellIndexBitSet2) <= 1
-                                            ? $"{baseLineHouseName2}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(baseLineKeyCellIndexBitSet3) <= 1
-                                            ? $"{baseLineHouseName3}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(baseLineKeyCellIndexBitSet4) <= 1
-                                            ? $"{baseLineHouseName4F}の {coverLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet1) <= 1
-                                            ? $"{coverLineHouseName1}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet2) <= 1
-                                            ? $"{coverLineHouseName2}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet3) <= 1
-                                            ? $"{coverLineHouseName3}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : UInt128.PopCount(coverLineKeyCellIndexBitSet4) <= 1
-                                            ? $"{coverLineHouseName4}の {baseLineHouseNamesText} との交差点にある数字の候補 {digitText} を持つマスは 1 個だけである。"
-                                            : throw new ApplicationException()
-                                        )}\n" +
-                                        $"\n" +
-                                        $"ここで、フィンのマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
-                                        $"\n" +
-                                        $"a) もし、フィンのマスの数字が {digitText} である場合、" +
-                                        $"フィンのマスとハウスを共有するフィン以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"b) もし (a) ではない場合、つまりフィンのマスの数字が {digitText} ではない場合、以下のことが言えます。\n" +
-                                        $"{degenerationText}\n" +
-                                        $"結局 {coverLineHouseNamesText} の各{coverLineHouseTypeName}で {baseLineHouseNamesText} 以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                        $"1) {coverLineHouseNamesText} の各{coverLineHouseTypeName}の {baseLineHouseNamesText} 以外のマスであり、かつ\n" +
-                                        $"2) フィンのマス ({finCellPositionsText}) と同じブロック ({finBlockHouseName}) に存在するマス。";
-                                }
-                            }
-                            else
-                            {
-                                // フィッシュが退化可能ではない場合 (フィン付きジェリーフィッシュ)
-
-                                if (!UInt128.IsPow2(finCellIndexBitSet))
-                                {
-                                    // フィンのセルが複数存在する場合
-                                    return
-                                        $"数字 {digitText} に着目します。\n" +
-                                        $"以下の条件が全て成立するため、フィン付きジェリーフィッシュが成立しています。\n" +
-                                        $"1) {baseLineHouseName4F}にあるフィンと呼ばれる一部のマス ({finCellPositionsText}) を除いて {baseLineHouseNamesText} の数字の候補 {digitText} を含むマスは {coverLineHouseNamesText} の何れかとの交差点にのみに存在する。\n" +
-                                        $"2) 全てのフィンが{finBlockHouseName}に収まっている。\n" +
-                                        $"\n" +
-                                        $"a) もし、何れかのフィンのマスの数字が {digitText} である場合、" +
-                                        $"全てのフィンのマスとハウスを共有するフィン以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"b) もし (a) ではない場合、つまり何れのフィンのマスの数字も {digitText} ではない場合、" +
-                                        $"ジェリーフィッシュが成立するので {baseLineHouseNamesText} を除く {coverLineHouseNamesText} のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                        $"1) {baseLineHouseNamesText} を除く {coverLineHouseNamesText} の何れかに存在し、かつ\n" +
-                                        $"2) 全てのフィンのマス ({finCellPositionsText}) と同じブロック ({finBlockHouseName}) に存在するマス。";
-                                }
-                                else
-                                {
-                                    // フィンのセルが一つだけ存在する場合
-                                    return
-                                        $"数字 {digitText} に着目します。\n" +
-                                        $"{baseLineHouseName4F}にあるフィンと呼ばれる一部のマス ({finCellPositionsText}) を除いて {baseLineHouseNamesText} の数字の候補 {digitText} を含むマスは {coverLineHouseNamesText} の何れかとの交差点にのみに存在するため、" +
-                                        $"フィン付きジェリーフィッシュが成立しています。\n" +
-                                        $"\n" +
-                                        $"ここで、フィンのマスの数字が {digitText} かどうかの仮定をしてみます。\n" +
-                                        $"\n" +
-                                        $"a) もし、フィンのマスの数字が {digitText} である場合、" +
-                                        $"フィンのマスとハウスを共有するフィン以外のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"b) もし (a) ではない場合、つまりフィンのマスの数字が {digitText} ではない場合、" +
-                                        $"ジェリーフィッシュが成立するので、" +
-                                        $"{baseLineHouseNamesText} を除く {coverLineHouseNamesText} のマスには {digitText} は入り得ません。\n" +
-                                        $"\n" +
-                                        $"(a) と (b) のどちらが成立したとしても、少なくとも以下の条件を満たすマスには {digitText} は入り得ないので、それらのマスの数字の候補から {digitText} を排除します。\n" +
-                                        $"1) {baseLineHouseNamesText} を除く {coverLineHouseNamesText} の何れかに存在し、かつ\n" +
-                                        $"2) フィンのマス ({finCellPositionsText}) と同じブロック ({finBlockHouseName}) に存在するマス。";
-                                }
-                            }
+#if false // 成立し得ない条件なので省略する
+                                    FishLineHouseType.BaseLine1 => (baseLineHouseName1, coverLineHouseNamesText),
+                                    FishLineHouseType.BaseLine2 => (baseLineHouseName2, coverLineHouseNamesText),
+                                    FishLineHouseType.BaseLine3 => (baseLineHouseName3, coverLineHouseNamesText),
+#endif
+                                    FishLineHouseType.BaseLine4 => (baseLineHouseName4F, coverLineHouseNamesText),
+                                    FishLineHouseType.CoverLine1 => (coverLineHouseName1, baseLineHouseNamesText),
+                                    FishLineHouseType.CoverLine2 => (coverLineHouseName2, baseLineHouseNamesText),
+                                    FishLineHouseType.CoverLine3 => (coverLineHouseName3, baseLineHouseNamesText),
+                                    FishLineHouseType.CoverLine4 => (coverLineHouseName4, baseLineHouseNamesText),
+                                    _ => (string.Empty, string.Empty),
+                                };
+                            return
+                                FishHelper.FinnedFishDescriptionBuilder(
+                                    digitText,
+                                    baseLineHouseTypeName,
+                                    coverLineHouseTypeName,
+                                    baseLineHouseNamesText,
+                                    coverLineHouseNamesText,
+                                    finCellIndexBitSet,
+                                    baseLineHouseName4F,
+                                    finCellPositionsText,
+                                    finBlockHouseName,
+                                    "ジェリーフィッシュ",
+                                    "フィン付きジェリーフィッシュ",
+                                    "サシミジェリーフィッシュ",
+                                    oneOfIsolatedCellLineHouse != FishLineHouseType.None,
+                                    sashimi,
+                                    isolatedCellHouseName,
+                                    effectecdByIsolatedCellHouseNamesText);
                         };
                 }
             }
