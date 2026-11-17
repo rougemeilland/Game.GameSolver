@@ -52,7 +52,14 @@ namespace Game.SudokuSolver.Operations
                         _baseLineBitSet,
                         _coverLineBitSet,
                         _determinedCellIndexBitSet,
-                        (row, effectedColumn, cellIndex) => baseLineCellDeterminedMessageFormatter(row.ToHouseName(), effectedColumn.ToHouseName(), cellIndex.ToFriendlyString()));
+                        (isFirstDegeneration, columnBitSet, rowBitSet, row, effectedColumn, cellIndex)
+                            => baseLineCellDeterminedMessageFormatter(
+                                isFirstDegeneration,
+                                columnBitSet.EnumerateAsCellColumnTexts().ToArray(),
+                                rowBitSet.EnumerateAsCellRowTexts().ToArray(),
+                                row.ToHouseName(),
+                                effectedColumn.ToHouseName(),
+                                cellIndex.ToFriendlyString()));
                 if (result is not null)
                 {
 #if DEBUG
@@ -76,7 +83,14 @@ namespace Game.SudokuSolver.Operations
                         _coverLineBitSet,
                         _baseLineBitSet,
                         _determinedCellIndexBitSet,
-                        (column, effectedRow, cellIndex) => coverLineLineCellDeterminedMessageFormatter(column.ToHouseName(), effectedRow.ToHouseName(), cellIndex.ToFriendlyString()));
+                        (isFirstDegeneration, rowBitSet, columnBitSet, column, effectedRow, cellIndex)
+                            => coverLineLineCellDeterminedMessageFormatter(
+                                isFirstDegeneration,
+                                columnBitSet.EnumerateAsCellColumnTexts().ToArray(),
+                                rowBitSet.EnumerateAsCellRowTexts().ToArray(),
+                                column.ToHouseName(),
+                                effectedRow.ToHouseName(),
+                                cellIndex.ToFriendlyString()));
                 if (result is not null)
                 {
 #if DEBUG

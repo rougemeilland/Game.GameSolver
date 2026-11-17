@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_SashimiJellyFish2();
+            => CreateModelForTest_SashimiSwordfish2();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -683,7 +683,9 @@ namespace Game.SudokuSolver.GUI.Models
                     "002300070" +
                     "367920000" +
                     "000007392"),
-                 SudokuBoardOperationType.Jellyfish);
+                 SudokuBoardOperationType.Jellyfish,
+                 // いくつかのセルの数字の候補から 6 を消しておかないとジェリーフィッシュが適用されるのがかなり後の手順になる
+                 "146;156;256;586;756");
 
         private static SudokuGameBoard CreateModelForTest_Jellyfish2()
             => new(

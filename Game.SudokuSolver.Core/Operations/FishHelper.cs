@@ -108,12 +108,66 @@ namespace Game.SudokuSolver.Operations
 
                 var (degenerationMessages, undegeneratedBaseLineHouseNames, undegeneratedCoverLineHouseNames, determinedCellIndexBitSet) =
                     sashimi.Degenerate(
-                        (baseHouseName, effectedHouseName, cellPositionText)
-                            => $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
-                                $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。",
-                        (coverHouseName, effectedHouseName, cellPositionText)
-                            => $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
-                                $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。");
+                        (isFirstDegeneration, baseLineHouseNames, coverLineHouseNames, baseHouseName, effectedCoverHouseName, cellPositionText) =>
+                        {
+#if DEBUG
+                            System.Diagnostics.Debug.Assert(baseLineHouseNames.Length > 0);
+                            System.Diagnostics.Debug.Assert(coverLineHouseNames.Length > 0);
+                            System.Diagnostics.Debug.Assert(baseLineHouseNames.Length == coverLineHouseNames.Length);
+#endif
+                            if (isFirstDegeneration)
+                            {
+                                return
+                                    $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                            else if (baseLineHouseNames.Length > 1)
+                            {
+                                var baseLineHouseNamesText = string.Join(", ", baseLineHouseNames.AsEnumerable());
+                                var coverLineHouseNamesText = string.Join(", ", coverLineHouseNames.AsEnumerable());
+                                return
+                                    $"残った {baseLineHouseNamesText} と {coverLineHouseNamesText} のうち、" +
+                                    $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                            else
+                            {
+                                return
+                                    $"残った{cellPositionText}のマスには {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                        },
+                        (isFirstDegeneration, baseLineHouseNames, coverLineHouseNames, coverHouseName, effectedBaseHouseName, cellPositionText) =>
+                        {
+#if DEBUG
+                            System.Diagnostics.Debug.Assert(baseLineHouseNames.Length > 0);
+                            System.Diagnostics.Debug.Assert(coverLineHouseNames.Length > 0);
+                            System.Diagnostics.Debug.Assert(baseLineHouseNames.Length == coverLineHouseNames.Length);
+#endif
+                            if (isFirstDegeneration)
+                            {
+                                return
+                                    $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{coverHouseName}と{effectedBaseHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                            else if (coverLineHouseNames.Length > 1)
+                            {
+                                var baseLineHouseNamesText = string.Join(", ", baseLineHouseNames.AsEnumerable());
+                                var coverLineHouseNamesText = string.Join(", ", coverLineHouseNames.AsEnumerable());
+                                return
+                                    $"残った {baseLineHouseNamesText} と {coverLineHouseNamesText} のうち、" +
+                                    $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{coverHouseName}と{effectedBaseHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                            else
+                            {
+                                // このコードには事実上到達し得ない。
+                                // 理由は、ベースラインが先に評価されるため、単独のセルしか残っていない場合はカバーラインでは評価されないから。
+                                return
+                                    $"残った{cellPositionText}のマスには {digitText} が入ります。" +
+                                    $"したがって、{cellPositionText}以外の{coverHouseName}のマスに {digitText} は入り得ません。";
+                            }
+                        });
 #if DEBUG
                 System.Diagnostics.Debug.Assert(undegeneratedBaseLineHouseNames.Length == undegeneratedCoverLineHouseNames.Length);
 #pragma warning disable IDE0047 // 不要なかっこの削除 (ソースコードの可読性を重視するために抑制)

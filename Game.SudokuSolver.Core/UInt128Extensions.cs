@@ -457,10 +457,13 @@ namespace Game.SudokuSolver
         /// <returns>
         /// <paramref name="columnsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellColumn column, int cellCount)> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> columnsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellColumn column, int cellCount)> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> columnsBuffer, int minCount = 0, int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(columnsBuffer.Length >= 9);
+            System.Diagnostics.Debug.Assert(minCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(maxCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(minCount <= maxCount);
 #endif
             var destinationBuffer = columnsBuffer.Span;
             var length = 0;
@@ -492,10 +495,13 @@ namespace Game.SudokuSolver
         /// <returns>
         /// <paramref name="rowsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellRow row, int cellCount)> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> rowsBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellRow row, int cellCount)> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> rowsBuffer, int minCount = 0, int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(rowsBuffer.Length >= 9);
+            System.Diagnostics.Debug.Assert(minCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(maxCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(minCount <= maxCount);
 #endif
             var destinationBuffer = rowsBuffer.Span;
             var length = 0;
@@ -527,10 +533,13 @@ namespace Game.SudokuSolver
         /// <returns>
         /// <paramref name="blocksBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellBlock block, int cellCount)> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellBlock block, int cellCount)> blocksBuffer, [ConstantExpected(Min = 0, Max = 9)] int minCount = 0, [ConstantExpected(Min = 0, Max = 9)] int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellBlock block, int cellCount)> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellBlock block, int cellCount)> blocksBuffer, int minCount = 0, int maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(blocksBuffer.Length >= 9);
+            System.Diagnostics.Debug.Assert(minCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(maxCount is >= 0 and <= 9);
+            System.Diagnostics.Debug.Assert(minCount <= maxCount);
 #endif
             var destinationBuffer = blocksBuffer.Span;
             var length = 0;

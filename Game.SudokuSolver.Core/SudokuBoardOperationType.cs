@@ -106,7 +106,7 @@
         /// <summary>
         /// Sashimi X-Wing
         /// </summary>
-        SashimiXWing,
+        SashimiXWing = FinnedXWing,
 
         /// <summary>
         /// Finned Swordfish

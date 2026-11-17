@@ -14,6 +14,15 @@ namespace Game.SudokuSolver.Operations
         /// <summary>
         /// フィッシュの退化によりハウス内のセルの位置が確定したことを示すよう書式化された文字列を返すデリゲートです。
         /// </summary>
+        /// <param name="isFirstDegeneration">
+        /// 最初の退化であるかどうかを示す <see cref="bool"/> 値です。最初の退化である場合は <see langword="true"/>、そうではない場合は <see langword="true"/> です。
+        /// </param>
+        /// <param name="undegeneratedBaseLineHouseNames">
+        /// まだ退化せずに残っているベースラインのハウス名を示す <see cref="string"/> の配列です。
+        /// </param>
+        /// <param name="undegeneratedCoverLineHouseNames">
+        /// まだ退化せずに残っているカバーラインのハウス名を示す <see cref="string"/> の配列です。
+        /// </param>
         /// <param name="houseName">
         /// 確定の根拠となったハウスの名前を示す <see cref="string"/> オブジェクトです。
         /// </param>
@@ -26,7 +35,7 @@ namespace Game.SudokuSolver.Operations
         /// <returns>
         /// フィッシュの退化によりハウス内のセルの位置が確定したことを示すよう書式化された文字列である <see cref="string"/> オブジェクトを返します。
         /// </returns>
-        public delegate string CellDeterminedMessageFormatter(string houseName, string effectedHouseName, string cellPositionText);
+        public delegate string CellDeterminedMessageFormatter(bool isFirstDegeneration, ReadOnlyMemory<string> undegeneratedBaseLineHouseNames, ReadOnlyMemory<string> undegeneratedCoverLineHouseNames, string houseName, string effectedHouseName, string cellPositionText);
 
         static SashimiFishDegeneratable()
         {
@@ -87,6 +96,15 @@ namespace Game.SudokuSolver.Operations
         /// <summary>
         /// 列ハウスで検出された退化の内容を書式化するデリゲートです。
         /// </summary>
+        /// <param name="isFirstDegeneration">
+        /// 最初の退化であるかどうかを示す <see cref="bool"/> 値です。最初の退化である場合は <see langword="true"/>、そうではない場合は <see langword="true"/> です。
+        /// </param>
+        /// <param name="columnBitSet">
+        /// また退化せずに残っている列のビット集合を示す <see cref="SudokuBoardCellColumnBitSet"/> 値です。
+        /// </param>
+        /// <param name="rowBitSet">
+        /// また退化せずに残っている行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </param>
         /// <param name="column">
         /// 退化を検出した列を示す <see cref="SudokuBoardCellColumn"/> 値です。
         /// </param>
@@ -99,11 +117,26 @@ namespace Game.SudokuSolver.Operations
         /// <returns>
         /// 列ハウスで検出された退化の内容が書式化された文字列である <see cref="string"/> を返します。
         /// </returns>
-        protected delegate string ColumnDeterminedCellMessageFormatter(SudokuBoardCellColumn column, SudokuBoardCellRow effectedRow, SudokuBoardCellIndex cellIndex);
+        protected delegate string ColumnDeterminedCellMessageFormatter(
+            bool isFirstDegeneration,
+            SudokuBoardCellColumnBitSet columnBitSet,
+            SudokuBoardCellRowBitSet rowBitSet,
+            SudokuBoardCellColumn column,
+            SudokuBoardCellRow effectedRow,
+            SudokuBoardCellIndex cellIndex);
 
         /// <summary>
         /// 行ハウスで検出された退化の内容を書式化するデリゲートです。
         /// </summary>
+        /// <param name="isFirstDegeneration">
+        /// 最初の退化であるかどうかを示す <see cref="bool"/> 値です。最初の退化である場合は <see langword="true"/>、そうではない場合は <see langword="true"/> です。
+        /// </param>
+        /// <param name="rowBitSet">
+        /// また退化せずに残っている行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
+        /// </param>
+        /// <param name="columnBitSet">
+        /// また退化せずに残っている列のビット集合を示す <see cref="SudokuBoardCellColumnBitSet"/> 値です。
+        /// </param>
         /// <param name="row">
         /// 退化を検出した行を示す <see cref="SudokuBoardCellRow"/> 値です。
         /// </param>
@@ -116,7 +149,13 @@ namespace Game.SudokuSolver.Operations
         /// <returns>
         /// 列ハウスで検出された退化の内容が書式化された文字列である <see cref="string"/> を返します。
         /// </returns>
-        protected delegate string RowDeterminedCellMessageFormatter(SudokuBoardCellRow row, SudokuBoardCellColumn effectedColumn, SudokuBoardCellIndex cellIndex);
+        protected delegate string RowDeterminedCellMessageFormatter(
+            bool isFirstDegeneration,
+            SudokuBoardCellRowBitSet rowBitSet,
+            SudokuBoardCellColumnBitSet columnBitSet,
+            SudokuBoardCellRow row,
+            SudokuBoardCellColumn effectedColumn,
+            SudokuBoardCellIndex cellIndex);
 
         /// <summary>
         /// フィッシュの退化を一段階だけ進めようと試みます。
@@ -196,12 +235,19 @@ namespace Game.SudokuSolver.Operations
             if (!ExistSingleBitColumn(keyCellIndexBitSet, columnBitSet, out var singleBitColumn, out var singleBitColumnCellIndex))
                 return null;
             var singleBitRow = SudokuBoardCellGeometry.GetRow(singleBitColumnCellIndex);
+            var message = columnDeterminedCellMessageFormatter(
+                determinedCellIndexBitSet == 0,
+                columnBitSet,
+                rowBitSet,
+                singleBitColumn,
+                singleBitRow,
+                singleBitColumnCellIndex);
             columnBitSet &= ~singleBitColumn.ToCellColumnBitSet();
             rowBitSet &= ~singleBitRow.ToCellRowBitSet();
             keyCellIndexBitSet &= ~SudokuBoardCellGeometry.GetColumnCellIndexBitSet(singleBitColumn);
             keyCellIndexBitSet &= ~SudokuBoardCellGeometry.GetRowCellIndexBitSet(singleBitRow);
             determinedCellIndexBitSet |= singleBitColumnCellIndex.ToCellIndexBitSet();
-            return (keyCellIndexBitSet, columnBitSet, rowBitSet, determinedCellIndexBitSet, columnDeterminedCellMessageFormatter(singleBitColumn, singleBitRow, singleBitColumnCellIndex));
+            return (keyCellIndexBitSet, columnBitSet, rowBitSet, determinedCellIndexBitSet, message);
         }
 
         /// <summary>
@@ -240,12 +286,20 @@ namespace Game.SudokuSolver.Operations
             if (!ExistSingleBitRow(keyCellIndexBitSet, rowBitSet, out var singleBitRow, out var singleBitRowCellIndex))
                 return null;
             var singleBitColumn = SudokuBoardCellGeometry.GetColumn(singleBitRowCellIndex);
+            var messasge =
+                rowDeterminedCellMessageFormatter(
+                    determinedCellIndexBitSet == 0,
+                    rowBitSet,
+                    columnBitSet,
+                    singleBitRow,
+                    singleBitColumn,
+                    singleBitRowCellIndex);
             columnBitSet &= ~singleBitColumn.ToCellColumnBitSet();
             rowBitSet &= ~singleBitRow.ToCellRowBitSet();
             keyCellIndexBitSet &= ~SudokuBoardCellGeometry.GetColumnCellIndexBitSet(singleBitColumn);
             keyCellIndexBitSet &= ~SudokuBoardCellGeometry.GetRowCellIndexBitSet(singleBitRow);
             determinedCellIndexBitSet |= singleBitRowCellIndex.ToCellIndexBitSet();
-            return (keyCellIndexBitSet, rowBitSet, columnBitSet, determinedCellIndexBitSet, rowDeterminedCellMessageFormatter(singleBitRow, singleBitColumn, singleBitRowCellIndex));
+            return (keyCellIndexBitSet, rowBitSet, columnBitSet, determinedCellIndexBitSet, messasge);
         }
 
         private static bool ExistSingleBitColumn(UInt128 keyCellIndexBitSet, SudokuBoardCellColumnBitSet columnBitSet, out SudokuBoardCellColumn singleBitColumn, out SudokuBoardCellIndex singleBitColumnCellIndex)
@@ -298,7 +352,7 @@ namespace Game.SudokuSolver.Operations
             return false;
         }
 
-#if DEBUG && __DO_SELF_TEST
+#if __DO_SELF_TEST
         private static void SelfTest()
         {
             {
@@ -726,14 +780,68 @@ namespace Game.SudokuSolver.Operations
         }
 
         private static CellDeterminedMessageFormatter BaseLineFormatter(string digitText)
-            => (baseHouseName, effectedHouseName, cellPositionText)
-                => $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
-                    $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。";
+            => (isFirstDegeneration, baseLineHouseNames, coverLineHouseNames, baseHouseName, effectedCoverHouseName, cellPositionText)
+                =>
+                {
+#if DEBUG
+                    System.Diagnostics.Debug.Assert(baseLineHouseNames.Length > 0);
+                    System.Diagnostics.Debug.Assert(coverLineHouseNames.Length > 0);
+                    System.Diagnostics.Debug.Assert(baseLineHouseNames.Length == coverLineHouseNames.Length);
+#endif
+                    if (isFirstDegeneration)
+                    {
+                        return
+                            $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
+                            $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                    }
+                    else if (baseLineHouseNames.Length > 1)
+                    {
+                        var baseLineHouseNamesText = string.Join(", ", baseLineHouseNames.AsEnumerable());
+                        var coverLineHouseNamesText = string.Join(", ", coverLineHouseNames.AsEnumerable());
+                        return
+                            $"残った {baseLineHouseNamesText} と {coverLineHouseNamesText} のうち、" +
+                            $"{baseHouseName}で {digitText} が入り得るマスは{cellPositionText}だけなので{cellPositionText}に {digitText} が入ります。" +
+                            $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                    }
+                    else
+                    {
+                        return
+                            $"残った{cellPositionText}のマスには {digitText} が入ります。" +
+                            $"したがって、{cellPositionText}以外の{effectedCoverHouseName}のマスに {digitText} は入り得ません。";
+                    }
+                };
 
         private static CellDeterminedMessageFormatter CoverLineFormatter(string digitText, string coverLineHouseTypeName)
-            => (coverHouseName, effectedHouseName, cellPositionText)
-                => $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
-                    $"したがって、{effectedHouseName}の{cellPositionText}以外のマスに {digitText} は入り得ません。";
+            => (isFirstDegeneration, baseLineHouseNames, coverLineHouseNames, coverHouseName, effectedBaseHouseName, cellPositionText)
+            =>
+            {
+#if DEBUG
+                System.Diagnostics.Debug.Assert(baseLineHouseNames.Length > 0);
+                System.Diagnostics.Debug.Assert(coverLineHouseNames.Length > 0);
+                System.Diagnostics.Debug.Assert(baseLineHouseNames.Length == coverLineHouseNames.Length);
+#endif
+                if (isFirstDegeneration)
+                {
+                    return
+                        $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
+                        $"したがって、{cellPositionText}以外の{coverHouseName}と{effectedBaseHouseName}のマスに {digitText} は入り得ません。";
+                }
+                else if (coverLineHouseNames.Length > 1)
+                {
+                    var baseLineHouseNamesText = string.Join(", ", baseLineHouseNames.AsEnumerable());
+                    var coverLineHouseNamesText = string.Join(", ", coverLineHouseNames.AsEnumerable());
+                    return
+                        $"残った {baseLineHouseNamesText} と {coverLineHouseNamesText} のうち、" +
+                        $"{cellPositionText}に {digitText} が入らないと仮定すると{coverHouseName}以外の{coverLineHouseTypeName}で {digitText} が入り得るマスが足りなくなるので{cellPositionText}には {digitText} が入ります。" +
+                        $"したがって、{cellPositionText}以外の{coverHouseName}と{effectedBaseHouseName}のマスに {digitText} は入り得ません。";
+                }
+                else
+                {
+                    return
+                        $"残った{cellPositionText}のマスには {digitText} が入ります。" +
+                        $"したがって、{cellPositionText}以外の{coverHouseName}のマスに {digitText} は入り得ません。";
+                }
+            };
 #endif
     }
 }
