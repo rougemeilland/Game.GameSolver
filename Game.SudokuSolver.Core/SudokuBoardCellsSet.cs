@@ -9,7 +9,7 @@ namespace Game.SudokuSolver
     /// </summary>
     internal sealed partial class SudokuBoardCellsSet
     {
-        private const int _CELL_COUNT = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
+        private const ushort _CELL_COUNT = SudokuBoardCellIndex.MaxValue - SudokuBoardCellIndex.MinValue + 1;
         private const ushort _IS_DETERMINED = 1 << 9;
         private const ushort _ALL_NOTE_BIT_MASK = (1 << 9) - 1;
         private const ushort _ALL_BIT_MASK = _IS_DETERMINED | _ALL_NOTE_BIT_MASK;

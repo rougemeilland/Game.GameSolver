@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_SashimiSwordfish2();
+            => CreateModelForTest_Skyscraper3();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -910,6 +910,52 @@ namespace Game.SudokuSolver.GUI.Models
                  SudokuBoardOperationType.SashimiJellyfish,
                  // 別の定石で 6行3列 の数字の候補 6 をあらかじめ消しておかないとサシミジェリーフィッシュが適用されない。
                  "636");
+
+        #endregion
+
+        #region Skyscraper
+
+        private static SudokuGameBoard CreateModelForTest_Skyscraper1()
+            => new(
+                CreateBoardDigits(
+                    "871932564" +
+                    "369005002" +
+                    "452860309" +
+                    "910328600" +
+                    "236050098" +
+                    "580609230" +
+                    "693200000" +
+                    "745183926" +
+                    "128596003"),
+                 SudokuBoardOperationType.Skyscraper);
+
+        private static SudokuGameBoard CreateModelForTest_Skyscraper2()
+            => new(
+                CreateBoardDigits(
+                    "039608105" +
+                    "105309608" +
+                    "068512390" +
+                    "806195030" +
+                    "510837960" +
+                    "397426851" +
+                    "083951006" +
+                    "971264583" +
+                    "650783019"),
+                 SudokuBoardOperationType.Skyscraper);
+
+        private static SudokuGameBoard CreateModelForTest_Skyscraper3()
+            => new(
+                CreateBoardDigits(
+                    "002359400" +
+                    "009468702" +
+                    "408000009" +
+                    "520843970" +
+                    "080090045" +
+                    "904506200" +
+                    "643125897" +
+                    "895637124" +
+                    "200984003"),
+                 SudokuBoardOperationType.Skyscraper);
 
         #endregion
 

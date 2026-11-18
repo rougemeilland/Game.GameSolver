@@ -44,10 +44,10 @@ namespace Game.SudokuSolver
         /// セルの行のビット集合を示す <see cref="SudokuBoardCellRowBitSet"/> 値です。
         /// </param>
         /// <returns>
-        /// ビット集合に含まれる要素の数を示す <see cref="int"/> 値を返します。
+        /// ビット集合に含まれる要素の数を示す <see cref="ushort"/> 値を返します。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int GetPopCount(this SudokuBoardCellRowBitSet cellRowBitSet)
+        internal static ushort GetPopCount(this SudokuBoardCellRowBitSet cellRowBitSet)
         {
             var value = (ushort)cellRowBitSet;
 #if DEBUG
@@ -97,7 +97,7 @@ namespace Game.SudokuSolver
         public static SudokuBoardCellRow AsSingleCellRow(this SudokuBoardCellRowBitSet cellColumnBitSet)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(cellColumnBitSet != 0 && cellColumnBitSet.GetPopCount() == 1);
+            System.Diagnostics.Debug.Assert(cellColumnBitSet != 0 && cellColumnBitSet.IsSingleBit());
 #endif
 
             var cellRow = cellColumnBitSet.GetOneCellRow();

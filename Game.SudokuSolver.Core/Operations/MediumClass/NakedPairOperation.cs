@@ -96,7 +96,7 @@ namespace Game.SudokuSolver.Operations.MediumClass
                 var houseNoteMask = ~ws.DeterminedCellBitSet & houseMask;
 
                 // ハウス内の未確定セルの数が 3 未満の場合、二国同盟が成立しないかあるいは仮に成立したとしても数字の候補を排除可能な他の未確定セルが存在しないため、検索を中断する
-                if (UInt128.PopCount(houseNoteMask) < 3)
+                if (houseNoteMask.GetPopCount() < 3u)
                     yield break;
 
                 // 二国同盟の可能性があるセルを抽出する

@@ -31,8 +31,8 @@ namespace Game.SudokuSolver.Operations
             _determinedCellIndexBitSet = UInt128.Zero;
 #if DEBUG
             System.Diagnostics.Debug.Assert(_keyCellIndexBitSet != 0);
-            System.Diagnostics.Debug.Assert(_baseLineBitSet.GetPopCount() > 0);
-            System.Diagnostics.Debug.Assert(_coverLineBitSet.GetPopCount() > 0);
+            System.Diagnostics.Debug.Assert(_baseLineBitSet != 0);
+            System.Diagnostics.Debug.Assert(_coverLineBitSet != 0);
             System.Diagnostics.Debug.Assert(_baseLineBitSet.GetPopCount() == _coverLineBitSet.GetPopCount());
 #endif
         }

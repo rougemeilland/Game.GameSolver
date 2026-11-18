@@ -98,7 +98,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             {
                                                 // 指定されたハウスにおいて、keyCellDigitD が何れかのセルの数字の候補に存在する
                                                 var keyCellIndexBitSet = keyCellIndexBitSetA | keyCellIndexBitSetB | keyCellIndexBitSetC | keyCellIndexBitSetD;
-                                                if (UInt128.PopCount(keyCellIndexBitSet) == 4)
+                                                if (keyCellIndexBitSet.GetPopCount() == 4u)
                                                 {
                                                     // あるハウスにおいて、ある四つの数字が四つのセルのみの候補に存在する
                                                     // => 隠れ四国同盟が成立している

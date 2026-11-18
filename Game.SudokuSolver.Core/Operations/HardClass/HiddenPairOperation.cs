@@ -86,7 +86,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                             {
                                 // 指定されたハウスにおいて、keyCellDigitB が何れかのセルの数字の候補に存在する
                                 var keyCellIndexBitSet = keyCellIndexBitSetA | keyCellIndexBitSetB;
-                                if (UInt128.PopCount(keyCellIndexBitSet) == 2)
+                                if (keyCellIndexBitSet.GetPopCount() == 2u)
                                 {
                                     // あるハウスにおいて、ある二つの数字が二つのセルのみの候補に存在する
                                     // => 隠れ二国同盟が成立している

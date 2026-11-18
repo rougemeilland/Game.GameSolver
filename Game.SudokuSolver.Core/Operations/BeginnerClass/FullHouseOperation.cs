@@ -67,7 +67,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
             static FullHouseOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, string houseName, UInt128 houseMask)
             {
                 var determinedCellBitSetByHouse = ws.DeterminedCellBitSet & houseMask;
-                if (UInt128.PopCount(determinedCellBitSetByHouse) != 8)
+                if (determinedCellBitSetByHouse.GetPopCount() != 8u)
                     return null;
                 var undeterminedCellIndex = (~determinedCellBitSetByHouse & houseMask).AsSingleCellIndex();
                 var foundCellDigit = FindMissingCellDigit(ws, determinedCellBitSetByHouse);
@@ -90,7 +90,7 @@ namespace Game.SudokuSolver.Operations.BeginnerClass
                 static SudokuBoardCellDigit FindMissingCellDigit(SudokuBoardWorkspace ws, UInt128 determinedCellBitSetByHouse)
                 {
 #if DEBUG
-                    System.Diagnostics.Debug.Assert(UInt128.PopCount(determinedCellBitSetByHouse) == 8);
+                    System.Diagnostics.Debug.Assert(determinedCellBitSetByHouse.GetPopCount() == 8u);
 #endif
                     var undeterminedCellDigitBitSet = SudokuBoardCellDigitBitSet.AllCellDigits;
                     while (determinedCellBitSetByHouse != 0)

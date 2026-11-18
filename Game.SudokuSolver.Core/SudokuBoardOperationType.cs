@@ -70,6 +70,11 @@
         NakedQuad,
 
         /// <summary>
+        /// Skyscraper
+        /// </summary>
+        Skyscraper,
+
+        /// <summary>
         /// Swordfish
         /// </summary>
         Swordfish,

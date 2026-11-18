@@ -314,7 +314,7 @@ namespace Game.SudokuSolver.Operations
 #if DEBUG
                 System.Diagnostics.Debug.Assert(cellBitSet != 0);
 #endif
-                if (UInt128.IsPow2(cellBitSet))
+                if (cellBitSet.IsSingleBit())
                 {
                     singleBitColumnCellIndex = cellBitSet.AsSingleCellIndex();
                     return true;
@@ -339,7 +339,7 @@ namespace Game.SudokuSolver.Operations
 #if DEBUG
                 System.Diagnostics.Debug.Assert(cellBitSet != 0);
 #endif
-                if (UInt128.IsPow2(cellBitSet))
+                if (cellBitSet.IsSingleBit())
                 {
                     singleBitRowCellIndex = cellBitSet.AsSingleCellIndex();
                     return true;

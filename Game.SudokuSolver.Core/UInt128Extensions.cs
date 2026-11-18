@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Game.SudokuSolver
@@ -38,15 +37,44 @@ namespace Game.SudokuSolver
         private static readonly UInt128 _block8BitMask = SudokuBoardCellGeometry.GetBlockCellIndexBitSet(SudokuBoardCellBlock.FirstValue + 8);
 
         /// <summary>
+        /// 与えられた整数をセルの位置のビット集合とみなし、ビット集合の要素が一つだけであるかどうかを調べます。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <returns>
+        /// ビット集合の要素が一つだけであるならば <see langword="true"/>、そうではないなら <see langword="false"/> を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsSingleBit(this UInt128 cellIndexBitSet)
+            => UInt128.IsPow2(cellIndexBitSet);
+
+        /// <summary>
+        /// 与えられた整数をセルの位置のビット集合とみなし、ビット集合の要素の数を取得します。
+        /// </summary>
+        /// <param name="cellIndexBitSet">
+        /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
+        /// </param>
+        /// <returns>
+        /// ビット集合に含まれる要素の数を示す <see cref="ushort"/> 値を返します。
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ushort GetPopCount(this UInt128 cellIndexBitSet)
+        {
+            var value = UInt128.PopCount(cellIndexBitSet);
+#if DEBUG
+            checked
+#endif
+            {
+                return (ushort)value;
+            }
+        }
+
+        /// <summary>
         /// 与えられた整数をセルの位置のビット集合とみなし、そのうちのひとつのセルの位置を取得します。
         /// </summary>
         /// <param name="cellIndexBitSet">
-        /// <para>
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
-        /// </para>
-        /// <para>
-        /// <paramref name="cellIndexBitSet"/> は 1 のビットを 3 個だけ含んでいなければなりません。
-        /// </para>
         /// </param>
         /// <returns>
         /// セルの位置を示す <see cref="SudokuBoardCellIndex"/> 値を返します。
@@ -80,7 +108,7 @@ namespace Game.SudokuSolver
         public static SudokuBoardCellIndex AsSingleCellIndex(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && UInt128.PopCount(cellIndexBitSet) == 1);
+            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && cellIndexBitSet.IsSingleBit());
 #endif
 
             var cellIndex = cellIndexBitSet.GetOneCellIndex();
@@ -109,7 +137,7 @@ namespace Game.SudokuSolver
         public static (SudokuBoardCellIndex firstCellIndex, SudokuBoardCellIndex secondCellIndex) SplitAsPairCellIndexes(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && UInt128.PopCount(cellIndexBitSet) == 2);
+            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && cellIndexBitSet.GetPopCount() == 2u);
 #endif
 
             var cellIndex1 = cellIndexBitSet.GetOneCellIndex();
@@ -140,7 +168,7 @@ namespace Game.SudokuSolver
         public static (SudokuBoardCellIndex firstCellIndex, SudokuBoardCellIndex secondCellIndex, SudokuBoardCellIndex thirdCellIndex) SplitAsTripleCellIndexes(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && UInt128.PopCount(cellIndexBitSet) == 3);
+            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && cellIndexBitSet.GetPopCount() == 3u);
 #endif
 
             var cellIndex1 = cellIndexBitSet.GetOneCellIndex();
@@ -173,7 +201,7 @@ namespace Game.SudokuSolver
         public static (SudokuBoardCellIndex firstCellIndex, SudokuBoardCellIndex secondCellIndex, SudokuBoardCellIndex thirdCellIndex, SudokuBoardCellIndex fourthCellIndex) SplitAsQuadCellIndexes(this UInt128 cellIndexBitSet)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && UInt128.PopCount(cellIndexBitSet) == 4);
+            System.Diagnostics.Debug.Assert(cellIndexBitSet != 0 && cellIndexBitSet.GetPopCount() == 4u);
 #endif
 
             var cellIndex1 = cellIndexBitSet.GetOneCellIndex();
@@ -446,18 +474,18 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="columnsBuffer">
-        /// 列を示す <see cref="SudokuBoardCellColumn"/> 値と列のセル数を示す <see cref="int"/>のタプルの格納先です。
+        /// 列を示す <see cref="SudokuBoardCellColumn"/> 値と列のセル数を示す <see cref="ushort"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
-        /// 抽出条件のうち、列に含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
+        /// 抽出条件のうち、列に含まれるセル数の最小値を示す <see cref="ushort"/> 値です。既定値は 0 です。
         /// </param>
         /// <param name="maxCount">
-        /// 抽出条件のうち、列に含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
+        /// 抽出条件のうち、列に含まれるセル数の最大値を示す <see cref="ushort"/> 値です。既定値は 9 です。
         /// </param>
         /// <returns>
         /// <paramref name="columnsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellColumn column, int cellCount)> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> columnsBuffer, int minCount = 0, int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellColumn column, ushort cellCount)> ExtractColumnsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellColumn column, ushort cellCount)> columnsBuffer, ushort minCount = 0, ushort maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(columnsBuffer.Length >= 9);
@@ -469,7 +497,7 @@ namespace Game.SudokuSolver
             var length = 0;
             for (var column = SudokuBoardCellColumn.MinValue; column <= SudokuBoardCellColumn.MaxValue; ++column)
             {
-                var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column));
+                var cellCount = (cellIndexBitSet & SudokuBoardCellGeometry.GetColumnCellIndexBitSet(column)).GetPopCount();
                 if (cellCount >= minCount && cellCount <= maxCount)
                     destinationBuffer[length++] = (column, cellCount);
             }
@@ -484,18 +512,18 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="rowsBuffer">
-        /// 行を示す <see cref="SudokuBoardCellRow"/> 値と行のセル数を示す <see cref="int"/>のタプルの格納先です。
+        /// 行を示す <see cref="SudokuBoardCellRow"/> 値と行のセル数を示す <see cref="ushort"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
-        /// 抽出条件のうち、行に含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
+        /// 抽出条件のうち、行に含まれるセル数の最小値を示す <see cref="ushort"/> 値です。既定値は 0 です。
         /// </param>
         /// <param name="maxCount">
-        /// 抽出条件のうち、行に含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
+        /// 抽出条件のうち、行に含まれるセル数の最大値を示す <see cref="ushort"/> 値です。既定値は 9 です。
         /// </param>
         /// <returns>
         /// <paramref name="rowsBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellRow row, int cellCount)> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> rowsBuffer, int minCount = 0, int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellRow row, ushort cellCount)> ExtractRowsByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellRow row, ushort cellCount)> rowsBuffer, ushort minCount = 0, ushort maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(rowsBuffer.Length >= 9);
@@ -507,7 +535,7 @@ namespace Game.SudokuSolver
             var length = 0;
             for (var row = SudokuBoardCellRow.MinValue; row <= SudokuBoardCellRow.MaxValue; ++row)
             {
-                var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetRowCellIndexBitSet(row));
+                var cellCount = (cellIndexBitSet & SudokuBoardCellGeometry.GetRowCellIndexBitSet(row)).GetPopCount();
                 if (cellCount >= minCount && cellCount <= maxCount)
                     destinationBuffer[length++] = (row, cellCount);
             }
@@ -522,18 +550,18 @@ namespace Game.SudokuSolver
         /// セルの位置のビット集合を示す <see cref="UInt128"/> 値です。
         /// </param>
         /// <param name="blocksBuffer">
-        /// ブロックを示す <see cref="SudokuBoardCellBlock"/> 値とブロックのセル数を示す <see cref="int"/>のタプルの格納先です。
+        /// ブロックを示す <see cref="SudokuBoardCellBlock"/> 値とブロックのセル数を示す <see cref="ushort"/>のタプルの格納先です。
         /// </param>
         /// <param name="minCount">
-        /// 抽出条件のうち、ブロックに含まれるセル数の最小値を示す <see cref="int"/> 値です。既定値は 0 です。
+        /// 抽出条件のうち、ブロックに含まれるセル数の最小値を示す <see cref="ushort"/> 値です。既定値は 0 です。
         /// </param>
         /// <param name="maxCount">
-        /// 抽出条件のうち、ブロックに含まれるセル数の最大値を示す <see cref="int"/> 値です。既定値は 9 です。
+        /// 抽出条件のうち、ブロックに含まれるセル数の最大値を示す <see cref="ushort"/> 値です。既定値は 9 です。
         /// </param>
         /// <returns>
         /// <paramref name="blocksBuffer"/> に格納された実際の要素の範囲を示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        public static ReadOnlyMemory<(SudokuBoardCellBlock block, int cellCount)> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellBlock block, int cellCount)> blocksBuffer, int minCount = 0, int maxCount = 9)
+        public static ReadOnlyMemory<(SudokuBoardCellBlock block, ushort cellCount)> ExtractBlocksByCellCount(this UInt128 cellIndexBitSet, Memory<(SudokuBoardCellBlock block, ushort cellCount)> blocksBuffer, ushort minCount = 0, ushort maxCount = 9)
         {
 #if DEBUG
             System.Diagnostics.Debug.Assert(blocksBuffer.Length >= 9);
@@ -545,7 +573,7 @@ namespace Game.SudokuSolver
             var length = 0;
             for (var block = SudokuBoardCellBlock.MinValue; block <= SudokuBoardCellBlock.MaxValue; ++block)
             {
-                var cellCount = (int)UInt128.PopCount(cellIndexBitSet & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block));
+                var cellCount = (cellIndexBitSet & SudokuBoardCellGeometry.GetBlockCellIndexBitSet(block)).GetPopCount();
                 if (cellCount >= minCount && cellCount <= maxCount)
                     destinationBuffer[length++] = (block, cellCount);
             }

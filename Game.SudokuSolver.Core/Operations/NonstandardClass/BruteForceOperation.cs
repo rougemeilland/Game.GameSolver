@@ -39,7 +39,7 @@ namespace Game.SudokuSolver.Operations.NonstandardClass
                 (~ws.DeterminedCellBitSet & SudokuBoardCellGeometry.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
                 .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex)))
-                .SelectMany(cell => ws.GetCellNoteDigitBitSet(cell.cellIndex).EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
+                .SelectMany(cell => ws.GetCellNoteDigitBitSet(cell.cellIndex).EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, excludedCellNoteCount: (ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet).GetPopCount()))
                 .OrderByDescending(item => item.excludedCellNoteCount)
                 .ThenBy(item => item.cellIndex)
                 .ThenBy(item => item.cellNoteDigit)

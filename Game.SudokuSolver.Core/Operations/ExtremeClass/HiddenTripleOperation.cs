@@ -92,7 +92,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                     {
                                         // 指定されたハウスにおいて、keyCellDigitC が何れかのセルの数字の候補に存在する
                                         var keyCellIndexBitSet = keyCellIndexBitSetA | keyCellIndexBitSetB | keyCellIndexBitSetC;
-                                        if (UInt128.PopCount(keyCellIndexBitSet) == 3)
+                                        if (keyCellIndexBitSet.GetPopCount() == 3u)
                                         {
                                             // あるハウスにおいて、ある三つの数字が三つのセルのみの候補に存在する
                                             // => 隠れ三国同盟が成立している

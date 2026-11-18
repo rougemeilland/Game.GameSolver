@@ -202,7 +202,7 @@ namespace Game.SudokuSolver.Operations
                         "\n",
                         degenerationTextLines
                         .Zip(Enumerable.Range(1, int.MaxValue - 1), (message, n) => $"  {n}) {message}"));
-                if (!UInt128.IsPow2(finCellIndexBitSet))
+                if (!finCellIndexBitSet.IsSingleBit())
                 {
                     // フィンのセルが複数存在する場合
                     return
@@ -251,7 +251,7 @@ namespace Game.SudokuSolver.Operations
             {
                 // フィッシュが退化可能ではない場合 (フィン付きフィッシュ)
 
-                if (!UInt128.IsPow2(finCellIndexBitSet))
+                if (!finCellIndexBitSet.IsSingleBit())
                 {
                     // フィンのセルが複数存在する場合
                     return

@@ -21,22 +21,22 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         /// <summary>
         /// 行の数の最大値
         /// </summary>
-        private const int _MAX_ROWS = 9;
+        private const ushort _MAX_ROWS = 9;
 
         /// <summary>
         /// 列の数の最大値
         /// </summary>
-        private const int _MAX_COLUMNS = 9;
+        private const ushort _MAX_COLUMNS = 9;
 
         /// <summary>
         /// フィッシュの大きさ
         /// </summary>
-        private const int _FISH_SIZE = 3;
+        private const ushort _FISH_SIZE = 3;
 
         /// <summary>
         /// ベースライン上で対象の数字を持つセルの数の最小値
         /// </summary>
-        private const int _MIN_BASE_LINE_CELLS =
+        private const ushort _MIN_BASE_LINE_CELLS =
             _MIN_WITHOUT_FIN_BASE_LINE_CELLS < _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS
             ? _MIN_WITHOUT_FIN_BASE_LINE_CELLS
             : _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS;
@@ -44,7 +44,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         /// <summary>
         /// ベースライン上で対象の数字を持つセルの数の最大値
         /// </summary>
-        private const int _MAX_BASE_LINE_CELLS =
+        private const ushort _MAX_BASE_LINE_CELLS =
             _MAX_WITHOUT_FIN_BASE_LINE_CELLS > _MAX_WITH_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS
             ? _MAX_WITHOUT_FIN_BASE_LINE_CELLS
             : _MAX_WITH_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS;
@@ -52,42 +52,42 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
         /// <summary>
         /// フィンを含まないベースライン上で対象の数字を持つセルの数の最小値
         /// </summary>
-        private const int _MIN_WITHOUT_FIN_BASE_LINE_CELLS = 2;
+        private const ushort _MIN_WITHOUT_FIN_BASE_LINE_CELLS = 2;
 
         /// <summary>
         /// フィンを含まないベースライン上で対象の数字を持つセルの数の最大値
         /// </summary>
-        private const int _MAX_WITHOUT_FIN_BASE_LINE_CELLS = _FISH_SIZE;
+        private const ushort _MAX_WITHOUT_FIN_BASE_LINE_CELLS = _FISH_SIZE;
 
         /// <summary>
         /// フィンを含むベースライン上でフィン以外に対象の数字を持つセルの数の最小値
         /// </summary>
-        private const int _MIN_WITH_FIN_BASE_LINE_CELLS = 1;
+        private const ushort _MIN_WITH_FIN_BASE_LINE_CELLS = 1;
 
         /// <summary>
         /// フィンを含むベースライン上でフィン以外に対象の数字を持つセルの数の最大値
         /// </summary>
-        private const int _MAX_WITH_FIN_BASE_LINE_CELLS = _FISH_SIZE;
+        private const ushort _MAX_WITH_FIN_BASE_LINE_CELLS = _FISH_SIZE;
 
         /// <summary>
         /// フィンのセルの数の最小値
         /// </summary>
-        private const int _MIN_FIN_CELLS = 1;
+        private const ushort _MIN_FIN_CELLS = 1;
 
         /// <summary>
         /// フィンのセルの数の最大値
         /// </summary>
-        private const int _MAX_FIN_CELLS = 2;
+        private const ushort _MAX_FIN_CELLS = 2;
 
         /// <summary>
         /// カバーライン上で対象の数字を持つセルの数の最小値
         /// </summary>
-        private const int _MIN_COVER_LINE_CELLS = 1;
+        private const ushort _MIN_COVER_LINE_CELLS = 1;
 
         /// <summary>
         /// カバーライン上で対象の数字を持つセルの数の最大値
         /// </summary>
-        private const int _MAX_COVER_LINE_CELLS = _FISH_SIZE;
+        private const ushort _MAX_COVER_LINE_CELLS = _FISH_SIZE;
 
         private FinnedSwordfishOperation(
             bool isDegeneratable,
@@ -115,7 +115,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
             // 4) Col1 のハウスのセルには Row1, Row2, Row3 との交差点の何れかに 1 個以上の数字の候補 D を持つセルが存在し、かつ
             // 5) Col2 のハウスのセルには Row1, Row2, Row3 との交差点の何れかに 1 個以上の数字の候補 D を持つセルが存在し、かつ
             // 6) Col3 のハウスのセルには Row1, Row2, Row3 との交差点の何れかに 1 個以上の数字の候補 D を持つセルが存在し、かつ
-            // 7) Row3 のハウスのうち Col1, Col2, Col3 との交差点以外に数字の候補 D を持つセル (フィン) が 1 個以上 2 個以下存在し、かつ
+            // 7) Row3 のハウスのうち Col1, Col2, Col3 との交差点以外に数字の候補 D を持つセル (フィン) の数が 1 個以上 2 個以下であり、かつ
             // 8) 全てのフィンのセルが同一ブロックに存在している場合。
             //
             // => フィンの何れかのセルに数字 D が入るかどうかの仮定を行ってみる。
@@ -144,7 +144,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
             // 行ハウスがベースラインの場合
             {
-                var keyRowsBuffer = ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Rent(_MAX_ROWS);
+                var keyRowsBuffer = ArrayPool<(SudokuBoardCellRow row, ushort cellCount)>.Shared.Rent(_MAX_ROWS);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -155,13 +155,13 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 }
                 finally
                 {
-                    ArrayPool<(SudokuBoardCellRow row, int cellCount)>.Shared.Return(keyRowsBuffer);
+                    ArrayPool<(SudokuBoardCellRow row, ushort cellCount)>.Shared.Return(keyRowsBuffer);
                 }
             }
 
             // 列ハウスがベースラインの場合
             {
-                var keyColumnsBuffer = ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Rent(_MAX_COLUMNS);
+                var keyColumnsBuffer = ArrayPool<(SudokuBoardCellColumn column, ushort cellCount)>.Shared.Rent(_MAX_COLUMNS);
                 try
                 {
                     for (var digit = SudokuBoardCellDigit.MinValue; digit <= SudokuBoardCellDigit.MaxValue; ++digit)
@@ -172,11 +172,11 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 }
                 finally
                 {
-                    ArrayPool<(SudokuBoardCellColumn column, int cellCount)>.Shared.Return(keyColumnsBuffer);
+                    ArrayPool<(SudokuBoardCellColumn column, ushort cellCount)>.Shared.Return(keyColumnsBuffer);
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellRow row, int cellCount)> keyRowsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByRowHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellRow row, ushort cellCount)> keyRowsBuffer)
             {
                 // フィン付きソードフィッシュを適用できる行を、digit を候補に持つセルがの数の範囲によって抽出する。
                 var keyRows = allCellIndexBitSet.ExtractRowsByCellCount(keyRowsBuffer, _MIN_BASE_LINE_CELLS, _MAX_BASE_LINE_CELLS);
@@ -193,7 +193,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var keyRowHouse1 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow1);
                         var keyRowCellIndexBitSet1 = allCellIndexBitSet & keyRowHouse1;
 #if DEBUG
-                        System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet1) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                        System.Diagnostics.Debug.Assert(keyRowCellIndexBitSet1.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
 #endif
                         for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyRows.Length; ++keyIndex2)
                         {
@@ -203,7 +203,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 var keyRowHouse2 = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow2);
                                 var keyRowCellIndexBitSet2 = allCellIndexBitSet & keyRowHouse2;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet2) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                                System.Diagnostics.Debug.Assert(keyRowCellIndexBitSet2.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
 #endif
                                 for (var keyIndex3F = 0; keyIndex3F < keyRows.Length; ++keyIndex3F)
                                 {
@@ -215,7 +215,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             var keyRowHouse3F = SudokuBoardCellGeometry.GetRowCellIndexBitSet(keyRow3F);
                                             var keyRowCellIndexBitSet3F = allCellIndexBitSet & keyRowHouse3F;
 #if DEBUG
-                                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyRowCellIndexBitSet3F) is >= _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS);
+                                            System.Diagnostics.Debug.Assert(keyRowCellIndexBitSet3F.GetPopCount() is >= _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS);
 #endif
                                             // keyRow3F に存在し得るフィンの位置のパターン (フィンの個数が規定範囲内でありかつフィン同士は同じ行・ブロックに存在する) を取得する。(全 18 通り)
                                             var finPatterns = SudokuBoardCellGeometry.GetFinCellPatterns(keyRow3F);
@@ -228,17 +228,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 System.Diagnostics.Debug.Assert((finCellsBitMask & keyRowHouse3F) != 0);
                                                 System.Diagnostics.Debug.Assert((finCellsBitMask & ~keyRowHouse3F) == 0);
                                                 System.Diagnostics.Debug.Assert(finCellsBitMask.ExistAllCellsInOneBlock(out _));
-                                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellsBitMask) is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
+                                                System.Diagnostics.Debug.Assert(finCellsBitMask.GetPopCount() is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
 #endif
                                                 var finCellIndexBitSet = keyRowCellIndexBitSet3F & finCellsBitMask;
                                                 if (finCellIndexBitSet != 0)
                                                 {
 #if DEBUG
-                                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
+                                                    System.Diagnostics.Debug.Assert(finCellIndexBitSet.GetPopCount() is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
                                                     System.Diagnostics.Debug.Assert(finCellIndexBitSet.ExistAllCellsInOneBlock(out _));
 #endif
                                                     var keyRowCellIndexBitSet3 = keyRowCellIndexBitSet3F & ~finCellsBitMask;
-                                                    if ((int)UInt128.PopCount(keyRowCellIndexBitSet3) is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS)
+                                                    if (keyRowCellIndexBitSet3.GetPopCount() is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS)
                                                     {
                                                         var keyColumnBitSet = (keyRowCellIndexBitSet1 | keyRowCellIndexBitSet2 | keyRowCellIndexBitSet3).GetUnionByColumn();
                                                         if (keyColumnBitSet.GetPopCount() == _FISH_SIZE)
@@ -285,7 +285,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 }
             }
 
-            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellColumn column, int cellCount)> keyColumnsBuffer)
+            static IEnumerable<SudokuBoardOperation> MatchPatternByColumnHouse(SudokuBoardCellDigit digit, UInt128 allCellIndexBitSet, Memory<(SudokuBoardCellColumn column, ushort cellCount)> keyColumnsBuffer)
             {
                 // フィン付きソードフィッシュを適用できる列を、digit を候補に持つセルがの数の範囲によって抽出する。
                 var keyColumns = allCellIndexBitSet.ExtractColumnsByCellCount(keyColumnsBuffer, _MIN_BASE_LINE_CELLS, _MAX_BASE_LINE_CELLS);
@@ -302,7 +302,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                         var keyColumnHouse1 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn1);
                         var keyColumnCellIndexBitSet1 = allCellIndexBitSet & keyColumnHouse1;
 #if DEBUG
-                        System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet1) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                        System.Diagnostics.Debug.Assert(keyColumnCellIndexBitSet1.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
 #endif
                         for (var keyIndex2 = keyIndex1 + 1; keyIndex2 < keyColumns.Length; ++keyIndex2)
                         {
@@ -312,7 +312,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                 var keyColumnHouse2 = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn2);
                                 var keyColumnCellIndexBitSet2 = allCellIndexBitSet & keyColumnHouse2;
 #if DEBUG
-                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet2) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                                System.Diagnostics.Debug.Assert(keyColumnCellIndexBitSet2.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
 #endif
                                 for (var keyIndex3F = 0; keyIndex3F < keyColumns.Length; ++keyIndex3F)
                                 {
@@ -324,7 +324,7 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                             var keyColumnHouse3F = SudokuBoardCellGeometry.GetColumnCellIndexBitSet(keyColumn3F);
                                             var keyColumnCellIndexBitSet3F = allCellIndexBitSet & keyColumnHouse3F;
 #if DEBUG
-                                            System.Diagnostics.Debug.Assert((int)UInt128.PopCount(keyColumnCellIndexBitSet3F) is >= _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS);
+                                            System.Diagnostics.Debug.Assert(keyColumnCellIndexBitSet3F.GetPopCount() is >= _MIN_WITH_FIN_BASE_LINE_CELLS + _MIN_FIN_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS + _MAX_FIN_CELLS);
 #endif
                                             // keyColumn3F に存在し得るフィンの位置のパターン (フィンの個数が規定範囲内でありかつフィン同士は同じ行・ブロックに存在する) を取得する。(全 18 通り)
                                             var finPatterns = SudokuBoardCellGeometry.GetFinCellPatterns(keyColumn3F);
@@ -337,17 +337,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                                                 System.Diagnostics.Debug.Assert((finCellsBitMask & keyColumnHouse3F) != 0);
                                                 System.Diagnostics.Debug.Assert((finCellsBitMask & ~keyColumnHouse3F) == 0);
                                                 System.Diagnostics.Debug.Assert(finCellsBitMask.ExistAllCellsInOneBlock(out _));
-                                                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellsBitMask) is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
+                                                System.Diagnostics.Debug.Assert(finCellsBitMask.GetPopCount() is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
 #endif
                                                 var finCellIndexBitSet = keyColumnCellIndexBitSet3F & finCellsBitMask;
                                                 if (finCellIndexBitSet != 0)
                                                 {
 #if DEBUG
-                                                    System.Diagnostics.Debug.Assert((int)UInt128.PopCount(finCellIndexBitSet) is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
+                                                    System.Diagnostics.Debug.Assert(finCellIndexBitSet.GetPopCount() is >= _MIN_FIN_CELLS and <= _MAX_FIN_CELLS);
                                                     System.Diagnostics.Debug.Assert(finCellIndexBitSet.ExistAllCellsInOneBlock(out _));
 #endif
                                                     var keyColumnCellIndexBitSet3 = keyColumnCellIndexBitSet3F & ~finCellsBitMask;
-                                                    if ((int)UInt128.PopCount(keyColumnCellIndexBitSet3) is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS)
+                                                    if (keyColumnCellIndexBitSet3.GetPopCount() is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS)
                                                     {
                                                         var keyColumnBitSet = (keyColumnCellIndexBitSet1 | keyColumnCellIndexBitSet2 | keyColumnCellIndexBitSet3).GetUnionByRow();
                                                         if (keyColumnBitSet.GetPopCount() == _FISH_SIZE)
@@ -411,12 +411,12 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
                 SashimiFishDegeneratable sashimi)
             {
 #if DEBUG
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(baseLineHouse1.cellIndexBitSet) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(baseLineHouse2.cellIndexBitSet) is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(baseLineHouse3F.cellIndexBitSet) is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS);
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(coverLineHouse1.houseBitMask & allExceptFinKeyCellIndexBitSet) is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(coverLineHouse2.houseBitMask & allExceptFinKeyCellIndexBitSet) is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
-                System.Diagnostics.Debug.Assert((int)UInt128.PopCount(coverLineHouse3.houseBitMask & allExceptFinKeyCellIndexBitSet) is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
+                System.Diagnostics.Debug.Assert(baseLineHouse1.cellIndexBitSet.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                System.Diagnostics.Debug.Assert(baseLineHouse2.cellIndexBitSet.GetPopCount() is >= _MIN_WITHOUT_FIN_BASE_LINE_CELLS and <= _MAX_WITHOUT_FIN_BASE_LINE_CELLS);
+                System.Diagnostics.Debug.Assert(baseLineHouse3F.cellIndexBitSet.GetPopCount() is >= _MIN_WITH_FIN_BASE_LINE_CELLS and <= _MAX_WITH_FIN_BASE_LINE_CELLS);
+                System.Diagnostics.Debug.Assert((coverLineHouse1.houseBitMask & allExceptFinKeyCellIndexBitSet).GetPopCount() is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
+                System.Diagnostics.Debug.Assert((coverLineHouse2.houseBitMask & allExceptFinKeyCellIndexBitSet).GetPopCount() is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
+                System.Diagnostics.Debug.Assert((coverLineHouse3.houseBitMask & allExceptFinKeyCellIndexBitSet).GetPopCount() is >= _MIN_COVER_LINE_CELLS and <= _MAX_COVER_LINE_CELLS);
 #endif
                 var baseLineHouseBitMask = baseLineHouse1.houseBitMask | baseLineHouse2.houseBitMask | baseLineHouse3F.houseBitMask;
                 var coverLineHouseBitMask = coverLineHouse1.houseBitMask | coverLineHouse2.houseBitMask | coverLineHouse3.houseBitMask;
@@ -434,17 +434,17 @@ namespace Game.SudokuSolver.Operations.ExtremeClass
 
                 // 単一の要素しか持たないビット集合のハウスを探す
                 var oneOfIsolatedCellLineHouse =
-                    __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && UInt128.IsPow2(baseLineHouse1.cellIndexBitSet)
+                    __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && baseLineHouse1.cellIndexBitSet.IsSingleBit()
                     ? FishLineHouseType.BaseLine1
-                    : __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && UInt128.IsPow2(baseLineHouse2.cellIndexBitSet)
+                    : __IT_IS_SELF_EVIDENT_THAT_THIS_CONDITION_DOES_NOT_HOLD__ && baseLineHouse2.cellIndexBitSet.IsSingleBit()
                     ? FishLineHouseType.BaseLine2
-                    : UInt128.IsPow2(baseLineHouse3F.cellIndexBitSet)
+                    : baseLineHouse3F.cellIndexBitSet.IsSingleBit()
                     ? FishLineHouseType.BaseLine3
-                    : UInt128.IsPow2(coverLineHouse1.houseBitMask & allExceptFinKeyCellIndexBitSet)
+                    : (coverLineHouse1.houseBitMask & allExceptFinKeyCellIndexBitSet).IsSingleBit()
                     ? FishLineHouseType.CoverLine1
-                    : UInt128.IsPow2(coverLineHouse2.houseBitMask & allExceptFinKeyCellIndexBitSet)
+                    : (coverLineHouse2.houseBitMask & allExceptFinKeyCellIndexBitSet).IsSingleBit()
                     ? FishLineHouseType.CoverLine2
-                    : UInt128.IsPow2(coverLineHouse3.houseBitMask & allExceptFinKeyCellIndexBitSet)
+                    : (coverLineHouse3.houseBitMask & allExceptFinKeyCellIndexBitSet).IsSingleBit()
                     ? FishLineHouseType.CoverLine3
                     : FishLineHouseType.None;
                 return

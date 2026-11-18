@@ -44,7 +44,7 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                 (~ws.DeterminedCellBitSet & SudokuBoardCellGeometry.AllCellIndexBitSet)
                 .EnumerateAsCellIndexes()
                 .Select(cellIndex => (cellIndex, visibleCellsBitSet: SudokuBoardCellGeometry.GetVisibleCellIndexBitSet(cellIndex), notes: ws.GetCellNoteDigitBitSet(cellIndex)))
-                .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), excludedCellNoteCount: (int)UInt128.PopCount(ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet)))
+                .SelectMany(cell => cell.notes.EnumerateAsCellDigits(), (cell, cellNoteDigit) => (cell.cellIndex, cellNoteDigit, cellNoteCount: cell.notes.GetPopCount(), excludedCellNoteCount: (ws.GetCellIndexBitSet(cellNoteDigit) & cell.visibleCellsBitSet).GetPopCount()))
                 .OrderBy(item => item.cellNoteCount)
                 .ThenByDescending(item => item.excludedCellNoteCount)
                 .ThenBy(item => item.cellIndex)

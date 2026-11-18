@@ -96,7 +96,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                 var houseNoteMask = ~ws.DeterminedCellBitSet & houseMask;
 
                 // ハウス内の未確定セルの数が 5 未満の場合、四国同盟が成立しないかあるいは仮に成立したとしても数字の候補を排除可能な他の未確定セルが存在しないため、検索を中断する
-                if (UInt128.PopCount(houseNoteMask) < 5)
+                if (houseNoteMask.GetPopCount() < 5u)
                     yield break;
 
                 // 四国同盟の可能性があるセルを抽出する
@@ -124,7 +124,7 @@ namespace Game.SudokuSolver.Operations.HardClass
                                 var keyCellDigitBitSet4 = ws.GetCellNoteDigitBitSet(keyCellIndex4);
 
                                 var keyCellDigitBitSet = keyCellDigitBitSet1 | keyCellDigitBitSet2 | keyCellDigitBitSet3 | keyCellDigitBitSet4;
-                                if (keyCellDigitBitSet.GetPopCount() == 4)
+                                if (keyCellDigitBitSet.GetPopCount() == 4u)
                                 {
                                     // この時点で、keyCellIndex1 と keyCellIndex2 と keyCellIndex3 と keyCellIndex4 が示す四つのセルの数字の候補の和集合の大きさが 4 である、つまり四国同盟が成立している。
                                     // ただし、四国同盟によって排除可能な数字の候補を持つセルが存在するかどうかはまだわからない。

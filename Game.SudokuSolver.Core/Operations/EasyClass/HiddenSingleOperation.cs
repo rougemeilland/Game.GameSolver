@@ -79,7 +79,7 @@ namespace Game.SudokuSolver.Operations.EasyClass
             static HiddenSingleOperation? MatchPatternByHouse(SudokuBoardWorkspace ws, string houseName, UInt128 houseBitMask, SudokuBoardCellDigit cellDigit, UInt128 cellIndexBitSet)
             {
                 var foundBitSet = cellIndexBitSet & houseBitMask;
-                if (UInt128.PopCount(foundBitSet) != 1)
+                if (foundBitSet.GetPopCount() != 1u)
                     return null;
                 var determinedCellIndex = foundBitSet.AsSingleCellIndex();
                 var excludedCellNotes =
