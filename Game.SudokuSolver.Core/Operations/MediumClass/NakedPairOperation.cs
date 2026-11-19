@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.MediumClass
 {
     /// <summary>
-    /// 二国同盟パターンのオペレーションのクラスです。
+    /// 二国同盟のオペレーションのクラスです。
     /// </summary>
     internal sealed class NakedPairOperation
         : SudokuBoardRemoveCellNoteOperation

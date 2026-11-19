@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.ExtremeClass
 {
     /// <summary>
-    /// フィン付きX-ウィングとサシミX-ウィングのパターンのオペレーションのクラスです。
+    /// フィン付きX-ウィングとサシミX-ウィングのオペレーションのクラスです。
     /// </summary>
     /// <remarks>
     /// フィン付きX-ウィングとサシミX-ウィングの論拠では以下の手法の論拠を前提にしています。

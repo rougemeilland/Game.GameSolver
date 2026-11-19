@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.HardClass
 {
     /// <summary>
-    /// ソードフィッシュパターンのオペレーションのクラスです。
+    /// ソードフィッシュのオペレーションのクラスです。
     /// </summary>
     internal sealed class SwordfishOperation
         : SudokuBoardRemoveCellNoteOperation

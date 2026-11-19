@@ -29,6 +29,11 @@
         PositivelyHighlightedType3,
 
         /// <summary>
+        /// 肯定的に強調されている背景効果です。(タイプ4)
+        /// </summary>
+        PositivelyHighlightedType4,
+
+        /// <summary>
         /// 肯定的に強調されている背景効果です。(タイプ2)
         /// </summary>
         PositivelyHighlightedType2,

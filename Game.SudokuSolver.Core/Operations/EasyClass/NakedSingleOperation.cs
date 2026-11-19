@@ -5,7 +5,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.EasyClass
 {
     /// <summary>
-    /// ネイキッドシングルパターンのオペレーションのクラスです。
+    /// ネイキッドシングルのオペレーションのクラスです。
     /// </summary>
     internal sealed class NakedSingleOperation
         : SudokuBoardDetermineCellOperation

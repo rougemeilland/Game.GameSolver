@@ -5,7 +5,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.HardClass
 {
     /// <summary>
-    /// 隠れ二国同盟パターンのオペレーションのクラスです。
+    /// 隠れ二国同盟のオペレーションのクラスです。
     /// </summary>
     internal sealed class HiddenPairOperation
         : SudokuBoardRemoveCellNoteOperation

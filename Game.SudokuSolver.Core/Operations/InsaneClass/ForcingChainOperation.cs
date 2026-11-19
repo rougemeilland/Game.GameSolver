@@ -6,7 +6,7 @@ using Game.GameSolver;
 namespace Game.SudokuSolver.Operations.InsaneClass
 {
     /// <summary>
-    /// 強制チェーンパターンのオペレーションのクラスです。
+    /// 強制チェーンのオペレーションのクラスです。
     /// </summary>
     internal sealed class ForcingChainOperation
         : SudokuBoardRemoveCellNoteOperation

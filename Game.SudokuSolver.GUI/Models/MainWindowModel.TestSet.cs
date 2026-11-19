@@ -6,7 +6,7 @@ namespace Game.SudokuSolver.GUI.Models
     internal partial class MainWindowModel
     {
         private static SudokuGameBoard CreateModelForTest()
-            => CreateModelForTest_Skyscraper3();
+            => CreateModelForTest_Hardr();
 
         private static SudokuGameBoard CreateModelForTest_Beginner()
             => new(
@@ -956,6 +956,38 @@ namespace Game.SudokuSolver.GUI.Models
                     "895637124" +
                     "200984003"),
                  SudokuBoardOperationType.Skyscraper);
+
+        #endregion
+
+        #region 2 String Kite
+
+        private static SudokuGameBoard CreateModelForTest_TwoStringKite1()
+            => new(
+                CreateBoardDigits(
+                    "024307896" +
+                    "867429315" +
+                    "300860472" +
+                    "456782139" +
+                    "030604008" +
+                    "080930064" +
+                    "003046087" +
+                    "640078003" +
+                    "278593641"),
+                 SudokuBoardOperationType.TwoStringKite);
+
+        private static SudokuGameBoard CreateModelForTest_TwoStringKite2()
+            => new(
+                CreateBoardDigits(
+                    "608200100" +
+                    "109408006" +
+                    "304610080" +
+                    "860000000" +
+                    "700046800" +
+                    "495821637" +
+                    "940102568" +
+                    "580064002" +
+                    "206580400"),
+                 SudokuBoardOperationType.TwoStringKite);
 
         #endregion
 

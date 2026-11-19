@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.HardClass
 {
     /// <summary>
-    /// 四国同盟パターンのオペレーションのクラスです。
+    /// 四国同盟のオペレーションのクラスです。
     /// </summary>
     internal sealed class NakedQuadOperation
         : SudokuBoardRemoveCellNoteOperation

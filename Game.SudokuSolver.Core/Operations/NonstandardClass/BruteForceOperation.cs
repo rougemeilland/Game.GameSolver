@@ -5,7 +5,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.NonstandardClass
 {
     /// <summary>
-    /// 総当たりパターンのオペレーションのクラスです。
+    /// 総当たりのオペレーションのクラスです。
     /// </summary>
     internal sealed class BruteForceOperation
         : SudokuBoardDetermineCellOperation

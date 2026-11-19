@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game.SudokuSolver.Operations.InsaneClass
 {
     /// <summary>
-    /// Sue de Coq (スー・デ・コック) パターンのオペレーションのクラスです。
+    /// Sue de Coq (スー・デ・コック) のオペレーションのクラスです。
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
@@ -149,14 +149,29 @@ namespace Game.SudokuSolver.Operations.InsaneClass
                 Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer,
                 Memory<SudokuBoardCellPositionDigit> excludedCellNotesBuffer)
             {
+#if DEBUG
                 System.Diagnostics.Debug.Assert(block is >= SudokuBoardCellBlock.MinValue and <= SudokuBoardCellBlock.MaxValue);
-                return
-                    MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer)
-                    .Concat(MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
-                    .Concat(MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
-                    .Concat(MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
-                    .Concat(MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
-                    .Concat(MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer));
+#endif
+                foreach (var operation in MatchPatternByHouse4(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse5(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse6(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse7(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse8(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse9(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse10(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse11(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse12(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
+                foreach (var operation in MatchPatternByHouse13(ws, block, blockHouseMask, columnOrRowHouseMask, blockHouseName, columnOrRowHouseName, keyCellIIndexesBuffer, excludedCellNotesBuffer))
+                    yield return operation;
             }
         }
 
@@ -178,16 +193,15 @@ namespace Game.SudokuSolver.Operations.InsaneClass
         /// <returns>
         /// セルの位置を格納した配列とその実際の長さを示す <see cref="ReadOnlyMemory{T}"/> 値です。
         /// </returns>
-        private static ReadOnlyMemory<SudokuBoardCellIndex> SearchKeyCells(SudokuBoardWorkspace ws, int maxCellNoteCount, UInt128 cellBitSet, Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
+        private static ReadOnlyMemory<SudokuBoardCellIndex> ExtractKeyCells(SudokuBoardWorkspace ws, [ConstantExpected(Min = 4, Max = 13)] int maxCellNoteCount, UInt128 cellBitSet, Memory<SudokuBoardCellIndex> keyCellIIndexesBuffer)
         {
             var destinationBuffer = keyCellIIndexesBuffer.Span;
             var length = 0;
             while (cellBitSet != 0)
             {
                 var cellIndex = cellBitSet.GetOneCellIndex();
-                if (!ws.IsDetermined(cellIndex) && ws.GetCellNoteDigitBitSet(cellIndex).GetPopCount() <= maxCellNoteCount)
+                if (!ws.IsDetermined(cellIndex) && (maxCellNoteCount >= 9 || ws.GetCellNoteDigitBitSet(cellIndex).GetPopCount() <= maxCellNoteCount))
                     destinationBuffer[length++] = cellIndex;
-
                 cellBitSet &= ~cellIndex.ToCellIndexBitSet();
             }
 

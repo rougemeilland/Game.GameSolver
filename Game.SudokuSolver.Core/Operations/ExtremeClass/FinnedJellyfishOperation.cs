@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.ExtremeClass
 {
     /// <summary>
-    /// フィン付きジェリーフィッシュとサシミジェリーフィッシュのパターンのオペレーションのクラスです。
+    /// フィン付きジェリーフィッシュとサシミジェリーフィッシュのオペレーションのクラスです。
     /// </summary>
     /// <remarks>
     /// フィン付きジェリーフィッシュとサシミジェリーフィッシュの論拠では以下の手法の論拠を前提にしています。

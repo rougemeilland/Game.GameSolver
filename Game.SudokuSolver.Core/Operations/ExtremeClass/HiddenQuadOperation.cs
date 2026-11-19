@@ -5,7 +5,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.ExtremeClass
 {
     /// <summary>
-    /// 隠れ四国同盟パターンのオペレーションのクラスです。
+    /// 隠れ四国同盟のオペレーションのクラスです。
     /// </summary>
     internal sealed class HiddenQuadOperation
         : SudokuBoardRemoveCellNoteOperation

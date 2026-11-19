@@ -5,7 +5,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.MediumClass
 {
     /// <summary>
-    /// ポインティングパターンのオペレーションのクラスです。
+    /// ポインティングのオペレーションのクラスです。
     /// </summary>
     internal sealed class PointingOperation
         : SudokuBoardRemoveCellNoteOperation

@@ -255,6 +255,7 @@ namespace Game.SudokuSolver
                         SudokuBoardOperationType.NakedQuad => NakedQuadOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.Skyscraper => SkyscraperOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.Swordfish => SwordfishOperation.MatchPattern(workspace),
+                        SudokuBoardOperationType.TwoStringKite => TwoStringKiteOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.XWing => XWingOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.HiddenQuad => HiddenQuadOperation.MatchPattern(workspace),
                         SudokuBoardOperationType.HiddenTriple => HiddenTripleOperation.MatchPattern(workspace),
@@ -335,6 +336,7 @@ namespace Game.SudokuSolver
                 .Concat(XWingOperation.MatchPattern(workspace))
                 .Concat(SwordfishOperation.MatchPattern(workspace))
                 .Concat(SkyscraperOperation.MatchPattern(workspace))
+                .Concat(TwoStringKiteOperation.MatchPattern(workspace))
 #if DEBUG
                 .Select(operation =>
                 {

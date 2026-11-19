@@ -64,6 +64,11 @@ namespace Game.SudokuSolver.GUI.Controls
                     c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
                     c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
                     break;
+                case SudokuBoardCellBackgroundEffect.PositivelyHighlightedType4:
+                    c.CellContainer.Background = Brushes.LightSkyBlue;
+                    c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Collapsed;
+                    c.PanelOfBlinkingBetweenType2AndType3.Visibility = Visibility.Collapsed;
+                    break;
                 case SudokuBoardCellBackgroundEffect.PositivelyHighlightedBlinkingType1AndType2:
                     c.CellContainer.Background = Brushes.Transparent;
                     c.PanelOfBlinkingBetweenType1AndType2.Visibility = Visibility.Visible;

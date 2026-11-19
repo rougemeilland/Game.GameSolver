@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.HardClass
 {
     /// <summary>
-    /// スカイスクレイパーパターンのオペレーションのクラスです。
+    /// スカイスクレイパーのオペレーションのクラスです。
     /// </summary>
     internal sealed class SkyscraperOperation
         : SudokuBoardRemoveCellNoteOperation

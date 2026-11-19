@@ -80,6 +80,11 @@
         Swordfish,
 
         /// <summary>
+        /// 2 String Kite
+        /// </summary>
+        TwoStringKite,
+
+        /// <summary>
         /// X-Wing
         /// </summary>
         XWing,

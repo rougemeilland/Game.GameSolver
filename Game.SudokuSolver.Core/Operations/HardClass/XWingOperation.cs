@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.HardClass
 {
     /// <summary>
-    /// X-ウィングパターンのオペレーションのクラスです。
+    /// X-ウィングのオペレーションのクラスです。
     /// </summary>
     internal sealed class XWingOperation
         : SudokuBoardRemoveCellNoteOperation

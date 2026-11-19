@@ -670,17 +670,16 @@ namespace SourceGenerator
                     sourceWriter.WriteLine("{");
                     sourceWriter.WriteLine("    internal partial class SueDeCoqOperation");
                     sourceWriter.WriteLine("    {");
-                    N国同盟(sourceWriter, 4);
-                    sourceWriter.WriteLine();
-                    N国同盟(sourceWriter, 5);
-                    sourceWriter.WriteLine();
-                    N国同盟(sourceWriter, 6);
-                    sourceWriter.WriteLine();
-                    N国同盟(sourceWriter, 7);
-                    sourceWriter.WriteLine();
-                    N国同盟(sourceWriter, 8);
-                    sourceWriter.WriteLine();
-                    N国同盟(sourceWriter, 9);
+
+                    var first = true;
+                    for (var numberOfAlliance = 4; numberOfAlliance <= 13; ++numberOfAlliance)
+                    {
+                        if (!first)
+                            sourceWriter.WriteLine();
+                        GenerateSuDeCoqCodeByNumberOfAlliance(sourceWriter, numberOfAlliance);
+                        first = false;
+                    }
+
                     sourceWriter.WriteLine("    }");
                     sourceWriter.WriteLine("}");
                 }
@@ -690,19 +689,8 @@ namespace SourceGenerator
                     File.SetAttributes(outputPath, outputFileAttribute | FileAttributes.ReadOnly);
                 }
 
-                static void N国同盟(StreamWriter sourceWriter, int numberOfAlliance)
+                static void GenerateSuDeCoqCodeByNumberOfAlliance(StreamWriter sourceWriter, int numberOfAlliance)
                 {
-                    var nameOfAlliance =
-                        numberOfAlliance switch
-                        {
-                            4 => "四国同盟",
-                            5 => "五国同盟",
-                            6 => "六国同盟",
-                            7 => "七国同盟",
-                            8 => "八国同盟",
-                            9 => "九国同盟",
-                            _ => throw new ApplicationException(),
-                        };
                     var nameOfPiecesNumber =
                         numberOfAlliance switch
                         {
@@ -712,6 +700,10 @@ namespace SourceGenerator
                             7 => "七つ",
                             8 => "八つ",
                             9 => "九つ",
+                            10 => "10個",
+                            11 => "11個",
+                            12 => "12個",
+                            13 => "13個",
                             _ => throw new ApplicationException(),
                         };
                     sourceWriter.WriteLine($"        #region MatchPatternByHouse{numberOfAlliance}");
@@ -789,7 +781,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            var lineWingCellBitMask = lineHouseMask & ~blockHouseMask;");
                     sourceWriter.WriteLine();
                     sourceWriter.WriteLine($"            // 数字が排他関係である可能性があるセルを抽出する");
-                    sourceWriter.WriteLine($"            var keyCellIIndexes = SearchKeyCells(ws, {numberOfAlliance}, bothHouseMask, keyCellIIndexesBuffer);");
+                    sourceWriter.WriteLine($"            var keyCellIIndexes = ExtractKeyCells(ws, {numberOfAlliance}, bothHouseMask, keyCellIIndexesBuffer);");
                     sourceWriter.WriteLine();
                     sourceWriter.WriteLine($"            // ハウス内の未確定かつ数字の候補が {numberOfAlliance} 個以下のセルが {numberOfAlliance} 個未満の場合、セルの数字が排他関係ではあり得ないので、検索を中断する");
                     sourceWriter.WriteLine($"            if (keyCellIIndexes.Length < {numberOfAlliance})");
@@ -802,20 +794,22 @@ namespace SourceGenerator
                     {
                         sourceWriter.WriteLine($"            {indent}for (var keyIndex{n + 1} = {(n <= 0 ? $"0" : $"keyIndex{n} + 1")}; keyIndex{n + 1} < keyCellIIndexes.Length{(n < numberOfAlliance - 1 ? $" - {numberOfAlliance - 1 - n}" : "")}; ++keyIndex{n + 1})");
                         sourceWriter.WriteLine($"            {indent}{{");
-                        sourceWriter.WriteLine($"            {indent}    var keyCellIndex{n + 1} = keyCellIIndexes.Span[keyIndex{n + 1}];");
-                        sourceWriter.WriteLine($"            {indent}    var keyDigitBitSet{n + 1} = ws.GetCellNoteDigitBitSet(keyCellIndex{n + 1});");
+                        if (n == 0)
+                        {
+                            sourceWriter.WriteLine($"            {indent}    var keyCellBitSet1_{n + 1} = keyCellIIndexes.Span[keyIndex{n + 1}].ToCellIndexBitSet();");
+                        }
+                        else if (n >= numberOfAlliance - 1)
+                        {
+                            sourceWriter.WriteLine($"            {indent}    // キーとなるすべてのセルの位置の和集合");
+                            sourceWriter.WriteLine($"            {indent}    var allKeyCellBitSet = keyCellBitSet1_{n} | keyCellIIndexes.Span[keyIndex{n + 1}].ToCellIndexBitSet();");
+                        }
+                        else
+                        {
+                            sourceWriter.WriteLine($"            {indent}    var keyCellBitSet1_{n + 1} = keyCellBitSet1_{n} | keyCellIIndexes.Span[keyIndex{n + 1}].ToCellIndexBitSet();");
+                        }
+
                         indentCount += 4;
                         indent = new string(' ', indentCount);
-                    }
-
-                    sourceWriter.WriteLine();
-                    sourceWriter.WriteLine($"            {indent}// キーとなるすべてのセルの位置の和集合");
-                    sourceWriter.WriteLine($"            {indent}var allKeyCellBitSet =");
-
-                    for (var n = 0; n < numberOfAlliance; ++n)
-                    {
-                        var alphaSymbol = (char)('A' + n);
-                        sourceWriter.WriteLine($"            {indent}    {(n > 0 ? "| " : "")}keyCellIndex{n + 1}.ToCellIndexBitSet(){(n >= numberOfAlliance - 1 ? ";" : "")}");
                     }
 
                     sourceWriter.WriteLine();
@@ -869,7 +863,7 @@ namespace SourceGenerator
                     sourceWriter.WriteLine($"            {indent}            excludedCellNotesBuffer[excludedCellNotesInBlock.Length..]);");
                     sourceWriter.WriteLine();
                     sourceWriter.WriteLine($"            {indent}    // 排除可能な数字の候補の存在を確認する");
-                    sourceWriter.WriteLine($"            {indent}    if (excludedCellNotesInBlock.Length > 0 || excludedCellNotesInLine.Length > 0)");
+                    sourceWriter.WriteLine($"            {indent}    if (excludedCellNotesInBlock.Length + excludedCellNotesInLine.Length > 0)");
                     sourceWriter.WriteLine($"            {indent}    {{");
                     sourceWriter.WriteLine($"            {indent}        // ブロックあるいはラインで排除可能な数字の候補が存在する場合");
                     sourceWriter.WriteLine($"            {indent}        // => Su de Coq 法を適用する。");

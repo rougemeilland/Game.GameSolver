@@ -6,7 +6,7 @@ using System.Linq;
 namespace Game.SudokuSolver.Operations.ExtremeClass
 {
     /// <summary>
-    /// ジェリーフィッシュパターンのオペレーションのクラスです。
+    /// ジェリーフィッシュのオペレーションのクラスです。
     /// </summary>
     internal sealed class JellyfishOperation
         : SudokuBoardRemoveCellNoteOperation
